@@ -3,7 +3,22 @@ import { CROPS, KNOWLEDGE_SNIPPETS } from '../data';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'qwen/qwen-2.5-72b-instruct';
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+}
 
 function retrieveLocalContext(query: string) {
   const contextParts: string[] = [];
@@ -152,6 +167,12 @@ function parseLLMResponse(text: string, dbSources: string[] = []): any {
 }
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
+  const getRemainingTime = (maxDurationMs: number) => {
+    const elapsed = Date.now() - startTime;
+    return Math.max(1000, maxDurationMs - elapsed);
+  };
+
   try {
     const { query, district = "ঢাকা", season = "বোরো" } = await request.json();
 
@@ -198,7 +219,7 @@ ${context || 'No specific crop matching the query.'}
     if (GEMINI_API_KEY) {
       try {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-        const res = await fetch(geminiUrl, {
+        const res = await fetchWithTimeout(geminiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -210,10 +231,11 @@ ${context || 'No specific crop matching the query.'}
               }
             ],
             generationConfig: {
-              responseMimeType: "application/json"
+              responseMimeType: "application/json",
+              maxOutputTokens: 1200
             }
           })
-        });
+        }, 4000); // 4 seconds timeout for native Gemini
 
         if (res.ok) {
           const data = await res.json();
@@ -228,10 +250,11 @@ ${context || 'No specific crop matching the query.'}
       }
     }
 
-    // 2. Try OpenRouter (Qwen) as fallback
+    // 2. Try OpenRouter as fallback
     if (OPENROUTER_API_KEY) {
       try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        const remainingTime = getRemainingTime(8200); // 8.2 seconds maximum total budget
+        const res = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
           method: 'POST',
           headers: {
             "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
@@ -245,9 +268,10 @@ ${context || 'No specific crop matching the query.'}
               { role: "system", content: systemPrompt + "\nResponse must be valid JSON matching the schema." },
               { role: "user", content: userPrompt }
             ],
-            response_format: { type: "json_object" }
+            response_format: { type: "json_object" },
+            max_tokens: 1200
           })
-        });
+        }, remainingTime);
 
         if (res.ok) {
           const data = await res.json();
@@ -262,11 +286,18 @@ ${context || 'No specific crop matching the query.'}
       }
     }
 
-    // 3. Fallback error response if both keys fail or are empty
+    // 3. Fallback error response if both keys fail, are empty, or time out
+    const dbFallbackText = context 
+      ? `কৃষক ভাই, দুঃখিত যে সার্ভার বা নেটওয়ার্ক সমস্যার কারণে আমি সরাসরি লাইভ সেবা দিয়ে আপনাকে সম্পূর্ণ পরামর্শ দিতে পারছি না। তবে আমার গাছের ডাক্তার তথ্যশালা অনুযায়ী আপনার প্রশ্নের প্রাসঙ্গিক তথ্য নিচে দেওয়া হলো:\n\n${context}\n\nঅনুগ্রহ করে বিস্তারিত ও জরুরি পরামর্শের জন্য আপনার নিকটস্থ উপজেলা কৃষি অফিসে যোগাযোগ করুন।`
+      : 'কৃষক ভাই, দুঃখিত যে সার্ভার বা নেটওয়ার্ক সমস্যার কারণে গাছের ডাক্তারের লাইভ সেবা এই মুহূর্তে সাময়িকভাবে বন্ধ রয়েছে। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করে কিছুক্ষণ পর আবার চেষ্টা করুন।';
+
     return NextResponse.json({
-      error: true,
-      message: 'দুঃখিত, ইন্টারনেট সংযোগ না থাকায় বা সার্ভার সমস্যার কারণে গাছের ডাক্তারের লাইভ সেবা এই মুহূর্তে সচল নেই। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ সচল করে আবার চেষ্টা করুন।'
-    }, { status: 500 });
+      answer_bn: dbFallbackText,
+      sources: dbSources.length > 0 ? dbSources : ["গাছের ডাক্তার তথ্যশালা"],
+      confidence: 0.7,
+      follow_up_questions: ["কীভাবে সারের সঠিক ব্যবহার নিশ্চিত করব?", "নিকটস্থ উপজেলা কৃষি অফিস কোথায় পাবো?"],
+      action_suggestions: []
+    });
 
   } catch (error: any) {
     return NextResponse.json({ error: `Internal Server Error: ${error.message}` }, { status: 500 });
