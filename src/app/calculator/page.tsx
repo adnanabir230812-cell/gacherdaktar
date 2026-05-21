@@ -1,0 +1,256 @@
+'use client';
+
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Calculator, Sprout, Landmark, ArrowRight, HelpCircle, ClipboardList } from 'lucide-react';
+import { Crop, CROPS } from '../api/data';
+
+interface CalculationResult {
+  urea: number;
+  tsp: number;
+  mop: number;
+  gypsum: number;
+  zinc: number;
+  guidelines: string[];
+}
+
+function CalculatorContent() {
+  const searchParams = useSearchParams();
+  const [crops, setCrops] = useState<Crop[]>([]);
+  const [selectedCropId, setSelectedCropId] = useState('');
+  const [selectedSeason, setSelectedSeason] = useState('বোরো');
+  const [landSize, setLandSize] = useState<number | ''>(1);
+  const [landUnit, setLandUnit] = useState('bigha'); // bigha or decimal
+  const [result, setResult] = useState<CalculationResult | null>(null);
+
+  // Initialize data
+  useEffect(() => {
+    setCrops(CROPS);
+    const cropFromUrl = searchParams.get('crop');
+    if (cropFromUrl) {
+      setSelectedCropId(cropFromUrl);
+    } else if (CROPS.length > 0) {
+      setSelectedCropId(CROPS[0].id);
+    }
+  }, [searchParams]);
+
+  // Dynamic calculations
+  useEffect(() => {
+    if (!selectedCropId || landSize === '' || landSize <= 0) {
+      setResult(null);
+      return;
+    }
+
+    const crop = CROPS.find(c => c.id === selectedCropId);
+    if (!crop) return;
+
+    let rule = crop.fertilizers.find(f => f.season === selectedSeason);
+    if (!rule) rule = crop.fertilizers[0];
+
+    // Convert land size to bighas (1 bigha = 33 decimals)
+    const landInBigha = landUnit === 'decimal' ? (Number(landSize) / 33) : Number(landSize);
+
+    const ureaTotal = rule.urea * landInBigha;
+    const tspTotal = rule.tsp * landInBigha;
+    const mopTotal = rule.mop * landInBigha;
+    const gypsumTotal = rule.gypsum * landInBigha;
+    const zincTotal = rule.zinc * landInBigha;
+
+    const guidelines = [
+      `১. ইউরিয়া সার (${ureaTotal.toFixed(1)} কেজি) ৩টি কিস্তিতে সমানভাগে প্রয়োগ করুন। ১ম কিস্তি চারা রোপণের ১৫ দিন পর, ২য় কিস্তি ৩০ দিন পর এবং ৩য় কিস্তি কাইচ থোড় আসার ৫-৭ দিন আগে দিতে হবে।`,
+      `২. জমি শেষ চাষের সময় সমস্ত টিএসপি (${tspTotal.toFixed(1)} কেজি), জিপসাম (${gypsumTotal.toFixed(1)} কেজি) এবং দস্তা (${zincTotal.toFixed(1)} কেজি) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+      `৩. এমওপি সার (${mopTotal.toFixed(1)} কেজি) ২ কিস্তিতে প্রয়োগ করতে হবে: অর্ধেক জমি শেষ চাষের সময় এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর (২য় বার ইউরিয়া দেওয়ার সময়)।`
+    ];
+
+    setResult({
+      urea: Math.round(ureaTotal * 100) / 100,
+      tsp: Math.round(tspTotal * 100) / 100,
+      mop: Math.round(mopTotal * 100) / 100,
+      gypsum: Math.round(gypsumTotal * 100) / 100,
+      zinc: Math.round(zincTotal * 100) / 100,
+      guidelines
+    });
+
+  }, [selectedCropId, selectedSeason, landSize, landUnit]);
+
+  return (
+    <div className="space-y-8 relative">
+      <div className="border-b border-green-primary/10 pb-6">
+        <h1 className="text-3xl font-extrabold text-text-primary flex items-center gap-2">
+          🧪 স্মার্ট সার ক্যালকুলেটর
+        </h1>
+        <p className="text-text-secondary text-sm">
+          আপনার জমির পরিমাপ অনুযায়ী প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ ও জিপসাম সারের সঠিক হিসাব।
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Form Inputs */}
+        <div className="glass-card p-6 h-fit space-y-6">
+          <h3 className="font-bold text-lg text-text-primary flex items-center gap-1.5 border-b border-green-primary/5 pb-2">
+            <ClipboardList className="w-5 h-5 text-green-primary" />
+            জমির বিবরণ লিখুন
+          </h3>
+
+          {/* Crop Selector */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-text-primary">ফসল নির্বাচন করুন:</label>
+            <select
+              value={selectedCropId}
+              onChange={(e) => setSelectedCropId(e.target.value)}
+              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+            >
+              {crops.map(c => (
+                <option key={c.id} value={c.id}>{c.name_bn}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Season Selector */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-text-primary">চাষের মৌসুম:</label>
+            <select
+              value={selectedSeason}
+              onChange={(e) => setSelectedSeason(e.target.value)}
+              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+            >
+              <option value="বোরো">বোরো (বোরো মৌসুম)</option>
+              <option value="আমন">আমন (আমন মৌসুম)</option>
+              <option value="আউশ">আউশ (আউশ মৌসুম)</option>
+              <option value="রবি">রবি (রবি মৌসুম)</option>
+              <option value="খরিপ">খরিপ (খরিপ মৌসুম)</option>
+              <option value="শীতকাল">শীতকাল</option>
+              <option value="বছরের সব সময়">বছরের সব সময় (বারোমাসি)</option>
+            </select>
+          </div>
+
+          {/* Land Size Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-text-primary">জমির পরিমাণ:</label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={landSize}
+                onChange={(e) => setLandSize(e.target.value === '' ? '' : Number(e.target.value))}
+                min="0.1"
+                step="any"
+                className="flex-1 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+              />
+              <select
+                value={landUnit}
+                onChange={(e) => setLandUnit(e.target.value)}
+                className="bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+              >
+                <option value="bigha">বিঘা (Bigha)</option>
+                <option value="decimal">শতক (Decimal)</option>
+              </select>
+            </div>
+            <p className="text-[10px] text-text-secondary">নোট: ১ বিঘা = ৩৩ শতক।</p>
+          </div>
+        </div>
+
+        {/* Calculator Output Display */}
+        <div className="lg:col-span-2 space-y-6">
+          {result ? (
+            <div className="space-y-6">
+              
+              {/* Bags Visual Layout */}
+              <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6">
+                <h3 className="font-bold text-text-primary mb-4 text-base">🛍️ প্রয়োজনীয় সারের বস্তা ও পরিমাপ:</h3>
+                
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {/* Urea Bag */}
+                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-green-primary/5 space-y-2">
+                    <span className="text-3xl block">🟢</span>
+                    <h4 className="font-bold text-text-primary text-xs">ইউরিয়া</h4>
+                    <p className="text-sm font-extrabold text-green-primary">{result.urea} কেজি</p>
+                    <span className="text-[9px] text-text-secondary block">
+                      ~{(result.urea / 50).toFixed(1)} বস্তা (50kg)
+                    </span>
+                  </div>
+
+                  {/* TSP Bag */}
+                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-soil-brown/5 space-y-2">
+                    <span className="text-3xl block">🟤</span>
+                    <h4 className="font-bold text-text-primary text-xs">টিএসপি</h4>
+                    <p className="text-sm font-extrabold text-soil-brown">{result.tsp} কেজি</p>
+                    <span className="text-[9px] text-text-secondary block">
+                      ~{(result.tsp / 50).toFixed(1)} বস্তা
+                    </span>
+                  </div>
+
+                  {/* MOP Bag */}
+                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-orange-500/5 space-y-2">
+                    <span className="text-3xl block">🟠</span>
+                    <h4 className="font-bold text-text-primary text-xs">এমওপি (পটাশ)</h4>
+                    <p className="text-sm font-extrabold text-orange-600">{result.mop} কেজি</p>
+                    <span className="text-[9px] text-text-secondary block">
+                      ~{(result.mop / 50).toFixed(1)} বস্তা
+                    </span>
+                  </div>
+
+                  {/* Gypsum Bag */}
+                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-slate-500/5 space-y-2">
+                    <span className="text-3xl block">⚪</span>
+                    <h4 className="font-bold text-text-primary text-xs">জিপসাম</h4>
+                    <p className="text-sm font-extrabold text-slate-600">{result.gypsum} কেজি</p>
+                    <span className="text-[9px] text-text-secondary block">
+                      ~{(result.gypsum / 50).toFixed(1)} বস্তা
+                    </span>
+                  </div>
+
+                  {/* Zinc Bag */}
+                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-sky-500/5 space-y-2">
+                    <span className="text-3xl block">🔵</span>
+                    <h4 className="font-bold text-text-primary text-xs">দস্তা (Zinc)</h4>
+                    <p className="text-sm font-extrabold text-sky-600">{result.zinc} কেজি</p>
+                    <span className="text-[9px] text-text-secondary block">
+                      ~{(result.zinc / 50).toFixed(1)} বস্তা
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Guidelines Steps Timeline */}
+              <div className="glass-card p-6 space-y-4">
+                <h3 className="font-bold text-text-primary flex items-center gap-1.5">
+                  <ClipboardList className="w-5 h-5 text-green-primary" />
+                  সার প্রয়োগের সময় ও কিস্তির বিবরণ (DAE গাইডলাইন):
+                </h3>
+                <div className="space-y-3">
+                  {result.guidelines.map((guide, idx) => (
+                    <div key={idx} className="flex gap-3 text-sm text-text-primary bg-white/40 p-4 rounded-xl border border-green-primary/5">
+                      <div className="w-6 h-6 rounded-full bg-green-primary/10 text-green-primary flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                        {idx + 1}
+                      </div>
+                      <p>{guide}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          ) : (
+            <div className="h-full min-h-[300px] border-2 border-dashed border-green-primary/20 rounded-3xl flex flex-col items-center justify-center text-center p-8 space-y-4 bg-soft-white/40">
+              <Calculator className="w-12 h-12 text-green-primary/40" />
+              <div>
+                <h4 className="font-bold text-text-primary">সার পরিমাপের ফলাফল দেখতে প্রস্তুত</h4>
+                <p className="text-xs text-text-secondary max-w-sm mt-1">
+                  বাঁদিকের প্যানেলে আপনার ফসল, মৌসুম ও জমির সাইজ সিলেক্ট করুন। DAE অনুমোদিত সারের ডোজ স্বয়ংক্রিয়ভাবে হিসাব হয়ে যাবে।
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function FertilizerCalculator() {
+  return (
+    <Suspense fallback={<div className="text-center py-20">লোডিং সার ক্যালকুলেটর...</div>}>
+      <CalculatorContent />
+    </Suspense>
+  );
+}

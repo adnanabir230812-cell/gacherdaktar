@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Agriculture Palette */
+  --green-primary: #2E7D32;    /* Deep leaf green */
+  --green-soft: #4CAF50;       /* Fresh sprout */
+  --green-light: #81C784;      /* Young leaf */
+  --green-pale: #C8E6C9;       /* Misty field */
+  
+  /* Earth & Soil Tones */
+  --soil-brown: #8D6E63;       /* Fertile soil */
+  --soil-light: #A1887F;       /* Dry earth */
+  --soil-warm: #D7CCC8;        /* Sun-baked field */
+  
+  /* Sunlight & Sky */
+  --sunlight: #FFD54F;         /* Golden hour */
+  --sunlight-soft: #FFECB3;    /* Morning glow */
+  --sky-blue: #81D4FA;         /* Clear sky */
+  --sky-deep: #0288D1;         /* Monsoon sky */
+  
+  /* Background & Typography */
+  --background: #F5F7F0;       /* Natural canvas background */
+  --foreground: #1B3A2B;       /* Deep forest text */
+  --warm-bg: #F5F7F0;
+  --soft-white: #FAFAF7;
+  --text-primary: #1B3A2B;
+  --text-secondary: #4A6B54;
+  
+  /* Semantic Colors */
+  --success: #2E7D32;
+  --warning: #FFA000;
+  --error: #C62828;
+  --info: #0288D1;
+}
+
+@theme inline {
+  --color-green-primary: var(--green-primary);
+  --color-green-soft: var(--green-soft);
+  --color-green-light: var(--green-light);
+  --color-green-pale: var(--green-pale);
+  
+  --color-soil-brown: var(--soil-brown);
+  --color-soil-light: var(--soil-light);
+  --color-soil-warm: var(--soil-warm);
+  
+  --color-sunlight: var(--sunlight);
+  --color-sunlight-soft: var(--sunlight-soft);
+  --color-sky-blue: var(--sky-blue);
+  
+  --color-warm-bg: var(--warm-bg);
+  --color-soft-white: var(--soft-white);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+}
+
+body {
+  background-color: #FAF8F2;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(255, 193, 7, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 85% 85%, rgba(46, 125, 50, 0.06) 0%, transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M60 20C60 40 40 60 20 60C40 60 60 80 60 100C60 80 80 60 100 60C80 60 60 40 60 20Z' fill='%232e7d32' fill-opacity='0.02'/%3E%3Ccircle cx='60' cy='60' r='2' fill='%23ffc107' fill-opacity='0.08'/%3E%3C/svg%3E");
+  color: var(--text-primary);
+  font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism Card Style */
+.glass-card {
+  background: rgba(254, 254, 250, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(46, 125, 50, 0.12);
+  border-radius: 24px;
+  box-shadow: 
+    0 8px 32px rgba(46, 125, 50, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.01);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(251, 192, 45, 0.35);
+  box-shadow: 
+    0 20px 40px rgba(251, 192, 45, 0.12),
+    0 4px 10px rgba(46, 125, 50, 0.04);
+}
+
+/* 🌾 Agri-Glass Design System */
+.agri-glass {
+  background: linear-gradient(135deg, rgba(254, 254, 252, 0.95) 0%, rgba(250, 248, 240, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(46, 125, 50, 0.15);
+  border-radius: 28px;
+  box-shadow: 
+    0 12px 36px rgba(46, 125, 50, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.agri-glass:hover {
+  transform: translateY(-8px);
+  border-color: rgba(251, 192, 45, 0.5);
+  box-shadow: 
+    0 24px 48px rgba(251, 192, 45, 0.16),
+    0 4px 12px rgba(46, 125, 50, 0.05);
+}
+
+/* Golden Hour Highlight Card */
+.gold-card {
+  background: linear-gradient(135deg, rgba(255, 253, 245, 0.95) 0%, rgba(255, 248, 224, 0.9) 100%);
+  border: 2px solid rgba(251, 192, 45, 0.3);
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(251, 192, 45, 0.05);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gold-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(46, 125, 50, 0.4);
+  box-shadow: 
+    0 24px 48px rgba(46, 125, 50, 0.12),
+    0 4px 12px rgba(251, 192, 45, 0.05);
+}
+
+/* Sunlight glow radial gradients */
+.sunlight-glow {
+  background: radial-gradient(circle, rgba(255, 213, 79, 0.25) 0%, rgba(250, 248, 242, 0) 70%);
+}
+
+/* Swaying animations representing rice stalks in wind */
+@keyframes sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+.sway-animation {
+  animation: sway 7s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Bouncing UI dots representing floating seeds or pollen */
+@keyframes float-pollen {
+  0% { transform: translateY(0px) translateX(0px); opacity: 0.15; }
+  50% { transform: translateY(-40px) translateX(20px); opacity: 0.5; }
+  100% { transform: translateY(-80px) translateX(0px); opacity: 0; }
+}
+
+.pollen {
+  animation: float-pollen 12s infinite linear;
+}
+
