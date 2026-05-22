@@ -306,7 +306,7 @@ ${context || 'No specific crop matching the query.'}
     // 2. Try OpenRouter as fallback
     if (OPENROUTER_API_KEY) {
       try {
-        const remainingTime = getRemainingTime(7000); // 7.0 seconds maximum total budget
+        const remainingTime = getRemainingTime(9200); // 9.2 seconds maximum total budget (Netlify limit is 10s)
         const res = await httpsPostWithTimeout(
           "https://openrouter.ai/api/v1/chat/completions",
           {
