@@ -216,7 +216,13 @@ function ChatContent() {
         })
       });
 
-      const data = await response.json();
+      let data: any = {};
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        throw new Error(`সার্ভার থেকে ত্রুটিপূর্ণ রেসপন্স পাওয়া গেছে (স্ট্যাটাস কোড: ${response.status})`);
+      }
 
       if (response.ok && data && !data.error) {
         setMessages(prev => prev.map(m => {
@@ -235,18 +241,26 @@ function ChatContent() {
           return m;
         }));
       } else {
-        throw new Error(data.message || 'API Error');
+        throw new Error(data.message || data.error || `সার্ভার ত্রুটি (স্ট্যাটাস কোড: ${response.status})`);
       }
 
     } catch (error: any) {
       console.error(error);
+      let errorMsg = 'দুঃখিত, ইন্টারনেট সংযোগ না থাকায় বা সার্ভার সমস্যার কারণে গাছের ডাক্তারের লাইভ সেবা এই মুহূর্তে সচল নেই। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ সচল করে আবার চেষ্টা করুন।';
+      if (error && error.message) {
+        if (error.message.includes('Failed to fetch') || error.message.includes('fetch failed')) {
+          errorMsg = 'দুঃখিত, আপনার ইন্টারনেট সংযোগে সমস্যা হচ্ছে। অনুগ্রহ করে ইন্টারনেট কানেকশন চেক করুন।';
+        } else {
+          errorMsg = `ত্রুটি: ${error.message}`;
+        }
+      }
       setMessages(prev => prev.map(m => {
         if (m.id === botMsgId) {
           return {
             id: botMsgId,
             sender: 'bot',
-            text: error.message || 'দুঃখিত, ইন্টারনেট সংযোগ না থাকায় বা সার্ভার সমস্যার কারণে গাছের ডাক্তারের লাইভ সেবা এই মুহূর্তে সচল নেই। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ সচল করে আবার চেষ্টা করুন।',
-            sources: ['নেটওয়ার্ক ত্রুটি'],
+            text: errorMsg,
+            sources: ['নেটওয়ার্ক বা সার্ভার ত্রুটি'],
             loading: false
           };
         }
@@ -275,42 +289,39 @@ function ChatContent() {
 
   // Helper to render markdown-like lists and bold texts in Bangla
   const formatMessageText = (text: string) => {
-    return text.split('\n').map((line, idx) => {
-      // Bold handling
-      let formattedLine = line;
+    const parseBold = (str: string) => {
       const boldRegex = /\*\*(.*?)\*\*/g;
-      
-      // Match markdown bold and replace with <strong>
       const parts = [];
       let lastIndex = 0;
       let match;
       
-      while ((match = boldRegex.exec(line)) !== null) {
-        // Add text before match
+      while ((match = boldRegex.exec(str)) !== null) {
         if (match.index > lastIndex) {
-          parts.push(line.substring(lastIndex, match.index));
+          parts.push(str.substring(lastIndex, match.index));
         }
-        // Add bolded text
         parts.push(<strong key={match.index} className="font-extrabold text-green-primary">{match[1]}</strong>);
         lastIndex = boldRegex.lastIndex;
       }
-      if (lastIndex < line.length) {
-        parts.push(line.substring(lastIndex));
+      if (lastIndex < str.length) {
+        parts.push(str.substring(lastIndex));
       }
+      return parts.length > 0 ? parts : str;
+    };
 
-      const content = parts.length > 0 ? parts : formattedLine;
-
-      if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
+    return text.split('\n').map((line, idx) => {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+        const itemContent = trimmedLine.substring(1).trim();
         return (
           <li key={idx} className="ml-5 list-disc my-1 text-sm md:text-base leading-relaxed">
-            {line.trim().substring(1).trim()}
+            {parseBold(itemContent)}
           </li>
         );
       }
       
       return (
         <p key={idx} className="my-1 text-sm md:text-base leading-relaxed">
-          {content}
+          {parseBold(line)}
         </p>
       );
     });
@@ -478,7 +489,7 @@ function ChatContent() {
                           <button
                             key={i}
                             onClick={() => {
-                              setInput(q);
+                              sendMessageToAPI(q, messages);
                             }}
                             className="text-xs text-green-primary hover:underline font-medium text-left cursor-pointer"
                           >
@@ -505,7 +516,7 @@ function ChatContent() {
               <button
                 key={idx}
                 onClick={() => {
-                  setInput(item.text);
+                  sendMessageToAPI(item.text, messages);
                 }}
                 className="px-3.5 py-2 rounded-full text-xs font-bold bg-green-primary/5 hover:bg-green-primary/15 border border-green-primary/10 text-green-primary transition-all cursor-pointer"
               >

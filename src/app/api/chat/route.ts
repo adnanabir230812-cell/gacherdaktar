@@ -1,23 +1,66 @@
 import { NextResponse } from 'next/server';
 import { CROPS, KNOWLEDGE_SNIPPETS } from '../data';
+import https from 'https';
+import { URL } from 'url';
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
+const sanitizeEnv = (val: string | undefined) => {
+  if (!val) return undefined;
+  const clean = val.trim().replace(/[\r\n]+/g, '');
+  return clean || undefined;
+};
+
+const OPENROUTER_API_KEY = sanitizeEnv(process.env.OPENROUTER_API_KEY);
+const GEMINI_API_KEY = sanitizeEnv(process.env.GEMINI_API_KEY);
+const OPENROUTER_MODEL = sanitizeEnv(process.env.OPENROUTER_MODEL) || 'google/gemini-2.5-flash';
+
+function httpsPostWithTimeout(urlStr: string, headers: Record<string, string>, bodyStr: string, timeoutMs: number): Promise<{ ok: boolean; status: number; text: string }> {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(urlStr);
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || 443,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'POST',
+      headers: headers
+    };
+
+    let isDone = false;
+
+    const timer = setTimeout(() => {
+      if (isDone) return;
+      isDone = true;
+      req.destroy();
+      reject(new Error(`HTTPS request timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        if (isDone) return;
+        isDone = true;
+        clearTimeout(timer);
+        resolve({
+          ok: res.statusCode ? (res.statusCode >= 200 && res.statusCode < 300) : false,
+          status: res.statusCode || 500,
+          text: data
+        });
+      });
     });
-    clearTimeout(id);
-    return response;
-  } catch (err) {
-    clearTimeout(id);
-    throw err;
-  }
+
+    req.on('error', (err) => {
+      if (isDone) return;
+      isDone = true;
+      clearTimeout(timer);
+      reject(err);
+    });
+
+    req.write(bodyStr);
+    req.end();
+  });
 }
 
 function retrieveLocalContext(query: string) {
@@ -219,10 +262,10 @@ ${context || 'No specific crop matching the query.'}
     if (GEMINI_API_KEY) {
       try {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-        const res = await fetchWithTimeout(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await httpsPostWithTimeout(
+          geminiUrl,
+          { 'Content-Type': 'application/json' },
+          JSON.stringify({
             contents: [
               {
                 parts: [
@@ -234,35 +277,38 @@ ${context || 'No specific crop matching the query.'}
               responseMimeType: "application/json",
               maxOutputTokens: 1200
             }
-          })
-        }, 4000); // 4 seconds timeout for native Gemini
+          }),
+          2500 // 2.5 seconds timeout for Gemini
+        );
 
         if (res.ok) {
-          const data = await res.json();
+          const data = JSON.parse(res.text);
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (text) {
             const parsed = parseLLMResponse(text, dbSources);
             return NextResponse.json(parsed);
           }
+        } else {
+          console.error(`Gemini API returned status ${res.status}: ${res.text}`);
         }
-      } catch (err) {
-        console.error('Gemini API call failed, falling back to OpenRouter:', err);
+      } catch (err: any) {
+        console.error('Gemini API call failed, falling back to OpenRouter:', err.message);
       }
     }
 
     // 2. Try OpenRouter as fallback
     if (OPENROUTER_API_KEY) {
       try {
-        const remainingTime = getRemainingTime(8200); // 8.2 seconds maximum total budget
-        const res = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
-          method: 'POST',
-          headers: {
+        const remainingTime = getRemainingTime(7000); // 7.0 seconds maximum total budget
+        const res = await httpsPostWithTimeout(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
             "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "https://gacherdoctor.bd",
             "X-Title": "Gacher Doctor"
           },
-          body: JSON.stringify({
+          JSON.stringify({
             model: OPENROUTER_MODEL,
             messages: [
               { role: "system", content: systemPrompt + "\nResponse must be valid JSON matching the schema." },
@@ -270,19 +316,22 @@ ${context || 'No specific crop matching the query.'}
             ],
             response_format: { type: "json_object" },
             max_tokens: 1200
-          })
-        }, remainingTime);
+          }),
+          remainingTime
+        );
 
         if (res.ok) {
-          const data = await res.json();
+          const data = JSON.parse(res.text);
           const text = data.choices?.[0]?.message?.content;
           if (text) {
             const parsed = parseLLMResponse(text, dbSources);
             return NextResponse.json(parsed);
           }
+        } else {
+          console.error(`OpenRouter API returned status ${res.status}: ${res.text}`);
         }
-      } catch (err) {
-        console.error('OpenRouter API call failed:', err);
+      } catch (err: any) {
+        console.error('OpenRouter API call failed:', err.message);
       }
     }
 
