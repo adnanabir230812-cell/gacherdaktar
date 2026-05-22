@@ -258,6 +258,9 @@ JSON Schema:
 ${context || 'No specific crop matching the query.'}
 `;
 
+    let geminiError = '';
+    let openRouterError = '';
+
     // 1. Try Gemini API first (Native)
     if (GEMINI_API_KEY) {
       try {
@@ -289,11 +292,15 @@ ${context || 'No specific crop matching the query.'}
             return NextResponse.json(parsed);
           }
         } else {
+          geminiError = `Status ${res.status}: ${res.text}`;
           console.error(`Gemini API returned status ${res.status}: ${res.text}`);
         }
       } catch (err: any) {
+        geminiError = `Failed: ${err.message}`;
         console.error('Gemini API call failed, falling back to OpenRouter:', err.message);
       }
+    } else {
+      geminiError = 'Key not provided';
     }
 
     // 2. Try OpenRouter as fallback
@@ -328,11 +335,15 @@ ${context || 'No specific crop matching the query.'}
             return NextResponse.json(parsed);
           }
         } else {
+          openRouterError = `Status ${res.status}: ${res.text}`;
           console.error(`OpenRouter API returned status ${res.status}: ${res.text}`);
         }
       } catch (err: any) {
+        openRouterError = `Failed: ${err.message}`;
         console.error('OpenRouter API call failed:', err.message);
       }
+    } else {
+      openRouterError = 'Key not provided';
     }
 
     // 3. Fallback error response if both keys fail, are empty, or time out
@@ -345,7 +356,16 @@ ${context || 'No specific crop matching the query.'}
       sources: dbSources.length > 0 ? dbSources : ["গাছের ডাক্তার তথ্যশালা"],
       confidence: 0.7,
       follow_up_questions: ["কীভাবে সারের সঠিক ব্যবহার নিশ্চিত করব?", "নিকটস্থ উপজেলা কৃষি অফিস কোথায় পাবো?"],
-      action_suggestions: []
+      action_suggestions: [],
+      debug: {
+        hasGeminiKey: !!GEMINI_API_KEY,
+        geminiKeyLen: GEMINI_API_KEY ? GEMINI_API_KEY.length : 0,
+        geminiError,
+        hasOpenRouterKey: !!OPENROUTER_API_KEY,
+        openRouterKeyLen: OPENROUTER_API_KEY ? OPENROUTER_API_KEY.length : 0,
+        openRouterError,
+        model: OPENROUTER_MODEL
+      }
     });
 
   } catch (error: any) {
