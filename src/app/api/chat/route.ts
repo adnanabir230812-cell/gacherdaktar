@@ -9,9 +9,7 @@ const sanitizeEnv = (val: string | undefined) => {
   return clean || undefined;
 };
 
-const OPENROUTER_API_KEY = sanitizeEnv(process.env.OPENROUTER_API_KEY);
 const GEMINI_API_KEY = sanitizeEnv(process.env.GEMINI_API_KEY);
-const OPENROUTER_MODEL = sanitizeEnv(process.env.OPENROUTER_MODEL) || 'google/gemini-2.5-flash';
 
 function httpsPostWithTimeout(urlStr: string, headers: Record<string, string>, bodyStr: string, timeoutMs: number): Promise<{ ok: boolean; status: number; text: string }> {
   return new Promise((resolve, reject) => {
@@ -259,9 +257,8 @@ ${context || 'No specific crop matching the query.'}
 `;
 
     let geminiError = '';
-    let openRouterError = '';
 
-    // 1. Try Gemini API first (Native)
+    // 1. Try Gemini API (Native)
     if (GEMINI_API_KEY) {
       try {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
@@ -281,7 +278,7 @@ ${context || 'No specific crop matching the query.'}
               maxOutputTokens: 1200
             }
           }),
-          2500 // 2.5 seconds timeout for Gemini
+          8500 // 8.5 seconds timeout for Gemini (safely below Netlify's 10s execution limit)
         );
 
         if (res.ok) {
@@ -297,56 +294,13 @@ ${context || 'No specific crop matching the query.'}
         }
       } catch (err: any) {
         geminiError = `Failed: ${err.message}`;
-        console.error('Gemini API call failed, falling back to OpenRouter:', err.message);
+        console.error('Gemini API call failed:', err.message);
       }
     } else {
       geminiError = 'Key not provided';
     }
 
-    // 2. Try OpenRouter as fallback
-    if (OPENROUTER_API_KEY) {
-      try {
-        const remainingTime = getRemainingTime(9200); // 9.2 seconds maximum total budget (Netlify limit is 10s)
-        const res = await httpsPostWithTimeout(
-          "https://openrouter.ai/api/v1/chat/completions",
-          {
-            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://gacherdoctor.bd",
-            "X-Title": "Gacher Doctor"
-          },
-          JSON.stringify({
-            model: OPENROUTER_MODEL,
-            messages: [
-              { role: "system", content: systemPrompt + "\nResponse must be valid JSON matching the schema." },
-              { role: "user", content: userPrompt }
-            ],
-            response_format: { type: "json_object" },
-            max_tokens: 1200
-          }),
-          remainingTime
-        );
-
-        if (res.ok) {
-          const data = JSON.parse(res.text);
-          const text = data.choices?.[0]?.message?.content;
-          if (text) {
-            const parsed = parseLLMResponse(text, dbSources);
-            return NextResponse.json(parsed);
-          }
-        } else {
-          openRouterError = `Status ${res.status}: ${res.text}`;
-          console.error(`OpenRouter API returned status ${res.status}: ${res.text}`);
-        }
-      } catch (err: any) {
-        openRouterError = `Failed: ${err.message}`;
-        console.error('OpenRouter API call failed:', err.message);
-      }
-    } else {
-      openRouterError = 'Key not provided';
-    }
-
-    // 3. Fallback error response if both keys fail, are empty, or time out
+    // 2. Fallback error response if Gemini fails or times out
     const dbFallbackText = context 
       ? `কৃষক ভাই, দুঃখিত যে সার্ভার বা নেটওয়ার্ক সমস্যার কারণে আমি সরাসরি লাইভ সেবা দিয়ে আপনাকে সম্পূর্ণ পরামর্শ দিতে পারছি না। তবে আমার গাছের ডাক্তার তথ্যশালা অনুযায়ী আপনার প্রশ্নের প্রাসঙ্গিক তথ্য নিচে দেওয়া হলো:\n\n${context}\n\nঅনুগ্রহ করে বিস্তারিত ও জরুরি পরামর্শের জন্য আপনার নিকটস্থ উপজেলা কৃষি অফিসে যোগাযোগ করুন।`
       : 'কৃষক ভাই, দুঃখিত যে সার্ভার বা নেটওয়ার্ক সমস্যার কারণে গাছের ডাক্তারের লাইভ সেবা এই মুহূর্তে সাময়িকভাবে বন্ধ রয়েছে। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করে কিছুক্ষণ পর আবার চেষ্টা করুন।';
@@ -360,11 +314,7 @@ ${context || 'No specific crop matching the query.'}
       debug: {
         hasGeminiKey: !!GEMINI_API_KEY,
         geminiKeyLen: GEMINI_API_KEY ? GEMINI_API_KEY.length : 0,
-        geminiError,
-        hasOpenRouterKey: !!OPENROUTER_API_KEY,
-        openRouterKeyLen: OPENROUTER_API_KEY ? OPENROUTER_API_KEY.length : 0,
-        openRouterError,
-        model: OPENROUTER_MODEL
+        geminiError
       }
     });
 
