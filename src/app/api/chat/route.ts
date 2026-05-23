@@ -73,31 +73,7 @@ function httpsPostWithTimeout(urlStr: string, headers: Record<string, string>, b
 }
 
 async function postWithTimeout(urlStr: string, headers: Record<string, string>, bodyStr: string, timeoutMs: number): Promise<{ ok: boolean; status: number; text: string }> {
-  const isWindowsDev = process.platform === 'win32' && process.env.NODE_ENV === 'development';
-  if (isWindowsDev) {
-    return httpsPostWithTimeout(urlStr, headers, bodyStr, timeoutMs);
-  } else {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const res = await fetch(urlStr, {
-        method: 'POST',
-        headers: headers,
-        body: bodyStr,
-        signal: controller.signal
-      });
-      clearTimeout(id);
-      const text = await res.text();
-      return {
-        ok: res.ok,
-        status: res.status,
-        text: text
-      };
-    } catch (error) {
-      clearTimeout(id);
-      throw error;
-    }
-  }
+  return httpsPostWithTimeout(urlStr, headers, bodyStr, timeoutMs);
 }
 
 function retrieveLocalContext(query: string) {
