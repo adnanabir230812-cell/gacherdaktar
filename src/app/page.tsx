@@ -76,6 +76,15 @@ const AGRI_CALENDAR = {
   ]
 };
 
+const translateNumberToBangla = (num: number | string): string => {
+  const englishToBanglaMap: { [key: string]: string } = {
+    '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+    '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+    '.': '.', ',': ','
+  };
+  return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
+};
+
 export default function Home() {
   const router = useRouter();
   const [districts, setDistricts] = useState<any[]>([]);
@@ -202,9 +211,6 @@ export default function Home() {
                 placeholder="ফসলের বা চাষের যেকোনো সমস্যা বাংলায় লিখুন (যেমন: ধানের ব্লাস্ট রোগ)..."
                 className="w-full px-6 py-4 rounded-2xl border-2 border-sunlight/30 bg-soft-white text-text-primary focus:outline-none focus:ring-4 focus:ring-sunlight focus:border-transparent shadow-2xl placeholder-text-secondary/70 font-bold"
               />
-              <span className="absolute right-4 top-[32%] text-text-secondary/60 text-xs hidden md:inline font-bold">
-                গাছের ডাক্তারের সাথে কথা বলতে এখানে চাপুন
-              </span>
             </div>
             <button
               type="submit"
@@ -268,65 +274,70 @@ export default function Home() {
             {/* Top sunlight pulse effect */}
             <div className="absolute -top-16 -right-16 w-52 h-52 rounded-full bg-sunlight/40 blur-2xl animate-pulse pointer-events-none" />
             
-            {/* 3D Weather Illustration */}
-            <div className="absolute right-4 bottom-4 w-40 h-40 opacity-95 transition-transform duration-500 group-hover:scale-110 pointer-events-none">
-              <img 
-                src="/weather_3d.png" 
-                alt="আবহাওয়ার চিত্র" 
-                className="w-full h-full object-contain filter drop-shadow-[0_20px_20px_rgba(0,0,0,0.35)]"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs font-black tracking-widest text-sunlight uppercase bg-soft-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-soft-white/10">লাইভ স্যাটেলাইট পূর্বাভাস</span>
-                  <h3 className="text-3xl font-black mt-3 drop-shadow-md">{selectedDistrict} জেলা</h3>
-                </div>
+            <div className="space-y-6">
+              {/* Badge & City */}
+              <div>
+                <span className="text-[10px] font-black tracking-widest text-sunlight uppercase bg-soft-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-soft-white/10">
+                  লাইভ স্যাটেলাইট পূর্বাভাস
+                </span>
+                <h3 className="text-3xl font-black mt-3 drop-shadow-md">{selectedDistrict} জেলা</h3>
               </div>
 
+              {/* Centered Graphic and Temp */}
               {loadingWeather ? (
-                <div className="flex items-center justify-start h-32 mt-6">
+                <div className="flex items-center justify-center h-48">
                   <div className="w-10 h-10 border-4 border-sunlight border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : weather ? (
-                <div className="mt-8 space-y-4">
-                  {/* Temp */}
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-7xl font-black tracking-tighter drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]">
-                      {weather.temp}
-                    </span>
-                    <span className="text-3xl font-extrabold text-sunlight drop-shadow-sm">°C</span>
+                <div className="flex flex-col items-center justify-center py-4 space-y-4">
+                  {/* Weather 3D image in center */}
+                  <div className="w-44 h-44 transition-transform duration-500 group-hover:scale-110 pointer-events-none filter drop-shadow-[0_15px_15px_rgba(0,0,0,0.25)]">
+                    <img 
+                      src="/weather_3d.png" 
+                      alt="আবহাওয়ার চিত্র" 
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   
-                  {/* Weather description */}
-                  <div className="inline-flex items-center gap-2 bg-soft-white/10 px-3 py-1.5 rounded-xl border border-soft-white/5 backdrop-blur-sm">
-                    <CloudSun className="w-5 h-5 text-sunlight" /> 
-                    <span className="text-base font-bold drop-shadow-sm">{weather.condition}</span>
+                  {/* Temperature & Condition */}
+                  <div className="text-center space-y-2">
+                    <div className="flex items-baseline justify-center gap-0.5">
+                      <span className="text-6xl font-black tracking-tighter drop-shadow-[0_4px_6px_rgba(0,0,0,0.2)]">
+                        {translateNumberToBangla(weather.temp)}
+                      </span>
+                      <span className="text-2xl font-extrabold text-sunlight">°C</span>
+                    </div>
+                    
+                    <div className="inline-flex items-center gap-1.5 bg-soft-white/10 px-3 py-1 rounded-full border border-soft-white/5 backdrop-blur-sm text-xs font-bold">
+                      <CloudSun className="w-4 h-4 text-sunlight" /> 
+                      <span>{weather.condition}</span>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm mt-6">আবহাওয়া তথ্য লোড সম্ভব হয়নি</p>
+                <div className="h-48 flex items-center justify-center">
+                  <p className="text-sm">আবহাওয়া তথ্য লোড সম্ভব হয়নি</p>
+                </div>
               )}
             </div>
 
             {/* Weather Metrics Strip */}
             {!loadingWeather && weather && (
-              <div className="relative z-10 grid grid-cols-3 gap-2 bg-soft-white/15 rounded-2xl p-4 border border-soft-white/20 backdrop-blur-md text-xs mt-6 shadow-inner">
+              <div className="relative z-10 grid grid-cols-3 gap-2 bg-soft-white/15 rounded-2xl p-4 border border-soft-white/20 backdrop-blur-md text-xs shadow-inner mt-4">
                 <div className="flex flex-col items-center gap-1.5 text-center border-r border-soft-white/15 pr-1">
                   <Wind className="w-4 h-4 text-sunlight" />
-                  <span className="text-[10px] text-soft-white/80 font-bold">বায়ুপ্রবাহ</span>
-                  <span className="font-black text-sm">{weather.wind_speed} km/h</span>
+                  <span className="text-[9px] text-soft-white/80 font-bold">বায়ুপ্রবাহ</span>
+                  <span className="font-black text-sm">{translateNumberToBangla(weather.wind_speed)} km/h</span>
                 </div>
                 <div className="flex flex-col items-center gap-1.5 text-center border-r border-soft-white/15 px-1">
                   <Droplets className="w-4 h-4 text-sky-blue" />
-                  <span className="text-[10px] text-soft-white/80 font-bold">বাতাস আর্দ্রতা</span>
-                  <span className="font-black text-sm">{weather.humidity || 75}%</span>
+                  <span className="text-[9px] text-soft-white/80 font-bold">আর্দ্রতা</span>
+                  <span className="font-black text-sm">{translateNumberToBangla(weather.humidity || 75)}%</span>
                 </div>
                 <div className="flex flex-col items-center gap-1.5 text-center pl-1">
                   <Thermometer className="w-4 h-4 text-amber-300" />
-                  <span className="text-[10px] text-soft-white/80 font-bold">মাটির আর্দ্রতা</span>
-                  <span className="font-black text-sm">{weather.soil_temp || 26}°C</span>
+                  <span className="text-[9px] text-soft-white/80 font-bold">মাটি তাপমাত্রা</span>
+                  <span className="font-black text-sm">{translateNumberToBangla(weather.soil_temp || 26)}°C</span>
                 </div>
               </div>
             )}

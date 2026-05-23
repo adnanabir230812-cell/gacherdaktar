@@ -55,26 +55,32 @@ function CropLibraryContent() {
     flower: 'ফুল'
   };
 
-  const getCropEmoji = (crop: Crop) => {
-    const name = crop.name_bn;
-    if (name.includes('ধান')) return '🌾';
-    if (name.includes('গম')) return '🌾';
-    if (name.includes('ভুট্টা')) return '🌽';
-    if (name.includes('আলু')) return '🥔';
-    if (name.includes('টমেটো')) return '🍅';
-    if (name.includes('বেগুন')) return '🍆';
-    if (name.includes('মরিচ')) return '🌶️';
-    if (name.includes('আদা') || name.includes('হলুদ') || name.includes('রসুন') || name.includes('পেঁয়াজ') || name.includes('পিঁয়াজ')) return '🧄';
-    if (name.includes('আখ')) return '🎋';
-    if (name.includes('তুলা')) return '☁️';
-    if (name.includes('চা') || name.includes('পান')) return '🍃';
-    if (name.includes('সরিষা')) return '🌼';
-    if (name.includes('আনারস')) return '🍍';
-    if (name.includes('আম') || name.includes('লিচু') || name.includes('কাঁঠাল') || name.includes('কলা') || name.includes('পেঁপে')) return '🥭';
-    if (crop.category === 'fruit') return '🍎';
-    if (crop.category === 'vegetable') return '🥦';
-    if (crop.category === 'spice') return '🧂';
-    return '🌱';
+  const translateNumberToBangla = (num: number | string): string => {
+    const englishToBanglaMap: { [key: string]: string } = {
+      '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+      '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+      '.': '.'
+    };
+    return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
+  };
+
+  const getCropIcon = (crop: Crop) => {
+    switch (crop.category) {
+      case 'grain':
+        return <Sprout className="w-7 h-7 text-amber-600" />;
+      case 'vegetable':
+        return <Sprout className="w-7 h-7 text-emerald-600" />;
+      case 'fruit':
+        return <Sprout className="w-7 h-7 text-red-500" />;
+      case 'spice':
+        return <Sprout className="w-7 h-7 text-orange-600" />;
+      case 'commercial':
+        return <Sprout className="w-7 h-7 text-yellow-600" />;
+      case 'flower':
+        return <Sprout className="w-7 h-7 text-pink-500" />;
+      default:
+        return <Sprout className="w-7 h-7 text-green-primary" />;
+    }
   };
 
 
@@ -130,9 +136,9 @@ function CropLibraryContent() {
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-3xl">
-                  {getCropEmoji(crop)}
-                </span>
+                <div className="w-12 h-12 bg-green-primary/10 rounded-2xl flex items-center justify-center">
+                  {getCropIcon(crop)}
+                </div>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-green-primary/10 text-green-primary">
                   {categoryLabels[crop.category] || crop.category}
                 </span>
@@ -151,7 +157,7 @@ function CropLibraryContent() {
                 সেচ: {crop.water_requirement === 'high' ? 'উচ্চ' : crop.water_requirement === 'medium' ? 'মাঝারি' : 'কম'}
               </span>
               <span className="font-semibold text-green-primary">
-                ফলন: {crop.yield_avg} টন/হেক্টর
+                ফলন: {translateNumberToBangla(crop.yield_avg)} টন/হেক্টর
               </span>
             </div>
           </div>
@@ -171,9 +177,9 @@ function CropLibraryContent() {
               {/* Header */}
               <div className="flex items-center justify-between border-b border-green-primary/10 pb-4 mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-4xl">
-                    {getCropEmoji(activeCrop)}
-                  </span>
+                  <div className="w-14 h-14 bg-green-primary/10 rounded-2xl flex items-center justify-center">
+                    {getCropIcon(activeCrop)}
+                  </div>
                   <div>
                     <h2 className="text-2xl font-bold text-text-primary">{activeCrop.name_bn}</h2>
                     <p className="text-xs text-text-secondary italic">{activeCrop.scientific_name}</p>
@@ -199,7 +205,7 @@ function CropLibraryContent() {
                 </div>
                 <div>
                   <span className="text-xs text-text-secondary block">গড় লাভ:</span>
-                  <span className="font-semibold text-green-primary">{activeCrop.profit_avg.toLocaleString()} ৳/বিঘা</span>
+                  <span className="font-semibold text-green-primary">{translateNumberToBangla(activeCrop.profit_avg.toLocaleString())} ৳/বিঘা</span>
                 </div>
                 <div>
                   <span className="text-xs text-text-secondary block">সেচ চাহিদা:</span>
@@ -222,23 +228,23 @@ function CropLibraryContent() {
                     <div key={idx} className="grid grid-cols-5 gap-2 text-center text-xs mt-2 bg-warm-bg/40 p-2.5 rounded-lg font-medium text-text-primary">
                       <div>
                         <span className="text-text-secondary block text-[10px]">ইউরিয়া</span>
-                        {f.urea}
+                        {translateNumberToBangla(f.urea)}
                       </div>
                       <div>
                         <span className="text-text-secondary block text-[10px]">টিএসপি</span>
-                        {f.tsp}
+                        {translateNumberToBangla(f.tsp)}
                       </div>
                       <div>
                         <span className="text-text-secondary block text-[10px]">এমওপি</span>
-                        {f.mop}
+                        {translateNumberToBangla(f.mop)}
                       </div>
                       <div>
                         <span className="text-text-secondary block text-[10px]">জিপসাম</span>
-                        {f.gypsum}
+                        {translateNumberToBangla(f.gypsum)}
                       </div>
                       <div>
                         <span className="text-text-secondary block text-[10px]">দস্তা</span>
-                        {f.zinc}
+                        {translateNumberToBangla(f.zinc)}
                       </div>
                     </div>
                   ))}

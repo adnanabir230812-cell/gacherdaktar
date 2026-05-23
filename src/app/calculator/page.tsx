@@ -14,6 +14,15 @@ interface CalculationResult {
   guidelines: string[];
 }
 
+const translateNumberToBangla = (num: number | string): string => {
+  const englishToBanglaMap: { [key: string]: string } = {
+    '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+    '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+    '.': '.', ',': ','
+  };
+  return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
+};
+
 function CalculatorContent() {
   const searchParams = useSearchParams();
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -57,9 +66,9 @@ function CalculatorContent() {
     const zincTotal = rule.zinc * landInBigha;
 
     const guidelines = [
-      `১. ইউরিয়া সার (${ureaTotal.toFixed(1)} কেজি) ৩টি কিস্তিতে সমানভাগে প্রয়োগ করুন। ১ম কিস্তি চারা রোপণের ১৫ দিন পর, ২য় কিস্তি ৩০ দিন পর এবং ৩য় কিস্তি কাইচ থোড় আসার ৫-৭ দিন আগে দিতে হবে।`,
-      `২. জমি শেষ চাষের সময় সমস্ত টিএসপি (${tspTotal.toFixed(1)} কেজি), জিপসাম (${gypsumTotal.toFixed(1)} কেজি) এবং দস্তা (${zincTotal.toFixed(1)} কেজি) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
-      `৩. এমওপি সার (${mopTotal.toFixed(1)} কেজি) ২ কিস্তিতে প্রয়োগ করতে হবে: অর্ধেক জমি শেষ চাষের সময় এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর (২য় বার ইউরিয়া দেওয়ার সময়)।`
+      `১. ইউরিয়া সার (${translateNumberToBangla(ureaTotal.toFixed(1))} কেজি) ৩টি কিস্তিতে সমানভাগে প্রয়োগ করুন। ১ম কিস্তি চারা রোপণের ১৫ দিন পর, ২য় কিস্তি ৩০ দিন পর এবং ৩য় কিস্তি কাইচ থোড় আসার ৫-৭ দিন আগে দিতে হবে।`,
+      `২. জমি শেষ চাষের সময় সমস্ত টিএসপি (${translateNumberToBangla(tspTotal.toFixed(1))} কেজি), জিপসাম (${translateNumberToBangla(gypsumTotal.toFixed(1))} কেজি) এবং দস্তা (${translateNumberToBangla(zincTotal.toFixed(1))} কেজি) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+      `৩. এমওপি সার (${translateNumberToBangla(mopTotal.toFixed(1))} কেজি) ২ কিস্তিতে প্রয়োগ করতে হবে: অর্ধেক জমি শেষ চাষের সময় এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর (২য় বার ইউরিয়া দেওয়ার সময়)।`
     ];
 
     setResult({
@@ -163,9 +172,9 @@ function CalculatorContent() {
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-green-primary/5 space-y-2">
                     <span className="text-3xl block">🟢</span>
                     <h4 className="font-bold text-text-primary text-xs">ইউরিয়া</h4>
-                    <p className="text-sm font-extrabold text-green-primary">{result.urea} কেজি</p>
+                    <p className="text-sm font-extrabold text-green-primary">{translateNumberToBangla(result.urea)} কেজি</p>
                     <span className="text-[9px] text-text-secondary block">
-                      ~{(result.urea / 50).toFixed(1)} বস্তা (50kg)
+                      ~{translateNumberToBangla((result.urea / 50).toFixed(1))} বস্তা (৫০ কেজি)
                     </span>
                   </div>
 
@@ -173,9 +182,9 @@ function CalculatorContent() {
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-soil-brown/5 space-y-2">
                     <span className="text-3xl block">🟤</span>
                     <h4 className="font-bold text-text-primary text-xs">টিএসপি</h4>
-                    <p className="text-sm font-extrabold text-soil-brown">{result.tsp} কেজি</p>
+                    <p className="text-sm font-extrabold text-soil-brown">{translateNumberToBangla(result.tsp)} কেজি</p>
                     <span className="text-[9px] text-text-secondary block">
-                      ~{(result.tsp / 50).toFixed(1)} বস্তা
+                      ~{translateNumberToBangla((result.tsp / 50).toFixed(1))} বস্তা
                     </span>
                   </div>
 
@@ -183,9 +192,9 @@ function CalculatorContent() {
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-orange-500/5 space-y-2">
                     <span className="text-3xl block">🟠</span>
                     <h4 className="font-bold text-text-primary text-xs">এমওপি (পটাশ)</h4>
-                    <p className="text-sm font-extrabold text-orange-600">{result.mop} কেজি</p>
+                    <p className="text-sm font-extrabold text-orange-600">{translateNumberToBangla(result.mop)} কেজি</p>
                     <span className="text-[9px] text-text-secondary block">
-                      ~{(result.mop / 50).toFixed(1)} বস্তা
+                      ~{translateNumberToBangla((result.mop / 50).toFixed(1))} বস্তা
                     </span>
                   </div>
 
@@ -193,9 +202,9 @@ function CalculatorContent() {
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-slate-500/5 space-y-2">
                     <span className="text-3xl block">⚪</span>
                     <h4 className="font-bold text-text-primary text-xs">জিপসাম</h4>
-                    <p className="text-sm font-extrabold text-slate-600">{result.gypsum} কেজি</p>
+                    <p className="text-sm font-extrabold text-slate-600">{translateNumberToBangla(result.gypsum)} কেজি</p>
                     <span className="text-[9px] text-text-secondary block">
-                      ~{(result.gypsum / 50).toFixed(1)} বস্তা
+                      ~{translateNumberToBangla((result.gypsum / 50).toFixed(1))} বস্তা
                     </span>
                   </div>
 
@@ -203,9 +212,9 @@ function CalculatorContent() {
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-sky-500/5 space-y-2">
                     <span className="text-3xl block">🔵</span>
                     <h4 className="font-bold text-text-primary text-xs">দস্তা (Zinc)</h4>
-                    <p className="text-sm font-extrabold text-sky-600">{result.zinc} কেজি</p>
+                    <p className="text-sm font-extrabold text-sky-600">{translateNumberToBangla(result.zinc)} কেজি</p>
                     <span className="text-[9px] text-text-secondary block">
-                      ~{(result.zinc / 50).toFixed(1)} বস্তা
+                      ~{translateNumberToBangla((result.zinc / 50).toFixed(1))} বস্তা
                     </span>
                   </div>
                 </div>
