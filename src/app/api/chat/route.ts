@@ -20,20 +20,54 @@ const getGeminiApiKeys = (): string[] => {
     .filter((k): k is string => !!k);
 };
 
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
+function httpsPostWithTimeout(urlStr: string, headers: Record<string, string>, bodyStr: string, timeoutMs: number): Promise<{ ok: boolean; status: number; text: string }> {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(urlStr);
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || 443,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'POST',
+      headers: headers
+    };
+
+    let isDone = false;
+
+    const timer = setTimeout(() => {
+      if (isDone) return;
+      isDone = true;
+      req.destroy();
+      reject(new Error(`HTTPS request timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        if (isDone) return;
+        isDone = true;
+        clearTimeout(timer);
+        resolve({
+          ok: res.statusCode ? (res.statusCode >= 200 && res.statusCode < 300) : false,
+          status: res.statusCode || 500,
+          text: data
+        });
+      });
     });
-    clearTimeout(id);
-    return response;
-  } catch (error) {
-    clearTimeout(id);
-    throw error;
-  }
+
+    req.on('error', (err) => {
+      if (isDone) return;
+      isDone = true;
+      clearTimeout(timer);
+      reject(err);
+    });
+
+    req.write(bodyStr);
+    req.end();
+  });
 }
 
 function retrieveLocalContext(query: string) {
@@ -206,14 +240,14 @@ IMPORTANT: Do NOT refer to yourself as an AI, chatbot, or assistant. Speak as a 
 
 RULES:
 1. ALWAYS write in natural, conversational, and explaining Bangla. Speak like a friendly crop doctor advising a farmer. Use literary, detailed descriptions.
-2. Ground your advice strictly in the provided Context. Do NOT invent fertilizer dosages, pesticide numbers, or yields.
-3. If the context does not contain the answer, say: "দুঃখিত, এই বিষয়টি সম্পর্কে আমার কাছে পর্যাপ্ত ভেরিফাইড তথ্য নেই। অনুগ্রহ করে নিকটস্থ উপজেলা কৃষি সম্প্রসারণ কার্যালয়ে যোগাযোগ করুন।"
+2. Ground your advice primarily in the provided Context if it contains relevant details. If the Context does NOT contain specific information for the user's query, use your own extensive, expert agricultural knowledge (specifically aligning with BRRI, BARI, and standard Bangladeshi agricultural guidelines) to give a highly detailed, accurate, and helpful response.
+3. NEVER say you do not have information or refuse to answer unless the question is completely unrelated to agriculture (like general chat or political questions). Always provide a helpful diagnosis, organic/cultural treatments, chemical brand names/dosages available in Bangladesh (e.g. Virtako, Nativo, Carate, etc.), and safety precautions.
 4. Provide response ONLY in JSON format matching the following schema. No extra text outside JSON.
 
 JSON Schema:
 {
   "answer_bn": "The primary response in warm conversational Bangla. Explain details like a handbook. Use bullet points for steps.",
-  "sources": ["List of sources cited (e.g. BRRI, BARI)"],
+  "sources": ["List of sources cited (e.g. BRRI, BARI, or গাছের ডাক্তার তথ্যশালা)"],
   "confidence": 0.95,
   "follow_up_questions": ["Question 1?", "Question 2?"],
   "action_suggestions": [
@@ -244,30 +278,27 @@ ${context || 'No specific crop matching the query.'}
       const activeKey = shuffledKeys[i];
       try {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-        const res = await fetchWithTimeout(
+        const res = await httpsPostWithTimeout(
           geminiUrl,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    { text: `${systemPrompt}\n\nUser Question: ${userPrompt}` }
-                  ]
-                }
-              ],
-              generationConfig: {
-                responseMimeType: "application/json",
-                maxOutputTokens: 4000 // Increased limit to prevent cutoff
+          { 'Content-Type': 'application/json' },
+          JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: `${systemPrompt}\n\nUser Question: ${userPrompt}` }
+                ]
               }
-            })
-          },
+            ],
+            generationConfig: {
+              responseMimeType: "application/json",
+              maxOutputTokens: 4000 // Increased limit to prevent cutoff
+            }
+          }),
           8500 // 8.5 seconds timeout for Gemini
         );
 
         if (res.ok) {
-          const data = await res.json();
+          const data = JSON.parse(res.text);
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (text) {
             responseText = text;
@@ -276,9 +307,8 @@ ${context || 'No specific crop matching the query.'}
             break;
           }
         } else {
-          const errText = await res.text();
-          geminiError += `[Key ${i} failed: Status ${res.status} - ${errText}] `;
-          console.error(`Gemini API key ${i} returned status ${res.status}: ${errText}`);
+          geminiError += `[Key ${i} failed: Status ${res.status}] `;
+          console.error(`Gemini API key ${i} returned status ${res.status}: ${res.text}`);
         }
       } catch (err: any) {
         geminiError += `[Key ${i} error: ${err.message}] `;
