@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { CROPS, KNOWLEDGE_SNIPPETS } from '../data';
 import https from 'https';
 import { URL } from 'url';
+import dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const sanitizeEnv = (val: string | undefined) => {
   if (!val) return undefined;
@@ -9,56 +12,28 @@ const sanitizeEnv = (val: string | undefined) => {
   return clean || undefined;
 };
 
-const GEMINI_API_KEY = sanitizeEnv(process.env.GEMINI_API_KEY);
+const getGeminiApiKeys = (): string[] => {
+  const rawKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '';
+  return rawKeys
+    .split(',')
+    .map(k => sanitizeEnv(k))
+    .filter((k): k is string => !!k);
+};
 
-function httpsPostWithTimeout(urlStr: string, headers: Record<string, string>, bodyStr: string, timeoutMs: number): Promise<{ ok: boolean; status: number; text: string }> {
-  return new Promise((resolve, reject) => {
-    const parsedUrl = new URL(urlStr);
-    const options = {
-      hostname: parsedUrl.hostname,
-      port: parsedUrl.port || 443,
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: 'POST',
-      headers: headers
-    };
-
-    let isDone = false;
-
-    const timer = setTimeout(() => {
-      if (isDone) return;
-      isDone = true;
-      req.destroy();
-      reject(new Error(`HTTPS request timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      res.on('end', () => {
-        if (isDone) return;
-        isDone = true;
-        clearTimeout(timer);
-        resolve({
-          ok: res.statusCode ? (res.statusCode >= 200 && res.statusCode < 300) : false,
-          status: res.statusCode || 500,
-          text: data
-        });
-      });
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
     });
-
-    req.on('error', (err) => {
-      if (isDone) return;
-      isDone = true;
-      clearTimeout(timer);
-      reject(err);
-    });
-
-    req.write(bodyStr);
-    req.end();
-  });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
 }
 
 function retrieveLocalContext(query: string) {
@@ -256,48 +231,64 @@ JSON Schema:
 ${context || 'No specific crop matching the query.'}
 `;
 
-    let geminiError = '';
+    const geminiKeys = getGeminiApiKeys();
+    const shuffledKeys = [...geminiKeys].sort(() => Math.random() - 0.5);
 
-    // 1. Try Gemini API (Native)
-    if (GEMINI_API_KEY) {
+    let geminiSuccess = false;
+    let geminiError = '';
+    let responseText = '';
+    let usedKeyIndex = -1;
+
+    // Try each key in randomized order until one succeeds
+    for (let i = 0; i < shuffledKeys.length; i++) {
+      const activeKey = shuffledKeys[i];
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        const res = await httpsPostWithTimeout(
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+        const res = await fetchWithTimeout(
           geminiUrl,
-          { 'Content-Type': 'application/json' },
-          JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: `${systemPrompt}\n\nUser Question: ${userPrompt}` }
-                ]
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { text: `${systemPrompt}\n\nUser Question: ${userPrompt}` }
+                  ]
+                }
+              ],
+              generationConfig: {
+                responseMimeType: "application/json",
+                maxOutputTokens: 4000 // Increased limit to prevent cutoff
               }
-            ],
-            generationConfig: {
-              responseMimeType: "application/json",
-              maxOutputTokens: 1200
-            }
-          }),
-          8500 // 8.5 seconds timeout for Gemini (safely below Netlify's 10s execution limit)
+            })
+          },
+          8500 // 8.5 seconds timeout for Gemini
         );
 
         if (res.ok) {
-          const data = JSON.parse(res.text);
+          const data = await res.json();
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (text) {
-            const parsed = parseLLMResponse(text, dbSources);
-            return NextResponse.json(parsed);
+            responseText = text;
+            geminiSuccess = true;
+            usedKeyIndex = i;
+            break;
           }
         } else {
-          geminiError = `Status ${res.status}: ${res.text}`;
-          console.error(`Gemini API returned status ${res.status}: ${res.text}`);
+          const errText = await res.text();
+          geminiError += `[Key ${i} failed: Status ${res.status} - ${errText}] `;
+          console.error(`Gemini API key ${i} returned status ${res.status}: ${errText}`);
         }
       } catch (err: any) {
-        geminiError = `Failed: ${err.message}`;
-        console.error('Gemini API call failed:', err.message);
+        geminiError += `[Key ${i} error: ${err.message}] `;
+        console.error(`Gemini API key ${i} call failed:`, err.message);
       }
-    } else {
-      geminiError = 'Key not provided';
+    }
+
+    if (geminiSuccess && responseText) {
+      const parsed = parseLLMResponse(responseText, dbSources);
+      return NextResponse.json(parsed);
     }
 
     // 2. Fallback error response if Gemini fails or times out
@@ -312,9 +303,10 @@ ${context || 'No specific crop matching the query.'}
       follow_up_questions: ["কীভাবে সারের সঠিক ব্যবহার নিশ্চিত করব?", "নিকটস্থ উপজেলা কৃষি অফিস কোথায় পাবো?"],
       action_suggestions: [],
       debug: {
-        hasGeminiKey: !!GEMINI_API_KEY,
-        geminiKeyLen: GEMINI_API_KEY ? GEMINI_API_KEY.length : 0,
-        geminiError
+        hasGeminiKeys: geminiKeys.length > 0,
+        keysCount: geminiKeys.length,
+        usedKeyIndex,
+        geminiError: geminiError || 'Keys not provided or all failed'
       }
     });
 
