@@ -4,7 +4,9 @@ import https from 'https';
 import { URL } from 'url';
 import dns from 'dns';
 
-dns.setDefaultResultOrder('ipv4first');
+if (process.platform === 'win32' && process.env.NODE_ENV === 'development') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 const sanitizeEnv = (val: string | undefined) => {
   if (!val) return undefined;
@@ -68,6 +70,34 @@ function httpsPostWithTimeout(urlStr: string, headers: Record<string, string>, b
     req.write(bodyStr);
     req.end();
   });
+}
+
+async function postWithTimeout(urlStr: string, headers: Record<string, string>, bodyStr: string, timeoutMs: number): Promise<{ ok: boolean; status: number; text: string }> {
+  const isWindowsDev = process.platform === 'win32' && process.env.NODE_ENV === 'development';
+  if (isWindowsDev) {
+    return httpsPostWithTimeout(urlStr, headers, bodyStr, timeoutMs);
+  } else {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(urlStr, {
+        method: 'POST',
+        headers: headers,
+        body: bodyStr,
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      const text = await res.text();
+      return {
+        ok: res.ok,
+        status: res.status,
+        text: text
+      };
+    } catch (error) {
+      clearTimeout(id);
+      throw error;
+    }
+  }
 }
 
 function retrieveLocalContext(query: string) {
@@ -278,7 +308,7 @@ ${context || 'No specific crop matching the query.'}
       const activeKey = shuffledKeys[i];
       try {
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-        const res = await httpsPostWithTimeout(
+        const res = await postWithTimeout(
           geminiUrl,
           { 'Content-Type': 'application/json' },
           JSON.stringify({
