@@ -27,14 +27,14 @@ const ROTATION_DATABASE: RotationPlan[] = [
     soil_benefit: "ডাল ফসলের শিকড় বায়ুমন্ডল থেকে নাইট্রোজেন শোষণ করে মাটিতে জমা করে, ফলে পরবর্তী ফসলে ইউরিয়া কম লাগে।"
   },
   {
-    crop_name: "আলু (রবি ফসল)",
+    crop_name: "আলু (Seed Potato)",
     season_bn: "শীতকাল (রবি মৌসুম)",
     ideal_followers: [
-      { name: "মিষ্টি ভুট্টা বা হাইব্রিড ভুট্টা", benefits: "আলু উত্তোলনের পর উচ্চ পুষ্টি গ্রহণকারী ভুট্টা চাষে আলুর অবশিষ্ট সারের সর্বোচ্চ ব্যবহার হয়।" },
-      { name: "পাট (খরিপ-১)", benefits: "পাটের গভীর শিকড় মাটির নিচের স্তরের পুষ্টি টেনে আনে এবং পাটের পাতা পচে প্রচুর জৈব সার তৈরি করে।" }
+      { name: "হাইব্রিড ভুট্টা", benefits: "আলু উত্তোলনের পর উচ্চ পুষ্টি গ্রহণকারী ভুট্টা চাষে আলুর অবশিষ্ট সারের সর্বোচ্চ ব্যবহার হয়।" },
+      { name: "তোষা পাট", benefits: "পাটের গভীর শিকড় মাটির নিচের স্তরের পুষ্টি টেনে আনে এবং পাটের পাতা পচে প্রচুর জৈব সার তৈরি করে।" }
     ],
     pest_benefit: "আলুর পর পাট বা তিল চাষ করলে আলুর সাধারণ স্কেব ব্যাকটেরিয়া এবং কৃমি পোকা (Nematode) দমন হয়।",
-    soil_benefit: "আলু চাষে মাটি আলগা হয়, ফলে পরবর্তী ফসলের শিকড় সহজে ছড়ায় এবং মাটির গঠন উন্নত থাকে।"
+    soil_benefit: "আলু চাষে মাটি গভীরভাবে আলগা করতে হয়, যা মাটির অক্সিজেন বৃদ্ধি করে ও পরবর্তী ফসলের শিকড় গঠনে সাহায্য করে।"
   },
   {
     crop_name: "দেশি পেঁয়াজ",
@@ -43,8 +43,69 @@ const ROTATION_DATABASE: RotationPlan[] = [
       { name: "কাঁচা মরিচ বা বেগুন", benefits: "পেঁয়াজের অগভীর শিকড়ের পর মরিচের মাঝারি শিকড় মাটির পুষ্টি সুষম রাখে।" },
       { name: "তিল (তৈলবীজ)", benefits: "পেঁয়াজ তোলার পর কম সেচ চাহিদার তিল চাষে অতিরিক্ত সার ছাড়াই ভালো ফলন পাওয়া যায়।" }
     ],
-    pest_benefit: "পেঁয়াজের ঝাজালো গন্ধের কারণে মাটির কৃমি পোকা ও ক্ষতিকর ছত্রাকের প্রাদুর্ভাব হ্রাস পায় যা পরবর্তী ফসলের জন্য ভালো।",
+    pest_benefit: "পেঁয়াজের ঝাঁঝালো অ্যালিসিন উপাদানের প্রভাবে মাটির ক্ষতিকর রোগজীবাণু ও নিমাটোড বা কৃমি পোকা মারা যায়।",
     soil_benefit: "পেঁয়াজ মাটির অম্লত্বের সমতা বজায় রাখতে সাহায্য করে এবং মাটির উপরিভাগের শক্ত স্তর নরম করে।"
+  },
+  {
+    crop_name: "কাঁচা মরিচ",
+    season_bn: "খরিপ ও রবি মৌসুম",
+    ideal_followers: [
+      { name: "মসুর ডাল বা মুগ ডাল", benefits: "ডাল ফসল চাষে মরিচের ক্ষয়িত নাইট্রোজেন প্রাকৃতিকভাবে ফিরে আসে।" },
+      { name: "বারি সরিষা", benefits: "মরিচ তোলার পর দ্রুততম সময়ে সরিষা চাষ করলে জমির সুপ্ত আর্দ্রতার উর্বর ব্যবহার হয়।" }
+    ],
+    pest_benefit: "মরিচের পর ডাল ফসল চাষ করলে মরিচের ভাইরাস বাহক সাদা মাছি ও থ্রিপস পোকার বংশবৃদ্ধি সম্পূর্ণ ব্যাহত হয়।",
+    soil_benefit: "ডাল জাতীয় ফসল মাটির ক্ষয়রোধ করে এবং মাটিতে ফসফরাস ও নাইট্রোজেন সারের কার্যকারিতা বৃদ্ধি করে।"
+  },
+  {
+    crop_name: "হাইব্রিড ভুট্টা",
+    season_bn: "রবি ও গ্রীষ্ম মৌসুম",
+    ideal_followers: [
+      { name: "মুগ ডাল (সবুজ সার)", benefits: "ভুট্টার পর মাটিতে নাইট্রোজেন বাড়াতে মুগ চাষ ও কচি গাছ মাটিতে চাষ দিয়ে মিশিয়ে দেওয়া উত্তম।" },
+      { name: "রোপা আমন ধান", benefits: "ভুট্টা কাটার পর বর্ষার শুরুতে আমন ধান রোপণ করলে মাটির পুষ্টি সুষম বণ্টন হয়।" }
+    ],
+    pest_benefit: "ভুট্টার পর ডাল চাষে ভুট্টার ফল আর্মিওয়ার্ম পোকা ও কান্ড পচা ছত্রাকের বংশবিস্তার চক্র ধ্বংস হয়ে যায়।",
+    soil_benefit: "ভুট্টা গাছ উত্তোলনের পর শিকড় মাটিতে পচে জৈব উপাদান বাড়ায় এবং মাটির ভেতরের পানি ধারণ ক্ষমতা বাড়ায়।"
+  },
+  {
+    crop_name: "রোপা আমন ধান",
+    season_bn: "বর্ষাকাল (খরিপ-২)",
+    ideal_followers: [
+      { name: "আলু বা বারি সরিষা", benefits: "আমন ধান কাটার পর মাটিতে আর্দ্রতা থাকতেই দ্রুত আলু বা সরিষা রোপণ করলে কম সেচে ভালো ফলন হয়।" },
+      { name: "খেসারি ডাল (রিলে ক্রপিং)", benefits: "ধান কাটার আগে রিলে ক্রপিং হিসেবে খেসারি বীজ ছিটিয়ে দিলে ধান কাটার সাথে সাথে চারা বাড়ে।" }
+    ],
+    pest_benefit: "আমন ধানের পর সরিষা চাষ করলে ধান পাতার লেদা পোকা ও গন্ধি পোকার জীবাণু সম্পূর্ণ ধ্বংস হয়ে যায়।",
+    soil_benefit: "খেসারি ডাল বিনা চাষে মাটিতে নাইট্রোজেন ও ব্যাকটেরিয়া বৃদ্ধি করে মাটির উর্বরতা পুনরুদ্ধার করে।"
+  },
+  {
+    crop_name: "তোষা পাট",
+    season_bn: "খরিপ-১ মৌসুম",
+    ideal_followers: [
+      { name: "রোপা আমন ধান", benefits: "পাট কাটার পর আমন রোপণ করলে পাটের পচে যাওয়া পাতা আমন ধানের সারের চাহিদা অর্ধেক কমিয়ে দেয়।" },
+      { name: "বোরো ধান", benefits: "পাটের চাষের পর জমিতে বোরো ধানের চাষ মাটির পুষ্টি স্তর নিয়ন্ত্রণে সাহায্য করে।" }
+    ],
+    pest_benefit: "পাটের দ্রুত বৃদ্ধির কারণে জমিতে আগাছা জন্মাতে পারেনা, যা ধান ফসলের পোকা ও আগাছা দমন খরচ কমায়।"
+    ,
+    soil_benefit: "পাটের প্রচুর পাতা জমিতে ঝরে পচে যায়, যা বিঘাপ্রতি প্রায় ২ টন উন্নত মানের জৈব সার মাটিতে সরাসরি যোগ করে।"
+  },
+  {
+    crop_name: "বারি সরিষা",
+    season_bn: "শীতকাল (রবি মৌসুম)",
+    ideal_followers: [
+      { name: "বোরো ধান", benefits: "সরিষা কাটার পর বোরো ধান রোপণ করলে সরিষার অবশিষ্টাংশ মাটির রন্ধ্রতা বাড়ায়।" },
+      { name: "গ্রীষ্মকালীন মুগ ডাল", benefits: "সরিষার পর মুগ ডাল চাষে মাটির ক্ষয়প্রাপ্ত পুষ্টি উপাদান প্রাকৃতিক উপায়ে পূরণ হয়।" }
+    ],
+    pest_benefit: "সরিষার শিকড় নিঃসৃত রস ও তেলের অবশিষ্টাংশ মাটির ক্ষতিকারক ছত্রাক ও কৃমির জন্য প্রাকৃতিক প্রতিষেধক হিসেবে কাজ করে।",
+    soil_benefit: "সরিষা কাটার পর শিকড় পচে মাটির রন্ধ্রতা বৃদ্ধি করে, যা পরবর্তী বোরো ধানের চারা সহজে কুশি গজাতে সাহায্য করে।"
+  },
+  {
+    crop_name: "বেগুন",
+    season_bn: "সারা বছর চাষ উপযোগী",
+    ideal_followers: [
+      { name: "লাল শাক বা পালং শাক", benefits: "বেগুনের পর স্বল্পমেয়াদী শাক চাষে মাটির উপরিভাগের পুষ্টি পুনরায় সচল হয়।" },
+      { name: "ধঞ্চে (সবুজ সার)", benefits: "ধঞ্চে চাষ করে কচি অবস্থায় চাষ দিয়ে মাটিতে মিশিয়ে দিলে মাটির উর্বরতা অনেক বাড়ে।" }
+    ],
+    pest_benefit: "বেগুনের ডগা ও ফল ছিদ্রকারী পোকার তীব্র আক্রমণ কমাতে বেগুনের পর সবুজ সার ধঞ্চে চাষ করে জমি শোধন করা জরুরি।",
+    soil_benefit: "ধঞ্চে জৈব সার হিসেবে পচে মাটির অম্লতা ও ক্ষারত্বের সমতা ফিরিয়ে আনে ও বেগুনের পুষ্টি ঘাটতি পূরণ করে।"
   }
 ];
 
@@ -53,7 +114,7 @@ export default function CropRotationPage() {
   const [activePlan, setActivePlan] = useState<RotationPlan | null>(ROTATION_DATABASE[0]);
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-green-primary/10 pb-6">
         <button 
@@ -78,35 +139,37 @@ export default function CropRotationPage() {
         {/* Current Crops List (Left 2 Columns) */}
         <div className="lg:col-span-2 space-y-3">
           <span className="text-xs font-bold text-text-secondary block mb-2 uppercase tracking-wider">বর্তমানে চাষকৃত ফসল:</span>
-          {ROTATION_DATABASE.map((plan, idx) => (
-            <div
-              key={idx}
-              onClick={() => setActivePlan(plan)}
-              className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-32 ${
-                activePlan?.crop_name === plan.crop_name
-                  ? 'bg-green-primary/5 border-green-primary shadow-md'
-                  : 'bg-soft-white border-green-primary/10 hover:border-green-primary/20 shadow-sm'
-              }`}
-            >
-              <div className="space-y-1">
-                <h4 className="font-bold text-text-primary text-sm leading-snug">
-                  {plan.crop_name}
-                </h4>
-                <span className="text-[10px] text-text-secondary font-bold uppercase">
-                  মৌসুম: {plan.season_bn}
+          <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
+            {ROTATION_DATABASE.map((plan, idx) => (
+              <div
+                key={idx}
+                onClick={() => setActivePlan(plan)}
+                className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-32 ${
+                  activePlan?.crop_name === plan.crop_name
+                    ? 'bg-green-primary/5 border-green-primary shadow-md'
+                    : 'bg-soft-white border-green-primary/10 hover:border-green-primary/20 shadow-sm'
+                }`}
+              >
+                <div className="space-y-1">
+                  <h4 className="font-bold text-text-primary text-sm leading-snug">
+                    {plan.crop_name}
+                  </h4>
+                  <span className="text-[10px] text-text-secondary font-bold uppercase">
+                    মৌসুম: {plan.season_bn}
+                  </span>
+                </div>
+                <span className="text-[10px] text-green-primary font-bold">
+                  পরবর্তী ফসল সাজেশন দেখুন →
                 </span>
               </div>
-              <span className="text-[10px] text-green-primary font-bold">
-                পরবর্তী ফসল সাজেশন দেখুন →
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Selected Plan Details (Right 3 Columns) */}
         <div className="lg:col-span-3">
           {activePlan ? (
-            <div className="glass-card p-6 md:p-8 space-y-6 border border-green-primary/10 animate-fade-in">
+            <div className="glass-card p-6 md:p-8 space-y-6 border border-green-primary/10 animate-fade-in shadow-sm">
               <div className="border-b border-green-primary/10 pb-4">
                 <span className="text-[10px] font-bold tracking-wider text-green-primary uppercase bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full">
                   পরবর্তী ফসলের পরামর্শ
@@ -173,6 +236,23 @@ export default function CropRotationPage() {
           )}
         </div>
 
+      </div>
+
+      {/* 💡 AI Doctor Call-To-Action (CTA) Banner */}
+      <div className="bg-gradient-to-r from-green-primary/10 via-emerald-700/5 to-amber-500/10 border border-green-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm mt-8">
+        <div className="space-y-1 text-center md:text-left">
+          <h4 className="font-extrabold text-text-primary text-base">আপনার জমির জন্য শস্য পর্যায় পরিকল্পনা করতে চান?</h4>
+          <p className="text-xs text-text-secondary font-bold">মাটির ধরন ও পূর্বের ফসলের কথা জানিয়ে গাছের ডাক্তারের সাথে সরাসরি চ্যাট করে ফসল চক্র বানিয়ে নিন।</p>
+        </div>
+        <button 
+          onClick={() => {
+            const cropName = activePlan?.crop_name || '';
+            router.push(`/chat?q=${encodeURIComponent(`${cropName} এর পর কি ফসল পর্যায়ক্রমিকভাবে রোপণ করা লাভজনক হবে?`)}`);
+          }}
+          className="px-6 py-3 bg-green-primary hover:bg-green-soft text-soft-white font-extrabold text-sm rounded-xl shadow-md transition-all shrink-0 cursor-pointer text-center"
+        >
+          গাছের ডাক্তারের পরামর্শ নিন →
+        </button>
       </div>
     </div>
   );

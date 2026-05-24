@@ -237,6 +237,20 @@ export default function ArticlesPage() {
         )}
       </div>
 
+      {/* 💡 AI Doctor Call-To-Action (CTA) Banner */}
+      <div className="bg-gradient-to-r from-green-primary/10 via-emerald-700/5 to-amber-500/10 border border-green-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm mt-8">
+        <div className="space-y-1 text-center md:text-left">
+          <h4 className="font-extrabold text-text-primary text-base">আর্টিকেল বা কোনো নির্দিষ্ট রোগবালাই নিয়ে আরও তথ্য চান?</h4>
+          <p className="text-xs text-text-secondary font-bold">গাছের ডাক্তারকে সরাসরি প্রশ্ন লিখে পাঠান এবং সাথে সাথে সমাধান পান।</p>
+        </div>
+        <button 
+          onClick={() => router.push('/chat')}
+          className="px-6 py-3 bg-green-primary hover:bg-green-soft text-soft-white font-extrabold text-sm rounded-xl shadow-md transition-all shrink-0 cursor-pointer text-center"
+        >
+          গাছের ডাক্তারকে প্রশ্ন করুন →
+        </button>
+      </div>
+
       {/* Details Modal */}
       {activeArticle && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-primary/40 backdrop-blur-sm animate-fade-in p-4">
@@ -276,20 +290,26 @@ export default function ArticlesPage() {
 
             {/* Link Footer */}
             <div className="pt-6 border-t border-green-primary/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <a
-                href={activeArticle.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl border border-green-primary/20 text-green-primary hover:bg-green-primary/5 text-xs font-bold transition-all"
-              >
-                <Globe className="w-4 h-4" /> মূল নোটিশের উৎস লিংক
-              </a>
-              <button
-                onClick={() => setActiveArticle(null)}
-                className="px-6 py-3 bg-green-primary hover:bg-green-soft text-soft-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer text-center"
-              >
-                বন্ধ করুন
-              </button>
+              <span className="text-xs font-bold text-text-secondary">
+                উৎস: {activeArticle.source_site === 'dae' ? 'কৃষি সম্প্রসারণ অধিদপ্তর (DAE)' : 'পরমাণু কৃষি গবেষণা ইনস্টিটিউট (BINA)'}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setActiveArticle(null);
+                    router.push(`/chat?q=${encodeURIComponent(`${activeArticle.title} সম্পর্কে আরও বলুন`)}`);
+                  }}
+                  className="px-5 py-3 bg-green-primary hover:bg-green-soft text-soft-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer text-center"
+                >
+                  গাছের ডাক্তারের পরামর্শ নিন
+                </button>
+                <button
+                  onClick={() => setActiveArticle(null)}
+                  className="px-5 py-3 border border-green-primary/20 text-green-primary hover:bg-green-primary/5 text-xs font-bold rounded-xl transition-all cursor-pointer text-center"
+                >
+                  বন্ধ করুন
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -301,7 +321,7 @@ export default function ArticlesPage() {
 const FALLBACK_ARTICLES: Article[] = [
   {
     id: 1,
-    title: "কালবৈশাখী ও আকস্মিক শিলাবৃষ্টিতে বোরো ধান সুরক্ষায় ডিএই (DAE) জরুরি নির্দেশনা",
+    title: "কালবৈশাখী ও অতিরিক্ত শিলাবৃষ্টিতে বোরো ধান সুরক্ষায় ডিএই (DAE) জরুরি নির্দেশনা",
     content: "দেশের বিভিন্ন অঞ্চলে কালবৈশাখী ঝড় ও আকস্মিক শিলাবৃষ্টির পূর্বাভাস রয়েছে। কৃষি সম্প্রসারণ অধিদপ্তর (DAE) থেকে কৃষকদের বোরো ধান ৮০% পেকে গেলে দ্রুত কেটে ফেলার পরামর্শ দেওয়া হচ্ছে। এছাড়া ঝড়-পরবর্তী রোগবালাই সংক্রমণ এড়াতে জমিতে ছত্রাকনাশক স্প্রে করুন ও নিষ্কাশন নালা সচল রাখুন।",
     source_site: "dae",
     source_url: "https://dae.gov.bd/site/notices/kalboishakhi-advisory-2026",
@@ -333,7 +353,7 @@ const FALLBACK_ARTICLES: Article[] = [
   },
   {
     id: 5,
-    title: "পরমাণু প্রযুক্তির জীবাণু সার ব্যবহারে ইউরিয়া ও নাইট্রোজেনের ঘাটতি পূরণ",
+    title: "পরমাণু প্রযুক্তির জৈব সার ব্যবহারে মাটিতে নাইট্রোজেনের ঘাটতি পূরণ",
     content: "বিনা (BINA) বিজ্ঞানীদের গবেষণায় দেখা গেছে, রাইজোবিয়াম ব্যাকটেরিয়া কালচার বা পরমাণু প্রযুক্তির জীবাণু সার ব্যবহারের মাধ্যমে ডাল জাতীয় ফসলের ফলন ২০% পর্যন্ত বৃদ্ধি পায় এবং মাটিতে নাইট্রোজেন সারের অপচয় প্রায় ৩০% কমানো সম্ভব। ডাল ও তৈলবীজ চাষীদের এই জীবাণু সার ব্যবহারের জন্য বিশেষ তাগিদ দেওয়া যাচ্ছে।",
     source_site: "bina",
     source_url: "https://bina.gov.bd/site/news/soil-nitrogen-bina-research",
@@ -349,15 +369,15 @@ const FALLBACK_ARTICLES: Article[] = [
   },
   {
     id: 7,
-    title: "বোরো ধানের ব্লাস্ট ও পাতা ধসা রোগ দমনের আধুনিক জৈব ও রাসায়নিক পদ্ধতি",
-    content: "বোরো ধানের শেষ পর্যায়ে আর্দ্র আবহাওয়ার কারণে নেক ব্লাস্ট রোগের আক্রমণ হতে পারে। রোগ দেখা দিলে জমিতে ট্রাইসাইক্লাজোল বা ডাইফেনোকোনাজল ছত্রাকনাশক স্প্রে করুন। এছাড়াও ইউরিয়া সারের অতিরিক্ত উপরি-প্রয়োগ বন্ধ রেখে পটাশ সার ব্যবহার বাড়িয়ে দিন যাতে গাছের প্রতিরোধ ক্ষমতা বাড়ে।",
+    title: "বোরো ধানের ব্লাস্ট ও পাতা ধসা রোগ দমনের আধুনিক পদ্ধতি",
+    content: "বোরো ধানের শেষ পর্যায়ে আর্দ্র আবহাওয়ার কারণে নেক ব্লাস্ট রোগের আক্রমণ হতে পারে। রোগ দেখা দিলে জমিতে ট্রাইসাইক্লাজোল বা ডাইফেনোকোনাজল ছত্রাকনাশক স্প্রে করুন। এছাড়াও ইউরিয়া সারের অতিরিক্ত ব্যবহার এড়িয়ে চলুন এবং পটাশ সারের পরিমাণ বাড়িয়ে দিন যাতে ধান গাছের রোগ প্রতিরোধ ক্ষমতা বৃদ্ধি পায়।",
     source_site: "dae",
     source_url: "https://dae.gov.bd/site/notices/rice-blast-control-2026",
     publish_date: "2026-05-05T00:00:00.000Z"
   },
   {
     id: 8,
-    title: "পাটের আঁশ ছাড়ানোর আধুনিক ও পরিবেশবান্ধব রিবন রেটিং (Ribbon Retting) পদ্ধতি",
+    title: "পাটের আঁশ ছাড়ানোর আধুনিক ও পরিবেশবান্ধব রিবন রেটিং পদ্ধতি",
     content: "জলবায়ু পরিবর্তনের ফলে শুকনা মৌসুমে পাট পচানোর পানির অভাব দূর করতে কৃষি সম্প্রসারণ অধিদপ্তর থেকে রিবন রেটিং পদ্ধতির প্রচারণা চালানো হচ্ছে। এই পদ্ধতিতে পাটের কাঁচা ছাল টেনে ছাড়িয়ে গোল করে নিয়ে অল্প পানিতে সহজেই পচানো যায়। এতে সময়, খরচ ও পানির সাশ্রয় হয় এবং পাটের সোনালী আঁশ চমৎকার মানের হয়।",
     source_site: "dae",
     source_url: "https://dae.gov.bd/site/notices/jute-ribbon-retting-guide",
@@ -373,7 +393,7 @@ const FALLBACK_ARTICLES: Article[] = [
   },
   {
     id: 10,
-    title: "ছাদ বাগান ও আধুনিক বারান্দা বাগানীদের জন্য জৈব বালাইনাশক নিম তেলের ব্যবহার",
+    title: "ছাদ বাগান ও আধুনিক বারান্দা বাগানীদের জন্য জৈব নিম তেলের ব্যবহার",
     content: "শহুরে ছাদ বাগানের গাছের পোকা দমনে ক্ষতিকর রাসায়নিক বালাইনাশকের পরিবর্তে জৈব নিম তেল অত্যন্ত কার্যকর। প্রতি লিটার কুসুম গরম পানিতে ১ চা চামচ নিম তেল এবং আধা চামচ লিকুইড সাবান গুলে সপ্তাহে অন্তত একবার স্প্রে করলে জাবপোকা, মিলিবাগ ও মাকড় আক্রমণ থেকে গাছ সুরক্ষিত থাকে।",
     source_site: "dae",
     source_url: "https://dae.gov.bd/site/notices/rooftop-neem-oil-guide",
@@ -389,11 +409,75 @@ const FALLBACK_ARTICLES: Article[] = [
   },
   {
     id: 12,
-    title: "কৃষি যান্ত্রিকীকরণ প্রকল্পের অধীনে কম্বাইন হারভেস্টারে ৫০% থেকে ৭০% পর্যন্ত সরকারি ভর্তুকি",
+    title: "কৃষি যান্ত্রিকীকরণ প্রকল্পের অধীনে কম্বাইন হারভেস্টারে সরকারি ভর্তুকি",
     content: "চলতি ফসল কাটার মৌসুমে শ্রমিক সংকট দূর করতে এবং স্বল্প ব্যয়ে দ্রুত ধান কাটার জন্য সরকার দেশব্যাপী কম্বাইন হারভেস্টার ও রিপার মেশিনের উপর বড় অংকের ভর্তুকি দিচ্ছে। সাধারণ জেলাগুলোতে ৫০% এবং হাওর ও উপকূলীয় এলাকায় ৭০% ভর্তুকিতে এই আধুনিক কৃষি যন্ত্র সরবরাহ করা হচ্ছে।",
     source_site: "dae",
     source_url: "https://dae.gov.bd/site/notices/combine-harvester-subsidy",
     publish_date: "2026-04-22T00:00:00.000Z"
+  },
+  {
+    id: 13,
+    title: "রোপা আমন ধানের লজিং বা হেলে পড়া রোগ প্রতিরোধ কৌশল",
+    content: "আমন ধান পাকার শেষ ধাপে বাতাস ও ঝড়ো হাওয়ায় ধান গাছ হেলে পড়া বা লজিং অত্যন্ত ক্ষতিকর। এই সমস্যা রোধে নাইট্রোজেন জাতীয় ইউরিয়া সারের অতিরিক্ত ব্যবহার এড়িয়ে চলুন। এছাড়া জমিতে রোপণের সময় লাইনের মধ্যবর্তী দূরত্ব ঠিক রাখুন এবং সঠিক সময়ে পটাশ সার ব্যবহার করুন যা ধান গাছের ডাল শক্ত করতে সাহায্য করে।",
+    source_site: "dae",
+    source_url: "https://dae.gov.bd/site/notices/aman-rice-lodging-prevention",
+    publish_date: "2026-04-20T00:00:00.000Z"
+  },
+  {
+    id: 14,
+    title: "ভুট্টা চাষের উন্নত জমি প্রস্তুতি ও প্রয়োজনীয় সুষম সারের ব্যবহার",
+    content: "রবি মৌসুমে লাভজনক ভুট্টা চাষের জন্য গভীর চাষ দিয়ে জমি নরম করা প্রয়োজন। হেক্টরপ্রতি সুষম সারের ব্যবহার নিশ্চিত করুন—ইউরিয়া ৩১০ কেজি, টিএসপি ১২০ কেজি এবং পটাশ ১২০ কেজি জমি তৈরির শেষ পর্যায়ে দিতে হবে। হাইব্রিড জাতের ভালো ফলনের জন্য বীজ ২ সেমি গভীরতায় রোপণ করা বাঞ্ছনীয়।",
+    source_site: "dae",
+    source_url: "https://dae.gov.bd/site/notices/maize-cultivation-fertilizers",
+    publish_date: "2026-04-18T00:00:00.000Z"
+  },
+  {
+    id: 15,
+    title: "কাঁচা মরিচের ঢলে পড়া (Wilt) ও ফল পচা রোগ দমনের উপায়",
+    content: "মরিচ গাছে অতিরিক্ত আর্দ্রতা ও জলাবদ্ধতার ফলে ব্যাক্টেরিয়াজনিত ঢলে পড়া রোগ দেখা দেয়। এর প্রতিকারে আক্রান্ত গাছ তুলে ধ্বংস করতে হবে এবং সুস্থ গাছে স্ট্রেপ্টোমাইসিন সালফেট স্প্রে করতে হবে। ফল পচা বা এনথ্রাকনোজ রোগের লক্ষণ দেখা দিলে প্রোপিকোনাজল গ্রুপের ঔষধ পরিমাণমতো স্প্রে করতে হবে।",
+    source_site: "dae",
+    source_url: "https://dae.gov.bd/site/notices/chilli-wilt-anthracnose-control",
+    publish_date: "2026-04-15T00:00:00.000Z"
+  },
+  {
+    id: 16,
+    title: "গ্রীষ্মকালীন টমেটো চাষে পলিথিন শেড ও হরমোন প্রয়োগ প্রযুক্তি",
+    content: "গ্রীষ্মকালে উচ্চ তাপমাত্রা ও অতিবৃষ্টিতে টমেটো ফুল ঝরে পড়া রোধে বিশেষ পলিথিন শেড তৈরি করতে হবে। এছাড়া ফুল আসার সময় ফলন বৃদ্ধির জন্য টমেটোটোন হরমোন ২ মিলি প্রতি লিটার পানিতে মিশিয়ে গাছে স্প্রে করতে হবে। এটি অসময়ে টমেটোর উৎপাদন কয়েকগুণ বাড়িয়ে দেয়।",
+    source_site: "dae",
+    source_url: "https://dae.gov.bd/site/notices/summer-tomato-hormones",
+    publish_date: "2026-04-12T00:00:00.000Z"
+  },
+  {
+    id: 17,
+    title: "শস্য বহুমুখীকরণ ও শস্য পর্যায় অনুসরণের গুরুত্ব ও মাটি উর্বরতা",
+    content: "একই জমিতে বারবার একই শস্য চাষ করলে মাটির নির্দিষ্ট পুষ্টি উপাদান ফুরিয়ে যায় এবং ক্ষতিকর পোকামাকড়ের প্রকোপ বাড়ে। এর থেকে বাঁচতে শস্য বহুমুখীকরণ ও ফসল চক্র অনুসরণ করা অত্যন্ত জরুরি। ধানের পর ডাল এবং তারপর তৈলবীজ চাষ করলে মাটির উর্বরতা প্রাকৃতিক উপায়ে বৃদ্ধি পায়।",
+    source_site: "dae",
+    source_url: "https://dae.gov.bd/site/notices/crop-diversification-importance",
+    publish_date: "2026-04-10T00:00:00.000Z"
+  },
+  {
+    id: 18,
+    title: "খমারজাত জৈব সার ও ট্রাইকো-কম্পোস্ট সার তৈরির সঠিক বৈজ্ঞানিক নিয়ম",
+    content: "উন্নত মানের ট্রাইকো-কম্পোস্ট সার তৈরির জন্য গোবর, কাঠের গুঁড়া, মুরগির বিষ্ঠা এবং ট্রাইকোডার্মা ওষধ মিশিয়ে একটি বদ্ধ ছায়াযুক্ত গর্তে রাখতে হবে। এভাবে ৪৫-৬০ দিন রাখলে পুষ্টিগুণ সম্পন্ন জৈব কম্পোস্ট তৈরি হয়, যা রাসায়নিক সারের ব্যবহার প্রায় ৪০% কমায়।",
+    source_site: "bina",
+    source_url: "https://bina.gov.bd/site/news/tricho-compost-preparation",
+    publish_date: "2026-04-08T00:00:00.000Z"
+  },
+  {
+    id: 19,
+    title: "মিষ্টি কুমড়া ও লাউয়ের ক্ষতিকর মাছি পোকা দমনে ফেরোমন ফাঁদ ব্যবহার",
+    content: "মিষ্টি কুমড়া ও লাউয়ের ফুল ফোটার পর মাছি পোকার আক্রমণ বেশি হয়, যা ফল ছিদ্র করে পচিয়ে ফেলে। এর দমনে বিষাক্ত কীটনাশকের পরিবর্তে সেক্স ফেরোমন ফাঁদ ব্যবহার করুন। প্রতি ৩ শতক জমিতে একটি করে ফাঁদ ঝোলালে ক্ষতিকর পুরুষ মাছি পোকা এর ভেতরে আকৃষ্ট হয়ে মারা যাবে।",
+    source_site: "dae",
+    source_url: "https://dae.gov.bd/site/notices/pheromone-trap-usage-gourds",
+    publish_date: "2026-04-05T00:00:00.000Z"
+  },
+  {
+    id: 20,
+    title: "লেবু জাতীয় ফসলের ক্যাঙ্কার (Citrus Canker) রোগ প্রতিরোধ ও প্রতিকার",
+    content: "লেবু গাছের পাতা, কাণ্ড ও ফলের ওপর খসখসে তামাটে রঙের গোল দাগ পড়া হলো ক্যাঙ্কার রোগ। এটি একটি ব্যাক্টেরিয়াজনিত রোগ। প্রতিকারে আক্রান্ত ডাল ও পাতা ছেঁটে পুড়িয়ে ফেলুন। এরপর গাছে কপার অক্সিক্লোরাইড বা বোর্দো মিক্সচার ৩ গ্রাম প্রতি লিটার পানিতে মিশিয়ে ভালোভাবে স্প্রে করুন।",
+    source_site: "dae",
+    source_url: "https://dae.gov.bd/site/notices/citrus-canker-treatment",
+    publish_date: "2026-04-02T00:00:00.000Z"
   }
 ];
 

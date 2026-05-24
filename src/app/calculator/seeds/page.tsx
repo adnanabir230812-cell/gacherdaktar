@@ -11,55 +11,117 @@ interface CropSeedData {
   spacing_bn: string;
   depth_bn: string;
   sowing_method_bn: string;
+  treatment_bn: string;
+  line_sowing_bn: string;
 }
 
 const SEED_DATABASE: CropSeedData[] = [
   {
     id: 'rice_transplant',
-    name_bn: "রোপা ধান (চারা তৈরি)",
+    name_bn: "রোপা ধান (Transplant Rice)",
     seed_rate_per_bigha_kg: 5.5,
     spacing_bn: "২০ সেমি × ১৫ সেমি (সারি থেকে সারি এবং চারা থেকে চারা)",
     depth_bn: "২ - ৩ সেমি গভীরতা বীজতলার জন্য",
-    sowing_method_bn: "বীজতলায় চারা তৈরি করে ২৫-৩০ দিন বয়সের চারা জমিতে মূল রোপণ করুন।"
+    sowing_method_bn: "বীজতলায় চারা তৈরি করে ২৫-৩০ দিন বয়সের কচি চারা জমিতে মূল রোপণ করুন। লাইন সোজা করে রোপণ করলে আলো ও বাতাস চলাচল সহজ হয় এবং ফলন বাড়ে।",
+    treatment_bn: "বীজ বপনের পূর্বে প্রতি কেজি ধানের বীজের জন্য ২ গ্রাম কার্বেন্ডাজিম বা প্রোভ্যাক্স মিশিয়ে বীজ শোধন করুন। এতে বাকানি ও চারা ঝলসানো রোগ প্রতিরোধ হয়।",
+    line_sowing_bn: "লাইন সোজা করে রোপণ করলে নিড়ানি যন্ত্র (Weeder) সহজে ব্যবহার করা যায়, যা আগাছা দমনের খরচ ৪০% কমায়।"
   },
   {
     id: 'potato',
-    name_bn: "আলু (বীজ আলু)",
+    name_bn: "আলু (Seed Potato)",
     seed_rate_per_bigha_kg: 200,
-    spacing_bn: "৬০ সেমি × ২৫ সেমি",
+    spacing_bn: "৬০ সেমি × ২৫ সেমি (সারি থেকে সারি এবং আলু থেকে আলু)",
     depth_bn: "৮ - ১০ সেমি গভীরতা",
-    sowing_method_bn: "আস্ত বা কাটা বীজ আলু চোখ উপরের দিকে রেখে রোপণ করুন।"
+    sowing_method_bn: "আস্ত বা কাটা বীজ আলু চোখ উপরের দিকে রেখে রোপণ করুন। লাইন করে রোপণ করলে সেচ ও কুদাল দিয়ে সার প্রয়োগ অত্যন্ত সহজ হয়।",
+    treatment_bn: "বীজ আলু কাটার পর কাটা অংশে ম্যানকোজেব বা কার্বেন্ডাজিম পাউডার মেখে ছায়ায় শুকিয়ে নিন। এতে মাটির ভেতরের ছত্রাকজনিত পচন প্রতিরোধ হয়।",
+    line_sowing_bn: "সারি করে রোপণ করলে আলুর ওপরে মাটির স্তূপ (Earthing up) দেওয়া সহজ হয়, যা ফলন ২০-৩০% বাড়িয়ে দেয়।"
   },
   {
     id: 'onion',
-    name_bn: "পেঁয়াজ (বীজ)",
+    name_bn: "পেঁয়াজ (Onion Seed)",
     seed_rate_per_bigha_kg: 1.2,
-    spacing_bn: "১৫ সেমি × ১০ সেমি",
-    depth_bn: "১ - ১.৫ সেমি গভীরতা",
-    sowing_method_bn: "বীজতলায় চারা তৈরি করে মূল জমিতে রোপণ করতে হবে।"
+    spacing_bn: "১৫ সেমি × ১০ সেমি (সারি থেকে সারি এবং পেঁয়াজ থেকে পেঁয়াজ)",
+    depth_bn: "১ - ১.৫ সেমি গভীরতা বীজতলায়",
+    sowing_method_bn: "বীজতলায় চারা তৈরি করে মূল জমিতে রোপণ করতে হবে। সারি করে রোপণ করলে পেঁয়াজের কন্দ বড় হওয়ার জন্য পর্যাপ্ত পুষ্টি ও জায়গা পায়।",
+    treatment_bn: "বীজ বপনের পূর্বে রোদে ভালোভাবে শুকিয়ে নিন এবং কার্বেন্ডাজিম দিয়ে শোধন করুন যাতে চারা পচা রোগ (Damping off) না হয়।",
+    line_sowing_bn: "সারি পদ্ধতিতে চারা রোপণ করলে পেঁয়াজের গোড়ায় জলাবদ্ধতা এড়ানো যায় এবং প্রতিটি পেঁয়াজ সম আকৃতির হয়।"
   },
   {
     id: 'wheat',
-    name_bn: "গম",
+    name_bn: "গম (Wheat)",
     seed_rate_per_bigha_kg: 16,
     spacing_bn: "২০ সেমি (সারি থেকে সারি)",
     depth_bn: "৩ - ৫ সেমি গভীরতা",
-    sowing_method_bn: "সারিতে বীজ বোনা সবচেয়ে ভালো, মাটির আর্দ্রতা দেখে রোপণ করুন।"
+    sowing_method_bn: "সারিতে বীজ বোনা সবচেয়ে ভালো, মাটির আর্দ্রতা দেখে রোপণ করুন। সারি করে বপন করলে গাছ সমানভাবে আলো-বাতাস পায় ও ঝড়ে হেলে পড়ে না।",
+    treatment_bn: "বপনের পূর্বে প্রোভ্যাক্স বা কার্বেন্ডাজিম জাতীয় ছত্রাকনাশক প্রতি কেজি বীজে ২.৫ গ্রাম মিশিয়ে শোধন করুন। এটি গমের ব্লাস্ট ও লুজ স্মাট রোগ প্রতিরোধ করে।",
+    line_sowing_bn: "ছিটিয়ে বোনার চেয়ে সারিতে গম বপন করলে বীজের অপচয় কমে এবং বিঘাপ্রতি ফলন ১৫% পর্যন্ত বৃদ্ধি পায়।"
   },
   {
     id: 'maize',
-    name_bn: "ভুট্টা (হাইব্রিড)",
+    name_bn: "ভুট্টা (Hybrid Maize)",
     seed_rate_per_bigha_kg: 2.5,
     spacing_bn: "৬০ সেমি × ২৫ সেমি (একক চারা)",
     depth_bn: "৩ - ৪ সেমি গভীরতা",
-    sowing_method_bn: "প্রতি গর্তে একটি করে পুষ্ট বীজ বপন করতে হবে।"
+    sowing_method_bn: "প্রতি গর্তে একটি করে পুষ্ট বীজ বপন করতে হবে। লাইন বা সারিতে বপন করলে ভুট্টা গাছের পরাগায়ন ও মোচা বড় হওয়ার পরিবেশ তৈরি হয়।",
+    treatment_bn: "বীজ বপনের পূর্বে থাইরাম বা মেটালাক্সিল দিয়ে বীজ শোধন করুন যাতে কান্ড পচা ও গোড়া পচা রোগ এড়ানো সম্ভব হয়।",
+    line_sowing_bn: "সারিবদ্ধভাবে ভুট্টা লাগালে গাছের লাইনের মাঝে নিড়ানি দেওয়া ও সেচের নালা তৈরি করা অত্যন্ত সহজ হয়।"
+  },
+  {
+    id: 'mustard',
+    name_bn: "সরিষা (Mustard)",
+    seed_rate_per_bigha_kg: 1.5,
+    spacing_bn: "৩০ সেমি (সারি থেকে সারি)",
+    depth_bn: "২ - ৩ সেমি গভীরতা",
+    sowing_method_bn: "সারিতে বীজ বপন করলে সরিষার ফলন বাড়ে, আগাছা পরিষ্কার করা যায় ও জাবপোকা দমন সহজ হয়। মাটির জো দেখে বপন করা ভালো।",
+    treatment_bn: "আইপ্রোডিয়ন বা রোভরাল ছত্রাকনাশক দিয়ে বীজ শোধন করুন। এতে সরিষার পাতা ঝলসানো রোগ (Alternaria Blight) থেকে রেহাই পাওয়া যায়।",
+    line_sowing_bn: "সারি করে বুনলে জাবপোকা ও অন্যান্য ক্ষতিকারক পোকার বিস্তার দ্রুত শনাক্ত ও স্প্রে করা সহজ হয়।"
+  },
+  {
+    id: 'jute',
+    name_bn: "পাট (Jute)",
+    seed_rate_per_bigha_kg: 1.0,
+    spacing_bn: "৩০ সেমি × ৭-১০ সেমি (সারি থেকে সারি এবং গাছ থেকে গাছ)",
+    depth_bn: "১.৫ - ২.০ সেমি গভীরতা",
+    sowing_method_bn: "সারি বা লাইনে বপন করলে পাটের আঁশ সমান লম্বা ও উন্নত মানের হয় এবং পরবর্তীতে রিবন রেটিং করা অত্যন্ত সহজ হয়।",
+    treatment_bn: "প্রতি কেজি পাটের বীজে ২ গ্রাম কার্বেন্ডাজিম মিশিয়ে বীজ শোধন করুন। এতে পাটের কান্ড পচা ও শুকনা ক্ষত রোগ প্রতিরোধ হবে।",
+    line_sowing_bn: "লাইন সোজা করে পাট বুনলে অতি ঘন চারা সহজে তুলে পাতলা (Thinning) করা যায় এবং আঁশের মান সোনালী হয়।"
+  },
+  {
+    id: 'chilli',
+    name_bn: "মরিচ (Chilli)",
+    seed_rate_per_bigha_kg: 0.2,
+    spacing_bn: "৫০ সেমি × ৪০ সেমি (সারি থেকে সারি এবং গাছ থেকে গাছ)",
+    depth_bn: "১.০ সেমি গভীরতা বীজতলার জন্য",
+    sowing_method_bn: "বীজতলায় চারা উৎপাদন করে ৩০-৩৫ দিনের সুস্থ চারা মূল জমিতে সারি করে রোপণ করুন। এতে প্রতিটি মরিচ গাছে সমান আলো-বাতাস লাগে ও শাখা ভালো গজায়।",
+    treatment_bn: "বীজতলায় বীজ বপনের আগে থাইরাম বা ট্রাইকোডার্মা দিয়ে বীজ শোধন করুন। চারা রোপণের পূর্বে গোড়া ছত্রাকনাশক পানিতে ৫ মিনিট ভিজিয়ে শোধন করুন।",
+    line_sowing_bn: "সারি করে মরিচ লাগালে মাটিতে মালচিং পেপার বিছানো সহজ হয়, যা সেচ খরচ ৫০% সাশ্রয় ও আগাছা সম্পূর্ণ নিয়ন্ত্রণ করে।"
+  },
+  {
+    id: 'tomato',
+    name_bn: "টমেটো (Tomato)",
+    seed_rate_per_bigha_kg: 0.15,
+    spacing_bn: "৬০ সেমি × ৪০ সেমি (সারি থেকে সারি এবং গাছ থেকে গাছ)",
+    depth_bn: "১.০ সেমি গভীরতা বীজতলার জন্য",
+    sowing_method_bn: "চারা তৈরি করে ২৫-৩০ দিনের কচি চারা মূল জমিতে মাদা (গর্ত) তৈরি করে রোপণ করুন। সারি করে চাষ ও মাচায় বেঁধে দিলে ফল পচা ও রোগ বালাই কমে।",
+    treatment_bn: "বীজ বপনের পূর্বে বীজ শোধন করার পাশাপাশি চারা রোপণের পূর্বে চারার গোড়া কার্বেন্ডাজিম তরল মিক্সে ভিজিয়ে শোধন করে নিন।",
+    line_sowing_bn: "সারিবদ্ধভাবে টমেটো গাছ রোপণ করলে বাঁশের খুঁটি (Staking) দেওয়া ও ফল সংগ্রহের কাজ সহজ ও নিখুঁত হয়।"
+  },
+  {
+    id: 'lentil',
+    name_bn: "মসুর ডাল (Lentil)",
+    seed_rate_per_bigha_kg: 4.5,
+    spacing_bn: "২৫ সেমি (সারি থেকে সারি)",
+    depth_bn: "৩ - ৪ সেমি গভীরতা",
+    sowing_method_bn: "সারিতে বপন করলে আগাছা দমন ও সেচ দেওয়া সহজ হয়। বীজ বপনের আগে রাইজোবিয়াম ব্যাকটেরিয়া কালচার দিয়ে শোধন করা অত্যন্ত গুরুত্বপূর্ণ।",
+    treatment_bn: "প্রতি কেজি মসুর বীজে ২ গ্রাম কার্বেন্ডাজিম বা প্রোভ্যাক্স মিশিয়ে শোধন করুন। এতে শিকড় পচা ও ঢলে পড়া রোগ প্রতিরোধ হয়।",
+    line_sowing_bn: "বীজ শোধনের পর রাইজোবিয়াম ব্যাকটেরিয়া মিশিয়ে সারিতে বপন করলে শিকড়ে নাইট্রোজেন গুটি তৈরি বাড়ে এবং ইউরিয়া সার ছাড়াই ফলন ৩০% বৃদ্ধি পায়।"
   }
 ];
 
 export default function SeedCalculator() {
   const router = useRouter();
   const [selectedCropId, setSelectedCropId] = useState<string>('rice_transplant');
-  const [landSize, setLandSize] = useState<number | ''>(1);
+  const [landSize, setLandSize] = useState<number>(1);
   const [landUnit, setLandUnit] = useState<string>('bigha'); // bigha or decimal
   const [result, setResult] = useState<{
     cropName: string;
@@ -67,10 +129,12 @@ export default function SeedCalculator() {
     spacing: string;
     depth: string;
     method: string;
+    treatment: string;
+    lineSowing: string;
   } | null>(null);
 
   useEffect(() => {
-    if (!selectedCropId || landSize === '' || landSize <= 0) {
+    if (!selectedCropId || landSize <= 0) {
       setResult(null);
       return;
     }
@@ -87,7 +151,9 @@ export default function SeedCalculator() {
       totalSeedWeight: Math.round(totalWeight * 100) / 100,
       spacing: crop.spacing_bn,
       depth: crop.depth_bn,
-      method: crop.sowing_method_bn
+      method: crop.sowing_method_bn,
+      treatment: crop.treatment_bn,
+      lineSowing: crop.line_sowing_bn
     });
 
   }, [selectedCropId, landSize, landUnit]);
@@ -102,7 +168,7 @@ export default function SeedCalculator() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-green-primary/10 pb-6">
         <button 
@@ -117,7 +183,7 @@ export default function SeedCalculator() {
             বীজ ও চারা বপন ক্যালকুলেটর
           </h1>
           <p className="text-text-secondary text-sm font-semibold">
-            আপনার জমির পরিমাপ অনুযায়ী প্রয়োজনীয় বীজের সঠিক ওজন এবং আদর্শ রোপণ দূরত্ব ও গভীরতা গণনা করুন।
+            আপনার জমির পরিমাপ অনুযায়ী প্রয়োজনীয় বীজের সঠিক ওজন এবং আদর্শ রোপণ দূরত্ব, গভীরতা ও বীজ শোধন নিয়ম গণনা করুন।
           </p>
         </div>
       </div>
@@ -136,7 +202,7 @@ export default function SeedCalculator() {
             <select
               value={selectedCropId}
               onChange={(e) => setSelectedCropId(e.target.value)}
-              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold cursor-pointer"
             >
               {SEED_DATABASE.map(c => (
                 <option key={c.id} value={c.id}>{c.name_bn}</option>
@@ -151,15 +217,15 @@ export default function SeedCalculator() {
               <input
                 type="number"
                 value={landSize}
-                onChange={(e) => setLandSize(e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) => setLandSize(e.target.value === '' ? 0 : Number(e.target.value))}
                 min="0.1"
                 step="any"
-                className="flex-1 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+                className="flex-1 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold"
               />
               <select
                 value={landUnit}
                 onChange={(e) => setLandUnit(e.target.value)}
-                className="bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+                className="bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold cursor-pointer"
               >
                 <option value="bigha">বিঘা (Bigha)</option>
                 <option value="decimal">শতক (Decimal)</option>
@@ -175,12 +241,12 @@ export default function SeedCalculator() {
             <div className="space-y-6">
               
               {/* Seed Weight Card */}
-              <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6">
+              <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6 shadow-sm">
                 <h3 className="font-bold text-text-primary mb-4 text-base">📊 বীজ গণনার ফলাফল:</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div className="border border-green-primary/10 rounded-2xl p-6 text-center bg-green-primary/5 space-y-1">
                     <h4 className="font-bold text-text-primary text-xs">প্রয়োজনীয় বীজের মোট ওজন</h4>
-                    <p className="text-3xl font-extrabold text-green-primary">
+                    <p className="text-3xl font-black text-green-primary">
                       {translateToBanglaDigits(result.totalSeedWeight)} কেজি
                     </p>
                     <span className="text-xs text-text-secondary block font-bold">
@@ -200,14 +266,14 @@ export default function SeedCalculator() {
                   {/* Spacing */}
                   <div className="flex gap-3 text-sm text-text-primary bg-white/40 p-4 rounded-xl border border-green-primary/5">
                     <div>
-                      <h4 className="font-extrabold text-green-primary text-xs uppercase mb-1">আদর্শ রোপণ দূরত্ব:</h4>
+                      <h4 className="font-extrabold text-green-primary text-xs uppercase mb-1">আদর্শ রোপণ দূরত্ব (Spacing):</h4>
                       <p className="font-medium leading-relaxed">{result.spacing}</p>
                     </div>
                   </div>
                   {/* Depth */}
                   <div className="flex gap-3 text-sm text-text-primary bg-white/40 p-4 rounded-xl border border-green-primary/5">
                     <div>
-                      <h4 className="font-extrabold text-amber-700 text-xs uppercase mb-1">বপনের গভীরতা:</h4>
+                      <h4 className="font-extrabold text-amber-700 text-xs uppercase mb-1">বপনের গভীরতা (Depth):</h4>
                       <p className="font-medium leading-relaxed">{result.depth}</p>
                     </div>
                   </div>
@@ -216,6 +282,20 @@ export default function SeedCalculator() {
                     <div>
                       <h4 className="font-extrabold text-slate-700 text-xs uppercase mb-1">বপন ও রোপণ পদ্ধতি:</h4>
                       <p className="font-medium leading-relaxed">{result.method}</p>
+                    </div>
+                  </div>
+                  {/* Treatment */}
+                  <div className="flex gap-3 text-sm text-text-primary bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/20">
+                    <div>
+                      <h4 className="font-extrabold text-emerald-800 text-xs uppercase mb-1">বীজ শোধন নির্দেশিকা (Seed Treatment):</h4>
+                      <p className="font-bold leading-relaxed text-emerald-950">{result.treatment}</p>
+                    </div>
+                  </div>
+                  {/* Line Sowing Benefits */}
+                  <div className="flex gap-3 text-sm text-text-primary bg-indigo-500/5 p-4 rounded-xl border border-indigo-500/20">
+                    <div>
+                      <h4 className="font-extrabold text-indigo-800 text-xs uppercase mb-1">লাইন বা সারিবদ্ধ চাষের উপকারিতা:</h4>
+                      <p className="font-bold leading-relaxed text-indigo-950">{result.lineSowing}</p>
                     </div>
                   </div>
                 </div>
@@ -235,6 +315,23 @@ export default function SeedCalculator() {
           )}
         </div>
 
+      </div>
+
+      {/* 💡 AI Doctor Call-To-Action (CTA) Banner */}
+      <div className="bg-gradient-to-r from-green-primary/10 via-emerald-700/5 to-amber-500/10 border border-green-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm mt-8">
+        <div className="space-y-1 text-center md:text-left">
+          <h4 className="font-extrabold text-text-primary text-base">বীজ শোধন বা নির্দিষ্ট জাতের বপন সময় নিয়ে কোনো প্রশ্ন আছে?</h4>
+          <p className="text-xs text-text-secondary font-bold">আপনার ফসলের বীজ সংক্রান্ত যেকোনো জিজ্ঞাসা সরাসরি গাছের ডাক্তারকে লিখে পাঠান।</p>
+        </div>
+        <button 
+          onClick={() => {
+            const cropName = SEED_DATABASE.find(c => c.id === selectedCropId)?.name_bn || '';
+            router.push(`/chat?q=${encodeURIComponent(`${cropName} বীজের রোগবালাই শোধন ও বপন গাইড নিয়ে বিস্তারিত জানতে চাই।`)}`);
+          }}
+          className="px-6 py-3 bg-green-primary hover:bg-green-soft text-soft-white font-extrabold text-sm rounded-xl shadow-md transition-all shrink-0 cursor-pointer text-center"
+        >
+          গাছের ডাক্তারের পরামর্শ নিন →
+        </button>
       </div>
     </div>
   );

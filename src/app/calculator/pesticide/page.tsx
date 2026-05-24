@@ -4,37 +4,93 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Calculator, AlertTriangle, ShieldCheck, Info } from 'lucide-react';
 
+const CROPS_LIST = [
+  { id: 'rice', name: 'ধান (Rice)' },
+  { id: 'wheat', name: 'গম (Wheat)' },
+  { id: 'potato', name: 'আলু (Potato)' },
+  { id: 'tomato', name: 'টমেটো (Tomato)' },
+  { id: 'eggplant', name: 'বেগুন (Eggplant)' },
+  { id: 'chilli', name: 'মরিচ (Chilli)' },
+  { id: 'onion', name: 'পেঁয়াজ (Onion)' },
+  { id: 'garlic', name: 'রসুন (Garlic)' },
+  { id: 'mustard', name: 'সরিষা (Mustard)' },
+  { id: 'maize', name: 'ভুট্টা (Maize)' },
+  { id: 'jute', name: 'পাট (Jute)' },
+  { id: 'mango', name: 'আম (Mango)' },
+  { id: 'banana', name: 'কলা (Banana)' },
+  { id: 'citrus', name: 'লেবু (Citrus)' },
+  { id: 'sweet_gourd', name: 'মিষ্টি কুমড়া (Sweet Gourd)' },
+  { id: 'bottle_gourd', name: 'লাউ (Bottle Gourd)' },
+  { id: 'cucumber', name: 'শসা (Cucumber)' },
+  { id: 'papaya', name: 'পেঁপে (Papaya)' },
+  { id: 'lentil', name: 'মসুর ডাল (Lentil)' },
+  { id: 'sesame', name: 'তিল (Sesame)' },
+];
+
 export default function PesticideCalculator() {
   const router = useRouter();
-  const [tankSize, setTankSize] = useState<number>(16); // Default knapsack sprayer size in Litres
-  const [dosageRate, setDosageRate] = useState<number | ''>(2); // ml or gm per Litre
-  const [totalWaterNeeded, setTotalWaterNeeded] = useState<number | ''>(80); // Litres for overall land
+  const [selectedCrop, setSelectedCrop] = useState<string>('rice');
+  const [tankSize, setTankSize] = useState<number>(16); // Sprayer size in Litres
+  const [pesticideForm, setPesticideForm] = useState<'liquid' | 'powder'>('liquid');
+  const [severity, setSeverity] = useState<'preventive' | 'mild' | 'severe'>('mild');
+  const [landArea, setLandArea] = useState<number>(10); // Land in decimal (শতক)
+  
   const [result, setResult] = useState<{
+    dosageRate: number; // per Litre
     chemicalPerTank: number;
-    totalChemicalNeeded: number;
     tanksNeeded: number;
+    totalWaterNeeded: number;
+    totalChemicalNeeded: number;
+    teaspoonsPerTank: number;
+    capsPerTank?: number;
+    totalTeaspoons: number;
+    totalCaps?: number;
   } | null>(null);
 
-  // Perform pesticide calculation
   useEffect(() => {
-    if (tankSize <= 0 || dosageRate === '' || dosageRate <= 0) {
+    if (tankSize <= 0 || landArea <= 0) {
       setResult(null);
       return;
     }
 
-    const dosage = Number(dosageRate);
-    const chemicalPerTank = tankSize * dosage;
-    const waterTotal = totalWaterNeeded === '' || totalWaterNeeded <= 0 ? tankSize : Number(totalWaterNeeded);
-    const totalChemical = waterTotal * dosage;
-    const tanks = Math.ceil(waterTotal / tankSize);
+    // Determine dosage rate based on form and severity
+    let rate = 2.0; // default ml or gm per Litre
+    if (pesticideForm === 'liquid') {
+      if (severity === 'preventive') rate = 1.5;
+      else if (severity === 'mild') rate = 2.5;
+      else if (severity === 'severe') rate = 4.0;
+    } else {
+      if (severity === 'preventive') rate = 1.0;
+      else if (severity === 'mild') rate = 2.0;
+      else if (severity === 'severe') rate = 3.0;
+    }
+
+    const totalWater = landArea * 2.5; // 2.5 Litres per decimal
+    const chemicalPerTank = tankSize * rate;
+    const totalChemical = totalWater * rate;
+    const tanks = Math.ceil(totalWater / tankSize);
+
+    // 1 teaspoon = 5 ml or 5 gm
+    const teaspoonsPerTank = chemicalPerTank / 5;
+    const totalTeaspoons = totalChemical / 5;
+
+    // 1 standard cap = 5 ml (only for liquid)
+    const capsPerTank = pesticideForm === 'liquid' ? chemicalPerTank / 5 : undefined;
+    const totalCaps = pesticideForm === 'liquid' ? totalChemical / 5 : undefined;
 
     setResult({
+      dosageRate: rate,
       chemicalPerTank: Math.round(chemicalPerTank * 100) / 100,
+      tanksNeeded: tanks,
+      totalWaterNeeded: Math.round(totalWater * 100) / 100,
       totalChemicalNeeded: Math.round(totalChemical * 100) / 100,
-      tanksNeeded: tanks
+      teaspoonsPerTank: Math.round(teaspoonsPerTank * 10) / 10,
+      capsPerTank: capsPerTank ? Math.round(capsPerTank * 10) / 10 : undefined,
+      totalTeaspoons: Math.round(totalTeaspoons * 10) / 10,
+      totalCaps: totalCaps ? Math.round(totalCaps * 10) / 10 : undefined,
     });
 
-  }, [tankSize, dosageRate, totalWaterNeeded]);
+  }, [tankSize, pesticideForm, severity, landArea]);
 
   const translateToBanglaDigits = (num: number | string): string => {
     const englishToBanglaMap: { [key: string]: string } = {
@@ -44,6 +100,8 @@ export default function PesticideCalculator() {
     };
     return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
   };
+
+  const currentCropName = CROPS_LIST.find(c => c.id === selectedCrop)?.name || '';
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -61,7 +119,7 @@ export default function PesticideCalculator() {
             কীটনাশক ও স্প্রে ডোজ ক্যালকুলেটর
           </h1>
           <p className="text-text-secondary text-sm font-semibold">
-            আপনার স্প্রে ড্রামের ধারণক্ষমতা অনুযায়ী কীটনাশক, ছত্রাকনাশক ও তরল ওষুধের সঠিক মিশ্রণ অনুপাত হিসাব করুন।
+            ফসলের ধরন, ওষুধের রূপ ও আক্রমণের তীব্রতা অনুযায়ী সহজ দেশী পরিমাপে (চা চামচ ও ছিপি) স্প্রে ডোজ হিসাব করুন।
           </p>
         </div>
       </div>
@@ -74,13 +132,72 @@ export default function PesticideCalculator() {
             পরামিতি নির্ধারণ করুন
           </h3>
 
+          {/* Crop Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-text-primary">আক্রান্ত ফসল:</label>
+            <select
+              value={selectedCrop}
+              onChange={(e) => setSelectedCrop(e.target.value)}
+              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary cursor-pointer font-bold"
+            >
+              {CROPS_LIST.map((crop) => (
+                <option key={crop.id} value={crop.id}>
+                  {crop.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Pesticide Form */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-text-primary">কীটনাশকের ধরন (Form):</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setPesticideForm('liquid')}
+                className={`py-2.5 rounded-xl border text-sm font-bold transition-all ${
+                  pesticideForm === 'liquid'
+                    ? 'bg-green-primary/10 border-green-primary text-green-primary'
+                    : 'bg-soft-white border-green-primary/10 text-text-secondary hover:bg-green-primary/5'
+                }`}
+              >
+                তরল (Liquid)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPesticideForm('powder')}
+                className={`py-2.5 rounded-xl border text-sm font-bold transition-all ${
+                  pesticideForm === 'powder'
+                    ? 'bg-green-primary/10 border-green-primary text-green-primary'
+                    : 'bg-soft-white border-green-primary/10 text-text-secondary hover:bg-green-primary/5'
+                }`}
+              >
+                পাউডার (Powder)
+              </button>
+            </div>
+          </div>
+
+          {/* Severity */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-text-primary">আক্রমণের তীব্রতা:</label>
+            <select
+              value={severity}
+              onChange={(e) => setSeverity(e.target.value as any)}
+              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold cursor-pointer"
+            >
+              <option value="preventive">প্রতিরোধমূলক (আক্রমণের পূর্বে / আভাস পেলে)</option>
+              <option value="mild">মাঝারি আক্রমণ (অল্প লক্ষণ দেখা দিলে)</option>
+              <option value="severe">তীব্র আক্রমণ (অতি আক্রমণ ও ক্ষতি হলে)</option>
+            </select>
+          </div>
+
           {/* Tank Size Selection */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-text-primary">স্প্রে ট্যাঙ্কের সাইজ (ড্রাম):</label>
             <select
               value={tankSize}
               onChange={(e) => setTankSize(Number(e.target.value))}
-              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold cursor-pointer"
             >
               <option value={10}>১০ লিটার (ছোট ট্যাঙ্ক)</option>
               <option value={12}>১২ লিটার</option>
@@ -89,39 +206,21 @@ export default function PesticideCalculator() {
             </select>
           </div>
 
-          {/* Dosage Rate */}
+          {/* Land Area */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-text-primary">অনুমোদিত ডোজের হার (প্রতি লিটার পানিতে):</label>
+            <label className="text-sm font-bold text-text-primary">জমির পরিমাণ (শতক হিসেবে):</label>
             <div className="relative">
               <input
                 type="number"
-                value={dosageRate}
-                onChange={(e) => setDosageRate(e.target.value === '' ? '' : Number(e.target.value))}
-                min="0.1"
-                step="any"
-                placeholder="যেমন: ২.৫ বা ১.৫"
-                className="w-full bg-soft-white border border-green-primary/20 rounded-xl pl-4 pr-16 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
-              />
-              <span className="absolute right-4 top-3 text-xs font-bold text-text-secondary">মিলি / গ্রাম</span>
-            </div>
-            <p className="text-[10px] text-text-secondary font-semibold">* বালাইনাশক বোতলের গায়ে লিখিত নির্দেশিকা অনুসরণ করুন।</p>
-          </div>
-
-          {/* Total Water Needed (optional) */}
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-text-primary">মোট পানির পরিমাণ (ঐচ্ছিক):</label>
-            <div className="relative">
-              <input
-                type="number"
-                value={totalWaterNeeded}
-                onChange={(e) => setTotalWaterNeeded(e.target.value === '' ? '' : Number(e.target.value))}
+                value={landArea}
+                onChange={(e) => setLandArea(e.target.value === '' ? 0 : Number(e.target.value))}
                 min="1"
-                placeholder="যেমন: ৮০"
-                className="w-full bg-soft-white border border-green-primary/20 rounded-xl pl-4 pr-16 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+                placeholder="যেমন: ১০"
+                className="w-full bg-soft-white border border-green-primary/20 rounded-xl pl-4 pr-16 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold"
               />
-              <span className="absolute right-4 top-3 text-xs font-bold text-text-secondary">লিটার</span>
+              <span className="absolute right-4 top-3 text-xs font-bold text-text-secondary">শতক</span>
             </div>
-            <p className="text-[10px] text-text-secondary font-semibold">পুরো জমিতে স্প্রে করার জন্য প্রয়োজনীয় আনুমানিক পানির পরিমাণ।</p>
+            <p className="text-[10px] text-text-secondary font-semibold">* ৩৩ শতক = ১ বিঘা।</p>
           </div>
         </div>
 
@@ -131,42 +230,65 @@ export default function PesticideCalculator() {
             <div className="space-y-6">
               
               {/* Output stats grid */}
-              <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6">
-                <h3 className="font-bold text-text-primary mb-4 text-base">📊 প্রয়োজনীয় ডোজের অনুপাত:</h3>
+              <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6 shadow-sm">
+                <h3 className="font-bold text-text-primary mb-4 text-base">📊 প্রয়োজনীয় ওষুধের পরিমাণ (সহজ মাপে):</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Dose Per Tank */}
-                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-green-primary/5 space-y-1">
-                    <h4 className="font-bold text-text-primary text-xs">প্রতি ট্যাঙ্কে (ড্রাম) ওষুধ</h4>
-                    <p className="text-xl font-extrabold text-green-primary">
-                      {translateToBanglaDigits(result.chemicalPerTank)} মিলি/গ্রাম
-                    </p>
-                    <span className="text-[10px] text-text-secondary block font-semibold">
-                      {translateToBanglaDigits(tankSize)} লিটার পানির জন্য
+                  <div className="border border-green-primary/10 rounded-2xl p-5 text-center bg-green-primary/5 space-y-2">
+                    <h4 className="font-extrabold text-text-primary text-xs">প্রতি ট্যাঙ্কে (ড্রাম) ওষুধ লাগবে</h4>
+                    
+                    <div className="space-y-1">
+                      <p className="text-2xl font-black text-green-primary">
+                        {translateToBanglaDigits(result.teaspoonsPerTank)} চা চামচ
+                      </p>
+                      {pesticideForm === 'liquid' && result.capsPerTank !== undefined && (
+                        <p className="text-lg font-bold text-green-primary/80">
+                          অথবা {translateToBanglaDigits(result.capsPerTank)} ছিপি (ক্যাপ)
+                        </p>
+                      )}
+                    </div>
+
+                    <span className="text-[10px] text-text-secondary block font-bold pt-2 border-t border-green-primary/10">
+                      উচ্চ সুক্ষ্মতায়: {translateToBanglaDigits(result.chemicalPerTank)} {pesticideForm === 'liquid' ? 'মিলি' : 'গ্রাম'} ({translateToBanglaDigits(tankSize)} লিটার ড্রামের জন্য)
                     </span>
                   </div>
 
                   {/* Total Chemical */}
-                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-amber-500/5 space-y-1">
-                    <h4 className="font-bold text-text-primary text-xs">মোট ওষুধের পরিমাণ</h4>
-                    <p className="text-xl font-extrabold text-amber-700">
-                      {translateToBanglaDigits(result.totalChemicalNeeded)} মিলি/গ্রাম
-                    </p>
-                    <span className="text-[10px] text-text-secondary block font-semibold">
-                      {translateToBanglaDigits(totalWaterNeeded || tankSize)} লিটার পানির জন্য
-                    </span>
-                  </div>
+                  <div className="border border-green-primary/10 rounded-2xl p-5 text-center bg-amber-500/5 space-y-2">
+                    <h4 className="font-extrabold text-text-primary text-xs">পুরো জমির জন্য মোট প্রয়োজন</h4>
+                    
+                    <div className="space-y-1">
+                      <p className="text-2xl font-black text-amber-700">
+                        {translateToBanglaDigits(result.totalTeaspoons)} চা চামচ
+                      </p>
+                      {pesticideForm === 'liquid' && result.totalCaps !== undefined && (
+                        <p className="text-lg font-bold text-amber-700/80">
+                          অথবা {translateToBanglaDigits(result.totalCaps)} ছিপি (ক্যাপ)
+                        </p>
+                      )}
+                    </div>
 
-                  {/* Tanks Count */}
-                  <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-slate-500/5 space-y-1">
-                    <h4 className="font-bold text-text-primary text-xs">প্রয়োজনীয় ড্রাম সংখ্যা</h4>
-                    <p className="text-xl font-extrabold text-slate-700">
-                      {translateToBanglaDigits(result.tanksNeeded)} বার (ড্রাম)
-                    </p>
-                    <span className="text-[10px] text-text-secondary block font-semibold">
-                      ট্যাঙ্ক রি-ফিল করতে হবে
+                    <span className="text-[10px] text-text-secondary block font-bold pt-2 border-t border-amber-500/10">
+                      মোট ওষুধ: {translateToBanglaDigits(result.totalChemicalNeeded)} {pesticideForm === 'liquid' ? 'মিলি' : 'গ্রাম'} ({translateToBanglaDigits(result.totalWaterNeeded)} লিটার পানির জন্য)
                     </span>
                   </div>
+                </div>
+
+                <div className="mt-4 p-4 bg-slate-500/5 rounded-2xl flex justify-between items-center text-xs font-bold text-text-secondary">
+                  <span>প্রয়োজনীয় ড্রাম বা স্প্রে সংখ্যা:</span>
+                  <span className="text-slate-700 text-sm font-black">{translateToBanglaDigits(result.tanksNeeded)} বার (ড্রাম)</span>
+                </div>
+              </div>
+
+              {/* Conversion note */}
+              <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl flex items-start gap-2.5">
+                <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-text-primary leading-relaxed font-bold">
+                  <p className="text-amber-800 mb-1">কৃষক পরিমাপ নির্দেশিকা:</p>
+                  <p>১ চা চামচ = প্রায় ৫ মিলি (তরল ওষুধ) অথবা ৫ গ্রাম (পাউডার ওষুধ)।</p>
+                  <p>১ বোতলের ছিপি (ক্যাপ) = প্রায় ৫ মিলি (তরল ওষুধের স্ট্যান্ডার্ড ক্যাপ)।</p>
+                  <p className="mt-1 text-text-secondary font-medium">* বালাইনাশক প্রয়োগের পূর্বে সর্বদা বোতলের গায়ে লিখিত নির্দেশনাবলী ভালোভাবে পড়ুন।</p>
                 </div>
               </div>
 
@@ -197,13 +319,29 @@ export default function PesticideCalculator() {
               <div>
                 <h4 className="font-bold text-text-primary">বালাইনাশক ডোজ গণনার ফলাফল</h4>
                 <p className="text-xs text-text-secondary max-w-xs mt-1 font-semibold">
-                  বামদিকের বক্সে আপনার স্প্রেয়ার ড্রামের সাইজ এবং বোতলের গায়ের অনুমোদিত মাত্রাটি লিখুন। সঠিক হিসাব সাথে সাথে প্রস্তুত হয়ে যাবে।
+                  বামদিকের বক্সে আপনার আক্রান্ত ফসল, কীটনাশকের রূপ, আক্রমণের তীব্রতা ও জমির পরিমাণ সিলেক্ট করুন। সঠিক স্প্রে ডোজ হিসাব হয়ে যাবে।
                 </p>
               </div>
             </div>
           )}
         </div>
 
+      </div>
+
+      {/* 💡 AI Doctor Call-To-Action (CTA) Banner */}
+      <div className="bg-gradient-to-r from-green-primary/10 via-emerald-700/5 to-amber-500/10 border border-green-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm mt-8">
+        <div className="space-y-1 text-center md:text-left">
+          <h4 className="font-extrabold text-text-primary text-base">কীটনাশকের সঠিক বাণিজ্যিক নাম বা অনুমোদিত ডোজ নিয়ে দ্বিধায় আছেন?</h4>
+          <p className="text-xs text-text-secondary font-bold">আপনার ফসলের নাম ও সমস্যাটি লিখে সরাসরি গাছের ডাক্তারকে জিজ্ঞাসা করুন এবং তাত্ক্ষণিক সমাধান পান।</p>
+        </div>
+        <button 
+          onClick={() => {
+            router.push(`/chat?q=${encodeURIComponent(`${currentCropName} ফসলে বালাইনাশক ব্যবহারের সঠিক নিয়ম ও ডোজ কত?`)}`);
+          }}
+          className="px-6 py-3 bg-green-primary hover:bg-green-soft text-soft-white font-extrabold text-sm rounded-xl shadow-md transition-all shrink-0 cursor-pointer text-center"
+        >
+          গাছের ডাক্তারের পরামর্শ নিন →
+        </button>
       </div>
     </div>
   );

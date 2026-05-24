@@ -194,12 +194,12 @@ export default function Home() {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-black leading-tight drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] text-soft-white">
-            কৃষকের হাসিতে দেশ হাসে, <br />
-            <span className="text-sunlight drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">গাছের ডাক্তার</span> সদা পাশে!
+            বাংলাদেশের সর্বপ্রথম <br />
+            সমন্বিত <span className="text-sunlight drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">ডিজিটাল কৃষি সেবা</span>
           </h1>
           
           <p className="text-sm md:text-lg text-soft-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-2xl font-bold">
-            বাংলাদেশের ৬৪ জেলার চাষীদের জন্য বিশেষায়িত আবহাওয়া ভিত্তিক চাষাবাদ ও বালাই নির্দেশিকা, সুষম সারের ডোজ ক্যালকুলেটর, বিস্তারিত ফসলের তথ্যভাণ্ডার এবং গাছের ডাক্তার পরামর্শ সেবা — এখন আপনার মুঠোফোনে।
+            এক ঠিকানায় মাঠের সব সমাধান! ৬৪ জেলার আবহাওয়া ভিত্তিক চাষাবাদ নির্দেশিকা, সুষম সারের ডোজ ক্যালকুলেটর, এবং গাছের ডাক্তার পরামর্শ সেবা।
           </p>
 
           {/* Interactive Chat Input Area */}

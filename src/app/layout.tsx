@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "ফসল, আবহাওয়া, সার ও চাষাবাদ তথ্য এখন এক জায়গায় — সহজ বাংলায়, আপনার মুঠোফোনে।",
 };
 
+import Header from "../components/Header";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,38 +37,7 @@ export default function RootLayout({
           <span>✨</span>
         </div>
 
-        <header className="sticky top-0 z-50 w-full border-b border-green-primary/10 bg-soft-white/95 backdrop-blur-md shadow-sm">
-          <div className="mx-auto max-w-7xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <a href="/" className="flex items-center gap-2.5">
-              <img 
-                src="/logo.png" 
-                alt="গাছের ডাক্তার লোগো" 
-                className="w-10 h-10 object-contain"
-                style={{ mixBlendMode: 'multiply' }}
-              />
-              <span className="text-2xl font-black text-green-primary tracking-tight">
-                গাছের ডাক্তার
-              </span>
-            </a>
-            <nav className="flex flex-wrap items-center gap-4 sm:gap-6">
-              <a href="/crops" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
-                ফসলের বই
-              </a>
-              <a href="/calculator" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
-                সারের হিসাব-নিকাশ
-              </a>
-              <a href="/prices" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
-                পাইকারি বাজার দর
-              </a>
-              <a href="/articles" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
-                তথ্য ভান্ডার
-              </a>
-              <a href="/chat" className="px-5 py-2 text-sm font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-md hover:shadow-lg transition-all">
-                গাছের ডাক্তার
-              </a>
-            </nav>
-          </div>
-        </header>
+        <Header />
 
         <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
           {children}
