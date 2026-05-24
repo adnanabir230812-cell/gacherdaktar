@@ -4,9 +4,7 @@ import https from 'https';
 import { URL } from 'url';
 import dns from 'dns';
 
-if (process.platform === 'win32' && process.env.NODE_ENV === 'development') {
-  dns.setDefaultResultOrder('ipv4first');
-}
+dns.setDefaultResultOrder('ipv4first');
 
 const sanitizeEnv = (val: string | undefined) => {
   if (!val) return undefined;
@@ -73,7 +71,22 @@ function httpsPostWithTimeout(urlStr: string, headers: Record<string, string>, b
 }
 
 async function postWithTimeout(urlStr: string, headers: Record<string, string>, bodyStr: string, timeoutMs: number): Promise<{ ok: boolean; status: number; text: string }> {
-  return httpsPostWithTimeout(urlStr, headers, bodyStr, timeoutMs);
+  try {
+    const res = await fetch(urlStr, {
+      method: 'POST',
+      headers: headers,
+      body: bodyStr,
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    const text = await res.text();
+    return {
+      ok: res.ok,
+      status: res.status,
+      text: text
+    };
+  } catch (err: any) {
+    throw err;
+  }
 }
 
 function retrieveLocalContext(query: string) {
