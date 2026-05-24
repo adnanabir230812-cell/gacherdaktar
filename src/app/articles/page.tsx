@@ -13,6 +13,16 @@ interface Article {
   source_url: string;
   publish_date: string;
 }
+// Timeout helper to avoid infinite loading states in the browser
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 2500): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Database query timed out")), timeoutMs)
+    )
+  ]);
+}
+
 
 export default function ArticlesPage() {
   const router = useRouter();
@@ -27,10 +37,12 @@ export default function ArticlesPage() {
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const dbQuery = supabase
         .from('articles')
         .select('*')
         .order('publish_date', { ascending: false });
+
+      const { data, error } = (await withTimeout(dbQuery as any, 2500)) as any;
 
       if (error) throw error;
       
@@ -38,6 +50,7 @@ export default function ArticlesPage() {
         setArticles(data);
       } else {
         setArticles(FALLBACK_ARTICLES);
+        handleAutoSync(); // Trigger background sync if empty
       }
     } catch (err) {
       console.error("Error fetching articles:", err);
@@ -46,6 +59,24 @@ export default function ArticlesPage() {
       setLoading(false);
     }
   };
+
+  // Background auto-sync if DB is empty
+  const handleAutoSync = async () => {
+    try {
+      const res = await fetch('/api/sync/articles');
+      const data = await res.json();
+      if (data.success) {
+        const dbQuery = supabase.from('articles').select('*').order('publish_date', { ascending: false });
+        const { data: dbData } = (await withTimeout(dbQuery as any, 2000)) as any;
+        if (dbData && dbData.length > 0) {
+          setArticles(dbData);
+        }
+      }
+    } catch (e) {
+      console.warn("Background auto-sync failed:", e);
+    }
+  };
+
 
 
   // Sync latest updates from official sites
