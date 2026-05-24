@@ -34,6 +34,7 @@
 }
 
 @theme inline {
+  --font-sans: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
   --color-green-primary: var(--green-primary);
   --color-green-soft: var(--green-soft);
   --color-green-light: var(--green-light);
@@ -60,7 +61,7 @@ body {
     radial-gradient(circle at 85% 85%, rgba(46, 125, 50, 0.06) 0%, transparent 45%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M60 20C60 40 40 60 20 60C40 60 60 80 60 100C60 80 80 60 100 60C80 60 60 40 60 20Z' fill='%232e7d32' fill-opacity='0.02'/%3E%3Ccircle cx='60' cy='60' r='2' fill='%23ffc107' fill-opacity='0.08'/%3E%3C/svg%3E");
   color: var(--text-primary);
-  font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
   overflow-x: hidden;
 }
 

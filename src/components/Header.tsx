@@ -1,19 +1,136 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, BookOpen, Calculator, TrendingUp, MessageSquare } from 'lucide-react';
+import { 
+  Menu, 
+  X, 
+  Home, 
+  BookOpen, 
+  Calculator, 
+  TrendingUp, 
+  MessageSquare, 
+  AlertTriangle, 
+  Droplets, 
+  Thermometer, 
+  Sprout, 
+  Coins, 
+  RefreshCw, 
+  Compass, 
+  ChevronDown 
+} from 'lucide-react';
 
 export default function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const navLinks = [
-    { href: '/crops', label: 'ফসলের বই', icon: BookOpen },
-    { href: '/calculator', label: 'সারের হিসাব-নিকাশ', icon: Calculator },
-    { href: '/prices', label: 'পাইকারি বাজার দর', icon: TrendingUp },
-    { href: '/articles', label: 'তথ্য ভান্ডার', icon: BookOpen },
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close drawer/dropdown on route change
+  useEffect(() => {
+    setIsOpen(false);
+    setIsDropdownOpen(false);
+  }, [pathname]);
+
+  const allServices = [
+    { 
+      href: '/chat', 
+      label: 'গাছের ডাক্তার এআই চ্যাট', 
+      desc: 'ফসলের রোগ ও চাষাবাদের সরাসরি এআই সমাধান', 
+      icon: MessageSquare 
+    },
+    { 
+      href: '/crops', 
+      label: 'ফসলের বই', 
+      desc: '৫২+ ফসলের রোপণকাল, জাত ও বালাই গাইড', 
+      icon: BookOpen 
+    },
+    { 
+      href: '/crops/diagnostics', 
+      label: 'রোগ নির্ণয় নির্দেশিকা', 
+      desc: 'আক্রান্ত অংশ ও লক্ষণ দেখে রোগ শনাক্তকরণ', 
+      icon: AlertTriangle 
+    },
+    { 
+      href: '/calculator', 
+      label: 'সারের হিসাব-নিকাশ', 
+      desc: 'জমির মাপ অনুযায়ী সঠিক সারের ডোজ গণনা', 
+      icon: Calculator 
+    },
+    { 
+      href: '/calculator/pesticide', 
+      label: 'কীটনাশক ক্যালকুলেটর', 
+      desc: 'বালাইনাশক ও পানির সঠিক অনুপাত নির্ধারণ', 
+      icon: Calculator 
+    },
+    { 
+      href: '/calculator/seeds', 
+      label: 'বীজ ও চারা বপন ক্যালকুলেটর', 
+      desc: 'বীজের সঠিক ওজন ও রোপণ দূরত্বের হিসাব', 
+      icon: Sprout 
+    },
+    { 
+      href: '/calculator/soil-ph', 
+      label: 'মাটির pH ও অম্লত্ব গাইড', 
+      desc: 'অম্লত্ব দূরীকরণে বিঘাপ্রতি জিপসাম/ডলোচুন হিসাব', 
+      icon: Thermometer 
+    },
+    { 
+      href: '/crops/rotation', 
+      label: 'শস্য পর্যায় পরিকল্পনাকারী', 
+      desc: 'উর্বরতা বজায় রাখতে শস্য পর্যায় চক্র নকশা', 
+      icon: RefreshCw 
+    },
+    { 
+      href: '/crops/matchmaker', 
+      label: 'লাভজনক ফসল ম্যাচমেকার', 
+      desc: 'জেলা ও মাটি উপযোগী লাভজনক ফসল নির্বাচন', 
+      icon: Compass 
+    },
+    { 
+      href: '/weather/irrigation', 
+      label: 'সেচ ও নিষ্কাশন গাইড', 
+      desc: 'বৃষ্টি ও মাটির আর্দ্রতা দেখে সেচ সতর্কতা', 
+      icon: Droplets 
+    },
+    { 
+      href: '/prices', 
+      label: 'পাইকারি বাজার দর', 
+      desc: 'প্রতিদিনের বাজার দর ও প্রবণতা চার্ট বিশ্লেষণ', 
+      icon: TrendingUp 
+    },
+    { 
+      href: '/articles', 
+      label: 'কৃষি তথ্য ভান্ডার', 
+      desc: 'DAE ও BINA-র নোটিশ ও নির্দেশিকা ভান্ডার', 
+      icon: BookOpen 
+    },
+    { 
+      href: '/directory/loans', 
+      label: 'কৃষি ঋণ ও অনুদান', 
+      desc: 'কৃষি লোন স্কিম এবং সরকারি ভর্তুকি আবেদন', 
+      icon: Coins 
+    }
+  ];
+
+  // Primary short nav links for desktop navigation
+  const primaryLinks = [
+    { href: '/', label: 'হোম' },
+    { href: '/crops', label: 'ফসলের বই' },
+    { href: '/calculator', label: 'সারের হিসাব' },
+    { href: '/prices', label: 'বাজার দর' },
   ];
 
   return (
@@ -36,7 +153,7 @@ export default function Header() {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => {
+            {primaryLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
@@ -52,11 +169,69 @@ export default function Header() {
                 </Link>
               );
             })}
+
+            {/* Premium Services Dropdown */}
+            <div 
+              className="relative" 
+              ref={dropdownRef}
+              onMouseEnter={() => setIsDropdownOpen(true)}
+              onMouseLeave={() => setIsDropdownOpen(false)}
+            >
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer ${
+                  isDropdownOpen || pathname.includes('/calculator/') || pathname.includes('/crops/') || pathname.includes('/weather/') || pathname.includes('/directory/') || pathname === '/chat' || pathname === '/articles'
+                    ? 'text-green-primary'
+                    : 'text-text-secondary hover:text-green-primary'
+                }`}
+              >
+                সকল কৃষি সেবা
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Desktop Flyout Card Dropdown */}
+              {isDropdownOpen && (
+                <div className="absolute right-1/2 translate-x-1/2 top-full mt-2 w-[620px] bg-soft-white/98 backdrop-blur-xl border border-green-primary/15 rounded-3xl shadow-2xl p-5 grid grid-cols-2 gap-3 z-50 animate-fade-in">
+                  {allServices.map((service) => {
+                    const isServiceActive = pathname === service.href;
+                    const IconComp = service.icon;
+                    return (
+                      <Link
+                        key={service.href}
+                        href={service.href}
+                        className={`group flex items-start gap-3 p-3 rounded-2xl transition-all duration-300 ${
+                          isServiceActive 
+                            ? 'bg-green-primary/10 border-l-4 border-green-primary' 
+                            : 'hover:bg-green-primary/5'
+                        }`}
+                      >
+                        <div className={`p-2 rounded-xl transition-colors ${
+                          isServiceActive
+                            ? 'bg-green-primary text-soft-white'
+                            : 'bg-green-primary/10 text-green-primary group-hover:bg-green-primary group-hover:text-soft-white'
+                        }`}>
+                          <IconComp className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-0.5">
+                          <h4 className="text-sm font-bold text-text-primary group-hover:text-green-primary transition-colors">
+                            {service.label}
+                          </h4>
+                          <p className="text-[10px] text-text-secondary leading-normal font-semibold">
+                            {service.desc}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <Link 
               href="/chat" 
               className="px-5 py-2 text-sm font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-md hover:shadow-lg transition-all"
             >
-              গাছের ডাক্তার
+              গাছের ডাক্তার চ্যাট
             </Link>
           </nav>
 
@@ -80,35 +255,51 @@ export default function Header() {
 
         {/* 📱 Mobile Slide-down Drawer Menu */}
         {isOpen && (
-          <div className="md:hidden border-t border-green-primary/10 bg-soft-white animate-fade-in shadow-lg">
-            <div className="px-4 py-3 flex flex-col gap-3">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href;
-                const IconComponent = link.icon;
+          <div className="md:hidden border-t border-green-primary/10 bg-soft-white max-h-[calc(100vh-80px)] overflow-y-auto shadow-xl">
+            {/* "সকল সেবাসমূহ" Beautiful Sticky Header */}
+            <div className="sticky top-0 bg-soft-white/95 backdrop-blur-md px-5 py-3 border-b border-green-primary/5 flex items-center justify-between z-10">
+              <span className="text-base font-black text-green-primary flex items-center gap-2">
+                <Compass className="w-5 h-5" /> সকল সেবাসমূহ
+              </span>
+              <span className="text-[10px] bg-green-primary/10 text-green-primary font-black px-2.5 py-0.5 rounded-full">
+                ১৩টি সক্রিয় সেবা
+              </span>
+            </div>
+
+            {/* List of 13 services inside drawer */}
+            <div className="px-4 py-4 flex flex-col gap-2.5">
+              {allServices.map((service) => {
+                const isActive = pathname === service.href;
+                const IconComponent = service.icon;
                 return (
                   <Link
-                    key={link.href}
-                    href={link.href}
+                    key={service.href}
+                    href={service.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                    className={`flex items-start gap-3.5 p-3 rounded-2xl transition-all duration-300 ${
                       isActive 
                         ? 'bg-green-primary/15 text-green-primary border-l-4 border-green-primary' 
                         : 'text-text-secondary hover:bg-green-primary/5'
                     }`}
                   >
-                    <IconComponent className="w-4 h-4" />
-                    {link.label}
+                    <div className={`p-2.5 rounded-xl shrink-0 ${
+                      isActive 
+                        ? 'bg-green-primary text-soft-white' 
+                        : 'bg-green-primary/10 text-green-primary'
+                    }`}>
+                      <IconComponent className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className={`block text-sm font-black ${isActive ? 'text-green-primary' : 'text-text-primary'}`}>
+                        {service.label}
+                      </span>
+                      <span className="block text-[11px] text-text-secondary/80 leading-normal font-semibold">
+                        {service.desc}
+                      </span>
+                    </div>
                   </Link>
                 );
               })}
-              <Link
-                href="/chat"
-                onClick={() => setIsOpen(false)}
-                className="mt-2 w-full text-center py-3 bg-green-primary hover:bg-green-soft text-soft-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                <MessageSquare className="w-4 h-4" />
-                গাছের ডাক্তার এআই চ্যাট
-              </Link>
             </div>
           </div>
         )}
