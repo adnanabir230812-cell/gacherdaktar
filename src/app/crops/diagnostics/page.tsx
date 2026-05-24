@@ -32,7 +32,7 @@ const getDiseasePart = (name: string, symptoms: string): 'leaf' | 'stem' | 'root
 
 export default function DiagnosticsPage() {
   const router = useRouter();
-  const [selectedCrop, setSelectedCrop] = useState<string>('rice');
+  const [selectedCrop, setSelectedCrop] = useState<string>(CROPS[0]?.id || '1');
   const [selectedPart, setSelectedPart] = useState<'leaf' | 'stem' | 'root' | 'fruit' | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeResult, setActiveResult] = useState<DiagnosticRule | null>(null);
