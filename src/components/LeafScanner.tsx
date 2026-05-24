@@ -85,11 +85,14 @@ const translateToBanglaDigits = (num: number | string): string => {
 };
 
 const downloadPrescription = (result: any, imgUrl: string | null) => {
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    alert('প্রেসক্রিপশন ডাউনলোড করার জন্য অনুগ্রহ করে পপ-আপ ব্লকার বন্ধ করুন।');
-    return;
-  }
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
 
   const currentDate = new Date().toLocaleDateString('bn-BD', {
     year: 'numeric',
@@ -165,7 +168,9 @@ const downloadPrescription = (result: any, imgUrl: string | null) => {
     </div>
   `;
 
-  printWindow.document.write(`
+  const doc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (!doc) return;
+  doc.write(`
     <html>
       <head>
         <title>প্রেসক্রিপশন - গাছের ডাক্তার</title>
@@ -368,18 +373,18 @@ const downloadPrescription = (result: any, imgUrl: string | null) => {
             কৃষকের পাশে গাছের ডাক্তার — www.gacherdoctor.site
           </div>
         </div>
-        <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-              window.close();
-            }, 500);
-          }
-        </script>
       </body>
     </html>
   `);
-  printWindow.document.close();
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 400);
 };
 
 export default function LeafScanner() {

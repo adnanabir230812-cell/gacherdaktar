@@ -111,7 +111,7 @@ export const DISTRICTS: District[] = [
     "lon": 89.9167
   },
   {
-    "name_bn": "ফریدপুর",
+    "name_bn": "ফরিদপুর",
     "name_en": "Faridpur",
     "lat": 23.6071,
     "lon": 89.8429

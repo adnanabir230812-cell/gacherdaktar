@@ -20,15 +20,30 @@ import {
 } from 'lucide-react';
 
 const DISTRICTS = [
-  "ঢাকা", "গাজীপুর", "নারায়ণগঞ্জ", "টাঙ্গাইল", "ময়মনসিংহ", "শেরপুর", "নেত্রকোনা", "জামালপুর",
-  "সিলেট", "সুনামগঞ্জ", "হবিগঞ্জ", "মৌলভীবাজার",
-  "চট্টগ্রাম", "কুমিল্লা", "নোয়াখালী", "ফেনী", "কক্সবাজার", "ব্রাহ্মণবাড়িয়া", "চাঁদপুর", "লক্ষ্মীপুর", "রাঙ্গামাটি", "বান্দরবান", "খাগড়াছড়ি",
+  // ঢাকা বিভাগ (Dhaka Division)
+  "ঢাকা", "গাজীপুর", "নারায়ণগঞ্জ", "নরসিংদী", "টাঙ্গাইল", "মানিকগঞ্জ", "মুন্সিগঞ্জ", "ফরিদপুর", "গোপালগঞ্জ", "মাদারীপুর", "শরীয়তপুর", "রাজবাড়ী",
+  
+  // রাজশাহী বিভাগ (Rajshahi Division)
   "রাজশাহী", "বগুড়া", "পাবনা", "নাটোর", "নওগাঁ", "জয়পুরহাট", "সিরাজগঞ্জ", "চাঁপাইনবাবগঞ্জ",
-  "রংপুর", "দিনাজপুর", "কুড়িগ্রাম", "গাইবান্ধা", "লালমনিরহাট", "নীলফামারী", "ঠাকুরগাঁও", "পঞ্চগড়",
+  
+  // খুলনা বিভাগ (Khulna Division)
   "খুলনা", "যশোর", "ঝিনাইদহ", "সাতক্ষীরা", "বাগেরহাট", "কুষ্টিয়া", "মাগুরা", "নড়াইল", "চুয়াডাঙ্গা", "মেহেরপুর",
-  "বরিশাল", "পটুয়াখালী", "ভোলা", "পিরোজপুর", "বরগুনা", "ঝালকাঠি",
-  "ফরিদপুর", "গোপালগঞ্জ", "মাদারীপুর", "শরীয়তপুর", "রাজবাড়ী", "মানিকগঞ্জ", "মুন্সিগঞ্জ", "নরসিংদী"
-].sort((a, b) => a.localeCompare(b, 'bn'));
+  
+  // ময়মনসিংহ বিভাগ (Mymensingh Division)
+  "ময়মনসিংহ", "শেরপুর", "নেত্রকোনা", "জামালপুর",
+  
+  // সিলেট বিভাগ (Sylhet Division)
+  "সিলেট", "সুনামগঞ্জ", "হবিগঞ্জ", "মৌলভীবাজার",
+  
+  // চট্টগ্রাম বিভাগ (Chittagong Division)
+  "চট্টগ্রাম", "কুমিল্লা", "নোয়াখালী", "ফেনী", "কক্সবাজার", "ব্রাহ্মণবাড়িয়া", "চাঁদপুর", "লক্ষ্মীপুর", "রাঙ্গামাটি", "বান্দরবান", "খাগড়াছড়ি",
+  
+  // রংপুর বিভাগ (Rangpur Division)
+  "রংপুর", "দিনাজপুর", "কুড়িগ্রাম", "গাইবান্ধা", "লালমনিরহাট", "নীলফামারী", "ঠাকুরগাঁও", "পঞ্চগড়",
+  
+  // বরিশাল বিভাগ (Barisal Division)
+  "বরিশাল", "পটুয়াখালী", "ভোলা", "পিরোজপুর", "বরগুনা", "ঝালকাঠি"
+];
 
 // Image Compression Helper
 const compressImage = (dataUrl: string, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.75): Promise<string> => {
@@ -108,11 +123,14 @@ const getPhStatusBangla = (ph: number) => {
 
 // Soil Prescription Download Helper
 const downloadSoilPrescription = (result: any, imgUrl: string | null, locationStr: string) => {
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    alert('প্রেসক্রিপশন ডাউনলোড করার জন্য অনুগ্রহ করে পপ-আপ ব্লকার বন্ধ করুন।');
-    return;
-  }
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
 
   const currentDate = new Date().toLocaleDateString('bn-BD', {
     year: 'numeric',
@@ -136,7 +154,7 @@ const downloadSoilPrescription = (result: any, imgUrl: string | null, locationSt
     <div class="prescription-header">
       <div class="header-main">
         <h1>গাছের ডাক্তার (Gacher Doctor)</h1>
-        <p class="subtitle">ডিজিটাল মৃত্তিকা (মাটি) পরীক্ষা ও সংশোধন প্রেসক্রিপশন</p>
+        <p class="subtitle">ডিজিটাল মৃত্তিকা (মাটি) পরীক্ষা ও সমাধান প্রেসক্রিপশন</p>
       </div>
       <div class="header-meta">
         <p><strong>তারিখ:</strong> ${formattedDate}</p>
@@ -194,7 +212,10 @@ const downloadSoilPrescription = (result: any, imgUrl: string | null, locationSt
     </div>
   `;
 
-  printWindow.document.write(`
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  doc.write(`
     <html>
       <head>
         <title>প্রেসক্রিপশন - গাছের ডাক্তার</title>
@@ -397,18 +418,18 @@ const downloadSoilPrescription = (result: any, imgUrl: string | null, locationSt
             কৃষকের পাশে গাছের ডাক্তার — www.gacherdoctor.site
           </div>
         </div>
-        <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-              window.close();
-            }, 500);
-          }
-        </script>
       </body>
     </html>
   `);
-  printWindow.document.close();
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 400);
 };
 
 export default function SoilPHCalculator() {
