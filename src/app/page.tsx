@@ -26,6 +26,7 @@ import {
   BookOpen,
   RefreshCw
 } from 'lucide-react';
+import LeafScanner from '@/components/LeafScanner';
 
 interface AdvisoryDetail {
   status: string;
@@ -235,6 +236,11 @@ export default function Home() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* 🍃 CROP DISEASE LEAF SCANNER FEATURE */}
+      <section className="animate-fade-in">
+        <LeafScanner />
       </section>
 
       {/* 🌤️ WEATHER INTELLIGENCE DASHBOARD (MAIN FEATURE) */}
