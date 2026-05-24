@@ -199,7 +199,7 @@ export default function Home() {
           </h1>
           
           <p className="text-sm md:text-lg text-soft-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-2xl font-bold">
-            এক ঠিকানায় মাঠের সব সমাধান! ৬৪ জেলার আবহাওয়া ভিত্তিক চাষাবাদ নির্দেশিকা, সুষম সারের ডোজ ক্যালকুলেটর, এবং গাছের ডাক্তার পরামর্শ সেবা।
+            এক ঠিকানায় মাঠের সব সমাধান! ৬৪ জেলার আবহাওয়া ভিত্তিক চাষাবাদ নির্দেশিকা, সারের সঠিক পরিমাণ হিসাব, এবং গাছের ডাক্তার পরামর্শ সেবা।
           </p>
 
           {/* Interactive Chat Input Area */}
@@ -832,7 +832,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  কীটনাশক ক্যালকুলেটর <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  কীটনাশক প্রয়োগের হিসাব <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </h3>
                 <p className="text-xs text-text-secondary leading-relaxed font-bold">
                   স্প্রে ড্রামের সাইজ এবং বোতলের নির্দেশিকা অনুযায়ী সঠিক পরিমাণ বালাইনাশক ও পানির অনুপাত গণনা।
@@ -855,7 +855,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  সেচ ও নিষ্কাশন গাইড <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  সেচ দেওয়ার সঠিক নিয়ম <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </h3>
                 <p className="text-xs text-text-secondary leading-relaxed font-bold">
                   বৃষ্টির পূর্বাভাস ও মাটির আর্দ্রতার উপর ভিত্তি করে জমিতে সেচ প্রদান বা নিষ্কাশনের সতর্কবার্তা।
@@ -878,7 +878,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  মাটির pH ও অম্লত্ব গাইড <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  মাটি পরীক্ষা ও চিকিৎসা <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </h3>
                 <p className="text-xs text-text-secondary leading-relaxed font-bold">
                   মাটির pH লেভেল অনুযায়ী অম্লত্ব বা ক্ষারত্ব দূর করতে বিঘাপ্রতি ডলোচুন বা জিপসামের পরিমাণ হিসাব।
@@ -901,7 +901,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  বীজ ও চারা বপন ক্যালকুলেটর <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  বীজ ও চারার পরিমাণ <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </h3>
                 <p className="text-xs text-text-secondary leading-relaxed font-bold">
                   জমির পরিমাপ অনুযায়ী প্রয়োজনীয় বীজের সঠিক ওজন এবং আদর্শ বপন দূরত্ব ও গভীরতার গাইডলাইন।
@@ -947,7 +947,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  শস্য পর্যায় পরিকল্পনাকারী <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  পর্যায়ক্রমে ফসল চাষ <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </h3>
                 <p className="text-xs text-text-secondary leading-relaxed font-bold">
                   মাটির নাইট্রোজেন ও উর্বরতা বজায় রাখতে ধানের পর কোন ফসল চাষ করা উচিত তার ফসল চক্র নকশা।
@@ -970,7 +970,7 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  লাভজনক ফসল ম্যাচমেকার <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  লাভজনক ফসল নির্বাচন <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </h3>
                 <p className="text-xs text-text-secondary leading-relaxed font-bold">
                   আপনার জেলা, মাটির গঠন ও চলতি আবহাওয়া বিশ্লেষণ করে সর্বোচ্চ লাভজনক ফসল নির্বাচনের গাইড।
@@ -978,7 +978,7 @@ export default function Home() {
               </div>
             </div>
             <div className="text-xs font-black text-green-primary group-hover:underline flex items-center gap-1 pt-4 uppercase tracking-wider">
-              ম্যাচিং শুরু করুন →
+              ফসল নির্বাচন করুন →
             </div>
           </div>
 

@@ -126,7 +126,7 @@ export default function CropRotationPage() {
         </button>
         <div>
           <h1 className="text-3xl font-extrabold text-text-primary">
-            শস্য পর্যায় ও ফসল চক্র পরিকল্পনাকারী
+            পর্যায়ক্রমে ফসল চাষ পরিকল্পনা
           </h1>
           <p className="text-text-secondary text-sm font-semibold">
             মাটির উর্বরতা রক্ষা ও রোগবালাই প্রাদুর্ভাব কমাতে একই জমিতে পর্যায়ক্রমে ফসল নির্বাচনের বৈজ্ঞানিক নির্দেশিকা।
@@ -140,34 +140,90 @@ export default function CropRotationPage() {
         <div className="lg:col-span-2 space-y-3">
           <span className="text-xs font-bold text-text-secondary block mb-2 uppercase tracking-wider">বর্তমানে চাষকৃত ফসল:</span>
           <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
-            {ROTATION_DATABASE.map((plan, idx) => (
-              <div
-                key={idx}
-                onClick={() => setActivePlan(plan)}
-                className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-32 ${
-                  activePlan?.crop_name === plan.crop_name
-                    ? 'bg-green-primary/5 border-green-primary shadow-md'
-                    : 'bg-soft-white border-green-primary/10 hover:border-green-primary/20 shadow-sm'
-                }`}
-              >
-                <div className="space-y-1">
-                  <h4 className="font-bold text-text-primary text-sm leading-snug">
-                    {plan.crop_name}
-                  </h4>
-                  <span className="text-[10px] text-text-secondary font-bold uppercase">
-                    মৌসুম: {plan.season_bn}
-                  </span>
+            {ROTATION_DATABASE.map((plan, idx) => {
+              const isActive = activePlan?.crop_name === plan.crop_name;
+              return (
+                <div key={idx} className="flex flex-col gap-2.5">
+                  <div
+                    onClick={() => setActivePlan(plan)}
+                    className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-32 ${
+                      isActive
+                        ? 'bg-green-primary/5 border-green-primary shadow-md'
+                        : 'bg-soft-white border-green-primary/10 hover:border-green-primary/20 shadow-sm'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-text-primary text-sm leading-snug">
+                        {plan.crop_name}
+                      </h4>
+                      <span className="text-[10px] text-text-secondary font-bold uppercase">
+                        মৌসুম: {plan.season_bn}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-green-primary font-bold">
+                      পরবর্তী ফসলের পরামর্শ &rarr;
+                    </span>
+                  </div>
+
+                  {/* Mobile Accordion Content (Only visible on mobile and when active) */}
+                  {isActive && (
+                    <div className="block lg:hidden p-5 rounded-2xl border border-green-primary/15 bg-soft-white shadow-md space-y-5 animate-fade-in">
+                      <div className="border-b border-green-primary/10 pb-3">
+                        <span className="text-[9px] font-bold tracking-wider text-green-primary uppercase bg-green-500/10 border border-green-500/20 px-2.5 py-0.5 rounded-full">
+                          পরবর্তী ফসলের পরামর্শ
+                        </span>
+                        <h3 className="text-base font-black text-text-primary mt-2">
+                          {plan.crop_name} এর পর যা চাষ করবেন:
+                        </h3>
+                      </div>
+
+                      {/* Recommended Follower Crops */}
+                      <div className="space-y-3">
+                        <h4 className="font-extrabold text-text-primary text-xs uppercase flex items-center gap-1.5">
+                          <RefreshCw className="w-3.5 h-3.5 text-green-primary" /> আদর্শ শস্য পর্যায়ক্রম:
+                        </h4>
+                        <div className="space-y-2">
+                          {plan.ideal_followers.map((f, i) => (
+                            <div key={i} className="p-3.5 rounded-xl border border-green-primary/10 bg-green-primary/5 space-y-1">
+                              <span className="font-bold text-green-primary text-xs block">🔹 {f.name}</span>
+                              <p className="text-[11px] text-text-primary leading-relaxed font-medium">{f.benefits}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Agronomic Benefits */}
+                      <div className="space-y-3 pt-3 border-t border-green-primary/5">
+                        <h4 className="font-extrabold text-text-primary text-xs uppercase flex items-center gap-1.5">
+                          <ClipboardList className="w-3.5 h-3.5 text-green-primary" /> চাষের উপকারিতা:
+                        </h4>
+                        <div className="space-y-2.5">
+                          <div className="flex gap-2 text-xs text-text-primary bg-white/40 p-3.5 rounded-xl border border-green-primary/5 font-semibold">
+                            <ShieldCheck className="w-4 h-4 text-green-primary shrink-0" />
+                            <div>
+                              <span className="block text-[9px] text-text-secondary uppercase mb-0.5">মাটির গুণাগুণ বৃদ্ধি:</span>
+                              {plan.soil_benefit}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 text-xs text-text-primary bg-white/40 p-3.5 rounded-xl border border-green-primary/5 font-semibold">
+                            <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                            <div>
+                              <span className="block text-[9px] text-text-secondary uppercase mb-0.5">বালাই দমন সুবিধা:</span>
+                              {plan.pest_benefit}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className="text-[10px] text-green-primary font-bold">
-                  পরবর্তী ফসল সাজেশন দেখুন →
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Selected Plan Details (Right 3 Columns) */}
-        <div className="lg:col-span-3">
+        {/* Selected Plan Details (Right 3 Columns - Hidden on Mobile) */}
+        <div className="hidden lg:block lg:col-span-3">
           {activePlan ? (
             <div className="glass-card p-6 md:p-8 space-y-6 border border-green-primary/10 animate-fade-in shadow-sm">
               <div className="border-b border-green-primary/10 pb-4">

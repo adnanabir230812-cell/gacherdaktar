@@ -76,41 +76,77 @@ function ChatContent() {
       .catch(err => console.error(err));
   }, []);
 
-  // Initialize Speech Recognition
+  // Initialize Speech Recognition Support Check
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         setSpeechSupported(true);
-        const rec = new SpeechRecognition();
-        rec.lang = 'bn-BD';
-        rec.continuous = false;
-        rec.interimResults = false;
-
-        rec.onstart = () => {
-          setIsListening(true);
-        };
-
-        rec.onend = () => {
-          setIsListening(false);
-        };
-
-        rec.onerror = (e: any) => {
-          console.error('Speech recognition error', e);
-          setIsListening(false);
-        };
-
-        rec.onresult = (event: any) => {
-          const resultText = event.results[0][0].transcript;
-          if (resultText) {
-            setInput(resultText);
-          }
-        };
-
-        recognitionRef.current = rec;
       }
     }
   }, []);
+
+  // Helper to start recognition dynamically
+  const startListening = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    try {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    const rec = new SpeechRecognition();
+    rec.lang = 'bn-BD';
+    rec.continuous = false;
+    rec.interimResults = true;
+
+    rec.onstart = () => {
+      setIsListening(true);
+    };
+
+    rec.onend = () => {
+      setIsListening(false);
+    };
+
+    rec.onerror = (e: any) => {
+      console.error('Speech recognition error', e);
+      setIsListening(false);
+      if (e.error === 'not-allowed') {
+        alert('ভয়েস ইনপুট দেওয়ার জন্য অনুগ্রহ করে আপনার ব্রাউজারে মাইক্রোফোন পারমিশন (Microphone Permission) দিন।');
+      }
+    };
+
+    rec.onresult = (event: any) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      const text = finalTranscript || interimTranscript;
+      if (text) {
+        setInput(text);
+      }
+    };
+
+    recognitionRef.current = rec;
+    try {
+      rec.start();
+    } catch (e) {
+      console.error('Failed to start speech recognition:', e);
+      setIsListening(false);
+    }
+  };
 
   // Automatically scroll to bottom on message updates
   useEffect(() => {
@@ -181,12 +217,16 @@ function ChatContent() {
 
   // Toggle voice recognition
   const toggleListening = () => {
-    if (!recognitionRef.current) return;
     if (isListening) {
-      recognitionRef.current.stop();
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
+      setIsListening(false);
     } else {
       setInput('');
-      recognitionRef.current.start();
+      startListening();
     }
   };
 

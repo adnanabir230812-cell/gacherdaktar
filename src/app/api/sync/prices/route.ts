@@ -4,15 +4,36 @@ import { supabaseAdmin } from '@/lib/supabase';
 // Base wholesale crop price templates (derived from DAE and DAM Kaoran Bazar prices)
 const BASE_CROP_PRICES = [
   { crop_name: "ব্রি ধান ২৯ (ধান)", min: 1250, max: 1350, unit: "মণ" },
+  { crop_name: "রোপা আমন ধান", min: 1200, max: 1270, unit: "মণ" },
+  { crop_name: "ধান (আউশ)", min: 1050, max: 1100, unit: "মণ" },
+  { crop_name: "গম", min: 1400, max: 1500, unit: "মণ" },
   { crop_name: "আলু (ডায়মন্ড)", min: 28, max: 32, unit: "কেজি" },
   { crop_name: "দেশি পেঁয়াজ", min: 65, max: 70, unit: "কেজি" },
   { crop_name: "কাঁচা মরিচ", min: 80, max: 90, unit: "কেজি" },
-  { crop_name: "মিষ্টি কুমড়া", min: 25, max: 30, unit: "কেজি" },
-  { crop_name: "পান পাতা (Betel Leaf)", min: 140, max: 160, unit: "বিড়া" },
-  { crop_name: "রসুন (দেশি)", min: 120, max: 135, unit: "কেজি" },
+  { crop_name: "দেশি রসুন", min: 120, max: 135, unit: "কেজি" },
   { crop_name: "আদা (দেশি)", min: 180, max: 200, unit: "কেজি" },
   { crop_name: "বেগুন (গোল)", min: 40, max: 48, unit: "কেজি" },
-  { crop_name: "টমেটো (লাল)", min: 35, max: 42, unit: "কেজি" }
+  { crop_name: "টমেটো (লাল)", min: 35, max: 42, unit: "কেজি" },
+  { crop_name: "মিষ্টি কুমড়া", min: 25, max: 30, unit: "কেজি" },
+  { crop_name: "লাল শাক", min: 15, max: 20, unit: "আঁটি" },
+  { crop_name: "পটল", min: 35, max: 40, unit: "কেজি" },
+  { crop_name: "মুগ ডাল (উন্নত)", min: 135, max: 145, unit: "কেজি" },
+  { crop_name: "বারি সরিষা", min: 3200, max: 3400, unit: "মণ" },
+  { crop_name: "তোষা পাট", min: 2800, max: 3200, unit: "মণ" },
+  { crop_name: "হাইব্রিড ভুট্টা", min: 850, max: 920, unit: "মণ" },
+  { crop_name: "লাউ", min: 30, max: 40, unit: "পিস" },
+  { crop_name: "করলা", min: 50, max: 60, unit: "কেজি" },
+  { crop_name: "ধনে পাতা", min: 80, max: 100, unit: "কেজি" },
+  { crop_name: "আম (গোপালভোগ)", min: 3500, max: 4200, unit: "মণ" },
+  { crop_name: "কলা (সবরি)", min: 280, max: 320, unit: "ছড়া" },
+  { crop_name: "পেঁপে (কাঁচা)", min: 25, max: 30, unit: "কেজি" },
+  { crop_name: "গাজর", min: 40, max: 50, unit: "কেজি" },
+  { crop_name: "শিম", min: 50, max: 65, unit: "কেজি" },
+  { crop_name: "বাধাকপি", min: 25, max: 30, unit: "পিস" },
+  { crop_name: "ফুলকপি", min: 30, max: 35, unit: "পিস" },
+  { crop_name: "লেবু (কাগজি)", min: 100, max: 120, unit: "১০০টি" },
+  { crop_name: "শসা (দেশি)", min: 40, max: 45, unit: "কেজি" },
+  { crop_name: "ঢেঁড়স", min: 35, max: 42, unit: "কেজি" }
 ];
 
 export async function GET(request: Request) {

@@ -448,17 +448,36 @@ export default function MarketPricesPage() {
 
 const FALLBACK_PRICES: MarketPrice[] = [
   { id: 1, crop_name: 'ব্রি ধান ২৯ (ধান)', price_range: '১,২৮০ - ১,৩৫০ ৳ / মণ', trend: 'up', change_val: '১২ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 2, crop_name: 'আলু (ডায়মন্ড)', price_range: '২৮ - ৩২ ৳ / কেজি', trend: 'down', change_val: '১ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 3, crop_name: 'দেশি পেঁয়াজ', price_range: '৬৫ - ৭০ ৳ / কেজি', trend: 'up', change_val: '৫ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 4, crop_name: 'কাঁচা মরিচ', price_range: '৮০ - ৯০ ৳ / কেজি', trend: 'up', change_val: '১০ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 5, crop_name: 'দেশি রসুন', price_range: '১২০ - ১৩৫ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 6, crop_name: 'আদা (দেশি)', price_range: '১৮০ - ২০০ ৳ / কেজি', trend: 'up', change_val: '৮ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 7, crop_name: 'বেগুন (গোল)', price_range: '৪০ - ৪৮ ৳ / কেজি', trend: 'down', change_val: '৩ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 8, crop_name: 'টমেটো (লাল)', price_range: '৩৫ - ৪২ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 9, crop_name: 'মিষ্টি কুমড়া', price_range: '২৫ - ৩০ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 10, crop_name: 'লাল শাক', price_range: '১৫ - ২০ ৳ / আঁটি', trend: 'down', change_val: '২ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 11, crop_name: 'পটল', price_range: '৩৫ - ৪০ ৳ / কেজি', trend: 'down', change_val: '৩ ৳', market_date: new Date().toISOString().split('T')[0] },
-  { id: 12, crop_name: 'মুগ ডাল (উন্নত)', price_range: '১৩৫ - ১৪৫ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] }
+  { id: 2, crop_name: 'রোপা আমন ধান', price_range: '১,২০০ - ১,২৭০ ৳ / মণ', trend: 'up', change_val: '১০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 3, crop_name: 'ধান (আউশ)', price_range: '১,০৫০ - ১,১০০ ৳ / মণ', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 4, crop_name: 'গম', price_range: '১,৪০০ - ১,৫০০ ৳ / মণ', trend: 'up', change_val: '১৫ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 5, crop_name: 'আলু (ডায়মন্ড)', price_range: '২৮ - ৩২ ৳ / কেজি', trend: 'down', change_val: '১ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 6, crop_name: 'দেশি পেঁয়াজ', price_range: '৬৫ - ৭০ ৳ / কেজি', trend: 'up', change_val: '৫ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 7, crop_name: 'কাঁচা মরিচ', price_range: '৮০ - ৯০ ৳ / কেজি', trend: 'up', change_val: '১০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 8, crop_name: 'দেশি রসুন', price_range: '১২০ - ১৩৫ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 9, crop_name: 'আদা (দেশি)', price_range: '১৮০ - ২০০ ৳ / কেজি', trend: 'up', change_val: '৮ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 10, crop_name: 'বেগুন (গোল)', price_range: '৪০ - ৪৮ ৳ / কেজি', trend: 'down', change_val: '৩ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 11, crop_name: 'টমেটো (লাল)', price_range: '৩৫ - ৪২ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 12, crop_name: 'মিষ্টি কুমড়া', price_range: '২৫ - ৩০ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 13, crop_name: 'লাল শাক', price_range: '১৫ - ২০ ৳ / আঁটি', trend: 'down', change_val: '২ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 14, crop_name: 'পটল', price_range: '৩৫ - ৪০ ৳ / কেজি', trend: 'down', change_val: '৩ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 15, crop_name: 'মুগ ডাল (উন্নত)', price_range: '১৩৫ - ১৪৫ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 16, crop_name: 'বারি সরিষা', price_range: '৩,২০০ - ৩,৪০০ ৳ / মণ', trend: 'up', change_val: '৫০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 17, crop_name: 'তোষা পাট', price_range: '২,৮০০ - ৩,২০০ ৳ / মণ', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 18, crop_name: 'হাইব্রিড ভুট্টা', price_range: '৮৫০ - ৯২০ ৳ / মণ', trend: 'down', change_val: '১৫ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 19, crop_name: 'লাউ', price_range: '৩০ - ৪০ ৳ / পিস', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 20, crop_name: 'করলা', price_range: '৫০ - ৬০ ৳ / কেজি', trend: 'up', change_val: '৫ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 21, crop_name: 'ধনে পাতা', price_range: '৮০ - ১০০ ৳ / কেজি', trend: 'up', change_val: '১২ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 22, crop_name: 'আম (গোপালভোগ)', price_range: '৩,৫০০ - ৪,২০০ ৳ / মণ', trend: 'up', change_val: '১০০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 23, crop_name: 'কলা (সবরি)', price_range: '২৮০ - ৩২০ ৳ / ছড়া', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 24, crop_name: 'পেঁপে (কাঁচা)', price_range: '২৫ - ৩০ ৳ / কেজি', trend: 'down', change_val: '২ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 25, crop_name: 'গাজর', price_range: '৪০ - ৫০ ৳ / কেজি', trend: 'stable', change_val: '০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 26, crop_name: 'শিম', price_range: '৫০ - ৬৫ ৳ / কেজি', trend: 'down', change_val: '৫ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 27, crop_name: 'বাধাকপি', price_range: '২৫ - ৩০ ৳ / পিস', trend: 'down', change_val: '৩ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 28, crop_name: 'ফুলকпи', price_range: '৩০ - ৩৫ ৳ / পিস', trend: 'down', change_val: '২ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 29, crop_name: 'লেবু (কাগজি)', price_range: '১০০ - ১২০ ৳ / ১০০টি', trend: 'up', change_val: '১০ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 30, crop_name: 'শসা (দেশি)', price_range: '৪০ - ৪৫ ৳ / কেজি', trend: 'up', change_val: '৩ ৳', market_date: new Date().toISOString().split('T')[0] },
+  { id: 31, crop_name: 'ঢেঁড়স', price_range: '৩৫ - ৪২ ৳ / কেজি', trend: 'down', change_val: '২ ৳', market_date: new Date().toISOString().split('T')[0] }
 ];
 
 interface CropAnalysis {
@@ -473,57 +492,75 @@ interface CropAnalysis {
 
 const CROP_ANALYSIS_TEMPLATES: { [key: string]: CropAnalysis } = {
   "ব্রি ধান ২৯ (ধান)": {
-    sourceRegion: "নওগাঁ, দিনাজপুর",
+    sourceRegion: "নওগাঁ, দিনাজপুর, কুষ্টিয়া",
     supplyLevel: "স্বাভাবিক",
     retailForecast: "৪০ - ৪৫ ৳ / কেজি",
     advisory: "ধীরে ধীরে বিক্রি করুন",
     advisoryType: "hold",
-    reason: "নতুন ধান বাজারে আসার কারণে দাম বর্তমানে স্থিতিশীল। মজুত ধরে রাখলে ভবিষ্যতে ভালো লাভ হতে পারে।",
+    reason: "বোরো মৌসুমের ধান গুদামজাতকরণ বৃদ্ধির কারণে বাজারে ধানের যোগান কিছুটা নিয়ন্ত্রিত। আগামী ২ মাসে দাম বৃদ্ধির উজ্জ্বল সম্ভাবনা রয়েছে, তাই ধীরে ধীরে বাজারে ছাড়ুন।",
     history: [1220, 1240, 1260, 1250, 1280, 1300, 1315]
   },
+  "রোপা আমন ধান": {
+    sourceRegion: "দিনাজপুর, শেরপুর, ময়মনসিংহ",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৩৮ - ৪২ ৳ / কেজি",
+    advisory: "বাজার পর্যবেক্ষণ করুন",
+    advisoryType: "monitor",
+    reason: "সরকারি ধান সংগ্রহ অভিযান শুরু হওয়ায় চালকল মালিকদের সক্রিয়তা বেড়েছে। বাজার দর বর্তমানে লাভজনক সীমার মধ্যে রয়েছে।",
+    history: [1150, 1170, 1180, 1200, 1220, 1235, 1250]
+  },
+  "ধান (আউশ)": {
+    sourceRegion: "কুমিল্লা, সিলেট, নেত্রকোনা",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৩৫ - ৩৮ ৳ / কেজি",
+    advisory: "দ্রুত বিক্রি করুন",
+    advisoryType: "sell",
+    reason: "আউশ ধান দীর্ঘদিন গুদামজাত করে রাখা কঠিন ও গুণগত মান দ্রুত নষ্ট হয়। বর্তমানে আড়তের যে মূল্য তাতেই বিক্রি করে ফেলা লাভজনক হবে।",
+    history: [980, 1000, 1010, 1020, 1030, 1050, 1070]
+  },
+  "গম": {
+    sourceRegion: "ঠাকুরগাঁও, পঞ্চগড়, রাজবাড়ী",
+    supplyLevel: "স্বল্প",
+    retailForecast: "৪৫ - ৪৮ ৳ / কেজি",
+    advisory: "মজুত ধরে রাখুন",
+    advisoryType: "hold",
+    reason: "আন্তর্জাতিক বাজারে গমের সংকট ও আমদানি কমার কারণে দেশীয় গমের চাহিদা আকাশচুম্বী। কৃষকদের পরবর্তী ২-৩ সপ্তাহ মজুত ধরে রাখার পরামর্শ দেওয়া হচ্ছে।",
+    history: [1300, 1320, 1350, 1370, 1400, 1420, 1450]
+  },
   "আলু (ডায়মন্ড)": {
-    sourceRegion: "মুন্সিগঞ্জ, বগুড়া",
+    sourceRegion: "মুন্সিগঞ্জ, বগুড়া, রংপুর",
     supplyLevel: "উচ্চ",
     retailForecast: "৩৫ - ৩৮ ৳ / কেজি",
     advisory: "দ্রুত বাজারে সরবরাহ করুন",
     advisoryType: "sell",
-    reason: "কোল্ড স্টোরেজ থেকে পর্যাপ্ত সরবরাহ থাকায় দাম কমার সম্ভাবনা রয়েছে। দ্রুত বিক্রি করা লাভজনক হবে।",
+    reason: "কোল্ড স্টোরেজ থেকে পর্যাপ্ত আলু বাজারে আসার কারণে দাম কিছুটা পড়তির দিকে। পচনশীলতা এড়াতে এখনই বিক্রি করা নিরাপদ।",
     history: [34, 33, 32, 31, 31, 30, 30]
   },
   "দেশি পেঁয়াজ": {
-    sourceRegion: "পাবনা, ফরিদপুর",
+    sourceRegion: "পাবনা, ফরিদপুর, রাজবাড়ী",
     supplyLevel: "স্বল্প",
     retailForecast: "৮০ - ৮৫ ৳ / কেজি",
     advisory: "মজুত ধরে রাখুন",
     advisoryType: "hold",
-    reason: "বাজারে আমদানি কম থাকায় পেঁয়াজের বাজার ঊর্ধ্বমুখী। আগামী সপ্তাহে দাম আরও ৫-১০ টাকা বাড়তে পারে।",
+    reason: "হাটে নতুন পেঁয়াজের যোগান কমে আসায় দাম দ্রুত গতিতে বাড়ছে। আগামী সপ্তাহে দাম আরও ৫-১০ টাকা বৃদ্ধি পেতে পারে।",
     history: [58, 60, 62, 65, 66, 68, 67]
   },
   "কাঁচা মরিচ": {
-    sourceRegion: "বগুড়া, কুষ্টিয়া",
+    sourceRegion: "বগুড়া, কুষ্টিয়া, জামালপুর",
     supplyLevel: "স্বল্প",
     retailForecast: "১২০ - ১৪০ ৳ / কেজি",
     advisory: "দ্রুত বিক্রি করুন",
     advisoryType: "sell",
-    reason: "বৃষ্টির কারণে কাঁচা মরিচের সরবরাহ হ্রাস পাওয়ায় দাম রেকর্ড পর্যায়ে উঠেছে। চড়া দামে এখনই বিক্রি করে দিন।",
+    reason: "অতিবৃষ্টির কারণে মরিচ ক্ষেত ক্ষতিগ্রস্ত হওয়ায় বাজারে যোগান অত্যন্ত কম ও দাম রেকর্ড মাত্রায় চড়া। দেরি না করে আড়তে মরিচ পৌঁছে দিন।",
     history: [65, 70, 75, 80, 85, 82, 85]
   },
   "দেশি রসুন": {
-    sourceRegion: "নাটোর, রাজবাড়ী",
+    sourceRegion: "নাটোর, পাবনা, রাজবাড়ী",
     supplyLevel: "স্বাভাবিক",
     retailForecast: "১৪০ - ১৫৫ ৳ / কেজি",
     advisory: "বাজার পর্যবেক্ষণ",
     advisoryType: "monitor",
-    reason: "বাজারের চাহিদা ও যোগান সমান থাকায় দাম স্থির রয়েছে। পরবর্তী দামের গতিবিধি দেখে সিদ্ধান্ত নিন।",
-    history: [120, 122, 125, 125, 128, 127, 127]
-  },
-  "রসুন (দেশি)": {
-    sourceRegion: "নাটোর, রাজবাড়ী",
-    supplyLevel: "স্বাভাবিক",
-    retailForecast: "১৪০ - ১৫৫ ৳ / কেজি",
-    advisory: "বাজার পর্যবেক্ষণ",
-    advisoryType: "monitor",
-    reason: "বাজারের চাহিদা ও যোগান সমান থাকায় দাম স্থির রয়েছে। পরবর্তী দামের গতিবিধি দেখে সিদ্ধান্ত নিন।",
+    reason: "রসুনের বাজার দর বর্তমানে স্থিতিশীল। নতুন রসুন আসার সময় হওয়ায় দামের বড় কোনো পরিবর্তনের সম্ভাবনা নেই।",
     history: [120, 122, 125, 125, 128, 127, 127]
   },
   "আদা (দেশি)": {
@@ -532,62 +569,206 @@ const CROP_ANALYSIS_TEMPLATES: { [key: string]: CropAnalysis } = {
     retailForecast: "২২০ - ২৪০ ৳ / কেজি",
     advisory: "মজুত ধরে রাখুন",
     advisoryType: "hold",
-    reason: "আমদানি খরচ বাড়ার কারণে বাজারে দেশি আদার ঘাটতি রয়েছে। দাম আরও বৃদ্ধি পাওয়ার সম্ভাবনা প্রবল।",
+    reason: "আদা চাষের এলাকা এ বছর কম থাকায় যোগান কম ও আদা আমদানির খরচ বেশি। লাভবান হতে আরও কিছুদিন মজুত রাখুন।",
     history: [170, 175, 180, 182, 185, 188, 190]
   },
   "বেগুন (গোল)": {
-    sourceRegion: "যশোর, জামালপুর",
+    sourceRegion: "যশোর, জামালপুর, নরসিংদী",
     supplyLevel: "উচ্চ",
     retailForecast: "৫৫ - ৬০ ৳ / কেজি",
     advisory: "নিয়মিত সরবরাহ করুন",
     advisoryType: "sell",
-    reason: "বাজারে প্রচুর নতুন বেগুন আসায় সরবরাহ বেড়েছে। চড়া রোদ থাকলে বা পচন রোধে দ্রুত বিক্রি করাই শ্রেয়।",
+    reason: "আড়তগুলোতে প্রচুর বেগুনের আমদানি রয়েছে এবং এটি দ্রুত পচনশীল। দৈনিক তুলে তাজা অবস্থায় বিক্রি করা উত্তম।",
     history: [48, 46, 45, 43, 44, 44, 44]
   },
   "টমেটো (লাল)": {
-    sourceRegion: "রাজশাহী, পঞ্চগড়",
+    sourceRegion: "রাজশাহী, পঞ্চগড়, যশোর",
     supplyLevel: "স্বাভাবিক",
     retailForecast: "৫০ - ৫৫ ৳ / কেজি",
-    advisory: "পরিমিত বিক্রি করুন",
+    advisory: "বাজার পর্যবেক্ষণ",
     advisoryType: "monitor",
-    reason: "গ্রীষ্মকালীন টমেটোর ভালো ফলন ও কোল্ড চেইন না থাকায় কাছাকাছি বাজারগুলোতে সরবরাহ স্বাভাবিক রয়েছে।",
+    reason: "শীতকালীন ও টানেল পদ্ধতিতে চাষকৃত টমেটো বাজারে আসায় যোগান সন্তোষজনক। দাম আরও কিছুদিন স্থির থাকবে।",
     history: [42, 40, 39, 38, 38, 38, 38]
   },
   "মিষ্টি কুমড়া": {
-    sourceRegion: "রংপুর, রাজবাড়ী",
+    sourceRegion: "রংপুর, রাজবাড়ী, কুড়িগ্রাম",
     supplyLevel: "উচ্চ",
     retailForecast: "৩৫ - ৪০ ৳ / কেজি",
-    advisory: "বাজার পর্যবেক্ষণ",
-    advisoryType: "monitor",
-    reason: "মিষ্টি কুমড়া দীর্ঘসময় ঘরে রাখা যায় বিধায় তাড়াহুড়া না করে বাজারদর অনুযায়ী ধীরে ধীরে বিক্রি করতে পারেন।",
+    advisory: "ধীরে বিক্রি করুন",
+    advisoryType: "hold",
+    reason: "মিষ্টি কুমড়া ঘরে দীর্ঘ সময় রাখা যায়। আড়তে যোগানের চাপ বেশি থাকলে এখন বিক্রি না করে ২ সপ্তাহ পর বিক্রি করলে দাম বেশি পাবেন।",
     history: [28, 28, 27, 27, 27, 27, 27]
   },
   "লাল শাক": {
-    sourceRegion: "নরসিংদী, সাভার",
+    sourceRegion: "নরসিংদী, সাভার, বগুড়া",
     supplyLevel: "উচ্চ",
     retailForecast: "২০ - ২৫ ৳ / আঁটি",
     advisory: "সকাল সকাল বিক্রি করুন",
     advisoryType: "sell",
-    reason: "শাক জাতীয় ফসল দ্রুত পচে যায়। তাই ভোরে সংগ্রহ করে আড়তে তাজা অবস্থায় বিক্রি করে ফেলা উত্তম।",
+    reason: "শাক জাতীয় ফসল রোদে নেতিয়ে পড়ে এবং মান নষ্ট হয়। তাই ভোরে তুলেই সরাসরি বাজারে নিয়ে যান।",
     history: [20, 19, 18, 18, 17, 17, 17]
   },
   "পটল": {
-    sourceRegion: "যশোর, কুষ্টিয়া",
+    sourceRegion: "যশোর, কুষ্টিয়া, পাবনা",
     supplyLevel: "স্বাভাবিক",
     retailForecast: "৪৫ - ৫০ ৳ / কেজি",
     advisory: "নিয়মিত সরবরাহ করুন",
     advisoryType: "sell",
-    reason: "পাবনা ও কুষ্টিয়ার বাজারে পটলের প্রচুর আমদানি হচ্ছে। নিয়মিতভাবে সরবরাহ করে দামের সুফল নিন।",
+    reason: "উত্তরাঞ্চল থেকে পটলের সরবরাহ নিয়মিত রয়েছে। নিয়মিত বাজারে পাঠালে গড় মূল্য ভালো পাবেন।",
     history: [40, 39, 38, 37, 37, 37, 37]
   },
   "মুগ ডাল (উন্নত)": {
-    sourceRegion: "পটুয়াখালী, ভোলা",
+    sourceRegion: "পটুয়াখালী, ভোলা, বরগুনা",
     supplyLevel: "স্বাভাবিক",
     retailForecast: "১৫০ - ১৬০ ৳ / কেজি",
     advisory: "ধীরে ধীরে বিক্রি করুন",
     advisoryType: "hold",
-    reason: "ডাল সংরক্ষণযোগ্য হওয়ায় বাজার ঊর্ধ্বমুখী হওয়ার সুযোগ নিতে পারেন। আগামী মাসে চাহিদা বৃদ্ধির সম্ভাবনা রয়েছে।",
+    reason: "মুগ ডালের আন্তর্জাতিক চাহিদা এবং অভ্যন্তরীণ চাহিদা ঊর্ধ্বমুখী। মজুত রাখলে আগামী ১-২ মাসে কেজি প্রতি আরও ১০-১৫ টাকা বাড়তে পারে।",
     history: [136, 138, 140, 140, 140, 140, 140]
+  },
+  "বারি সরিষা": {
+    sourceRegion: "টাঙ্গাইল, সিরাজগঞ্জ, মানিকগঞ্জ",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৩,৬০০ - ৩,৮০০ ৳ / মণ",
+    advisory: "মজুত ধরে রাখুন",
+    advisoryType: "hold",
+    reason: "ভোজ্যতেলের দাম ঊর্ধ্বমুখী থাকায় সরিষার মিলারদের মধ্যে সরিষা কেনার প্রতিযোগিতা রয়েছে। একটু সময় নিয়ে বিক্রি করলে লাভ বেশি হবে।",
+    history: [3050, 3100, 3150, 3200, 3250, 3280, 3300]
+  },
+  "তোষা পাট": {
+    sourceRegion: "ফরিদপুর, রাজবাড়ী, মাগুরা",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৩,৩০০ - ৩,৫০০ ৳ / মণ",
+    advisory: "বাজার পর্যবেক্ষণ",
+    advisoryType: "monitor",
+    reason: "পাটকলগুলোর ক্রয় ক্ষমতা ও সরকারি নীতিমালার উপর পাটের দাম নির্ভরশীল। বর্তমান বাজার মূল্যে আংশিক বিক্রি করা যেতে পারে।",
+    history: [2800, 2850, 2900, 2950, 3000, 3000, 3000]
+  },
+  "হাইব্রিড ভুট্টা": {
+    sourceRegion: "দিনাজপুর, লালমনিরহাট, চুয়াডাঙ্গা",
+    supplyLevel: "উচ্চ",
+    retailForecast: "৯৫০ - ১,০০০ ৳ / মণ",
+    advisory: "দ্রুত বিক্রি করুন",
+    advisoryType: "sell",
+    reason: "পোল্ট্রি ও ফিশ ফিড মিলগুলোর নিয়মিত ক্রয় থাকলেও এ বছর ভুট্টার ব্যাপক বাম্পার ফলন হয়েছে। যোগান বাড়তে থাকায় দ্রুত বিক্রি নিরাপদ।",
+    history: [930, 910, 900, 890, 880, 875, 885]
+  },
+  "লাউ": {
+    sourceRegion: "কুমিল্লা, নরসিংদী, বগুড়া",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৪৫ - ৫০ ৳ / পিস",
+    advisory: "নিয়মিত সরবরাহ করুন",
+    advisoryType: "sell",
+    reason: "লাউ তাজা ও রসালো অবস্থায় বিক্রি করতে হবে। আড়তে লাউয়ের চাহিদা সব সময়ই বেশ ভালো থাকে।",
+    history: [32, 34, 35, 35, 36, 35, 35]
+  },
+  "করলা": {
+    sourceRegion: "যশোর, জয়পুরহাট, চট্টগ্রাম",
+    supplyLevel: "স্বল্প",
+    retailForecast: "৭০ - ৮০ ৳ / কেজি",
+    advisory: "দ্রুত বাজারে ছাড়ুন",
+    advisoryType: "sell",
+    reason: "তীব্র গরমে করলার চাষ ব্যাহত হওয়ায় বাজারে যোগান অত্যন্ত কম। বর্তমানে চড়া বাজারমূল্য থাকায় এখনই বিক্রি করা সেরা সিদ্ধান্ত।",
+    history: [48, 50, 52, 53, 55, 54, 55]
+  },
+  "ধনে পাতা": {
+    sourceRegion: "ঢাকা (সাভার), মুন্সিগঞ্জ, বগুড়া",
+    supplyLevel: "স্বল্প",
+    retailForecast: "১২০ - ১৫০ ৳ / কেজি",
+    advisory: "দ্রুত বিক্রি করুন",
+    advisoryType: "sell",
+    reason: "ধনে পাতা অতি সংবেদনশীল ফসল। একটু বৃষ্টি বা অতিরিক্ত গরমে পচে যায়। প্রতিদিনের পাতা ওই দিনই আড়তে বিক্রি করে দিন।",
+    history: [72, 75, 80, 85, 90, 88, 90]
+  },
+  "আম (গোপালভোগ)": {
+    sourceRegion: "রাজশাহী, চাঁপাইনবাবগঞ্জ, নওগাঁ",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৪,৫ ০০ - ৫,০০০ ৳ / মণ",
+    advisory: "দ্রুত বিক্রি করুন",
+    advisoryType: "sell",
+    reason: "আমের স্থায়িত্বকাল খুব কম। আড়তে গোপালভোগ আমের শেষ লট চলছে। দেরি করলে আমের গুণগত মান কমবে ও কাঙ্ক্ষিত দাম পাবেন না।",
+    history: [3200, 3400, 3600, 3700, 3800, 3850, 3850]
+  },
+  "কলা (সবরি)": {
+    sourceRegion: "টাঙ্গাইল, নরসিংদী, বগুড়া",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৩৫০ - ৪০০ ৳ / ছড়া",
+    advisory: "বাজার পর্যবেক্ষণ",
+    advisoryType: "monitor",
+    reason: "সবরি কলার চাহিদা সারা বছরই ভালো থাকে। দাম বর্তমানে স্থিতিশীল রয়েছে, স্বাভাবিক যোগান বজায় রাখুন।",
+    history: [290, 295, 300, 300, 300, 300, 300]
+  },
+  "পেঁপে (কাঁচা)": {
+    sourceRegion: "যশোর, রাজশাহী, পাবনা",
+    supplyLevel: "উচ্চ",
+    retailForecast: "৩৫ - ৪০ ৳ / কেজি",
+    advisory: "দ্রুত সরবরাহ করুন",
+    advisoryType: "sell",
+    reason: "কাঁচা পেঁপের বাম্পার যোগান থাকায় আড়তগুলোতে দাম কিছুটা কমতির দিকে। পাকার আগেই কাঁচা অবস্থায় দ্রুত বাজারে তুলুন।",
+    history: [30, 29, 28, 27, 26, 27, 27]
+  },
+  "গাজর": {
+    sourceRegion: "দিনাজপুর, যশোর, মেহেরপুর",
+    supplyLevel: "স্বাভাবিক",
+    retailForecast: "৬০ - ৭০ ৳ / কেজি",
+    advisory: "ধীরে বিক্রি করুন",
+    advisoryType: "hold",
+    reason: "গাজর কোল্ড স্টোরেজে রাখা যায় এবং চাহিদাও ভালো। দাম স্থিতিশীল থাকায় তাড়াহুড়ো না করে গড় দরে বিক্রি করুন।",
+    history: [44, 45, 45, 45, 45, 45, 45]
+  },
+  "শিম": {
+    sourceRegion: "সীতাকুন্ড (চট্টগ্রাম), মুন্সিগঞ্জ, পাবনা",
+    supplyLevel: "উচ্চ",
+    retailForecast: "৭০ - ৮০ ৳ / কেজি",
+    advisory: "নিয়মিত সরবরাহ করুন",
+    advisoryType: "sell",
+    reason: "আড়তে নতুন শিমের প্রচুর আমদানি হচ্ছে। শিমের পচনশীলতা এড়াতে দৈনিক বাজারে পাঠাতে হবে।",
+    history: [62, 60, 58, 55, 57, 57, 57]
+  },
+  "বাধাকপি": {
+    sourceRegion: "বগুড়া, রংপুর, যশোর",
+    supplyLevel: "উচ্চ",
+    retailForecast: "৩৫ - ৪০ ৳ / পিস",
+    advisory: "দ্রুত বাজারে তুলুন",
+    advisoryType: "sell",
+    reason: "শীতকালীন সবজি বাজারে প্রচুর থাকায় বাধাকপির দাম দ্রুত কমছে। ক্ষেতে বেশি দিন না রেখে এখনই কেটে বাজারে পাঠানো বুদ্ধিমানের কাজ হবে।",
+    history: [31, 30, 29, 27, 27, 27, 27]
+  },
+  "ফুলকপি": {
+    sourceRegion: "বগুড়া, রাজবাড়ী, জামালপুর",
+    supplyLevel: "উচ্চ",
+    retailForecast: "৪০ - ৪৫ ৳ / পিস",
+    advisory: "দ্রুত বাজারে তুলুন",
+    advisoryType: "sell",
+    reason: "ফুলকপি অতি দ্রুত পচে যায় এবং ফুল ঢিলে হয়ে গেলে মান নষ্ট হয়ে দাম কমে যায়। তাই কুঁড়ি তাজা ও শক্ত থাকতেই বিক্রি করে ফেলুন।",
+    history: [34, 33, 31, 30, 31, 31, 31]
+  },
+  "লেবু (কাগজি)": {
+    sourceRegion: "শ্রীমঙ্গল (মৌলভীবাজার), নরসিংদী, টাঙ্গাইল",
+    supplyLevel: "স্বল্প",
+    retailForecast: "১৫০ - ২০০ ৳ / ১০০টি",
+    advisory: "দ্রুত বাজারে ছাড়ুন",
+    advisoryType: "sell",
+    reason: "গ্রীষ্মকালে কাগজি লেবুর প্রচুর চাহিদা কিন্তু ফলন কিছুটা সীমিত হওয়ায় বাজারের দর বেশ ভালো। এই মূল্যের সুফল নিন।",
+    history: [95, 100, 105, 108, 110, 108, 110]
+  },
+  "শসা (দেশি)": {
+    sourceRegion: "সাভার, যশোর, নরসিংদী",
+    supplyLevel: "স্বল্প",
+    retailForecast: "৫০ - ৬০ ৳ / কেজি",
+    advisory: "দ্রুত বিক্রি করুন",
+    advisoryType: "sell",
+    reason: "বাজারে সালাদের উপযোগী শসার ব্যাপক চাহিদা। তীব্র রোদ ও গরমের কারণে যোগান কিছুটা ব্যাহত হওয়ায় দাম ভালো যাচ্ছে।",
+    history: [39, 41, 42, 42, 43, 42, 43]
+  },
+  "ঢেঁড়স": {
+    sourceRegion: "নরসিংদী, যশোর, কুমিল্লা",
+    supplyLevel: "উচ্চ",
+    retailForecast: "৪৫ - ৫০ ৳ / কেজি",
+    advisory: "নিয়মিত সরবরাহ করুন",
+    advisoryType: "sell",
+    reason: "ঢেঁড়স খুব দ্রুত বেড়ে যায় এবং একটু শক্ত হয়ে গেলে আঁশ হয়ে আড়তদাররা কিনতে চায় না। কচি থাকতেই তুলে প্রতিদিন বিক্রি করতে হবে।",
+    history: [40, 39, 37, 36, 38, 38, 38]
   }
 };
 
