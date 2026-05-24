@@ -120,6 +120,7 @@ function retrieveLocalContext(query: string) {
     });
 
     // Add diseases if matched
+    let matchedCount = 0;
     crop.diseases.forEach(d => {
       const match = d.name_bn.split(' ').some(w => w.length > 2 && query.includes(w)) || 
                     d.symptoms.split(' ').some(w => w.length > 2 && query.includes(w));
@@ -129,8 +130,27 @@ function retrieveLocalContext(query: string) {
           `প্রতিকার ও সমাধান: ${d.treatment_bn}. প্রতিরোধমূলক ব্যবস্থা: ${d.prevention_bn}.`
         );
         sources.push(`${d.source_org} রোগ গাইড`);
+        matchedCount++;
       }
     });
+
+    // If no specific diseases matched, or if it is a general crop disease query,
+    // inject all diseases of this crop into context so the LLM can answer completely.
+    const isGeneralDiseaseQuery = query.includes('রোগ') || query.includes('পোকা') || query.includes('সমস্যা') || 
+                                  query.includes('লক্ষণ') || query.includes('কী কী') || query.includes('কীভাবে') || 
+                                  query.includes('তালিকা') || query.includes('চিকিৎসা') || query.includes('প্রতিকার');
+    if (matchedCount === 0 || isGeneralDiseaseQuery) {
+      crop.diseases.forEach(d => {
+        const alreadyAdded = contextParts.some(p => p.includes(`রোগবালাই: ${d.name_bn}`));
+        if (!alreadyAdded) {
+          contextParts.push(
+            `রোগবালাই: ${d.name_bn}. লক্ষণ: ${d.symptoms}. কারণ: ${d.cause_bn}. ` +
+            `প্রতিকার ও সমাধান: ${d.treatment_bn}. প্রতিরোধমূলক ব্যবস্থা: ${d.prevention_bn}.`
+          );
+          sources.push(`${d.source_org} রোগ গাইড`);
+        }
+      });
+    }
   }
 
   // Keywords search in general snippets
