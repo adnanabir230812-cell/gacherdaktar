@@ -75,6 +75,313 @@ const formatMarkdown = (text: any) => {
   });
 };
 
+const translateToBanglaDigits = (num: number | string): string => {
+  const englishToBanglaMap: { [key: string]: string } = {
+    '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+    '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+    '.': '.'
+  };
+  return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
+};
+
+const downloadPrescription = (result: any, imgUrl: string | null) => {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('প্রেসক্রিপশন ডাউনলোড করার জন্য অনুগ্রহ করে পপ-আপ ব্লকার বন্ধ করুন।');
+    return;
+  }
+
+  const currentDate = new Date().toLocaleDateString('bn-BD', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const formattedDate = translateToBanglaDigits(currentDate);
+
+  const cleanBullets = (text: any) => {
+    if (!text) return '';
+    const lines = Array.isArray(text) ? text : String(text).split('\n');
+    return lines.map((line: string) => {
+      let clean = line.replace(/^\s*[-*•]\s*/, '').trim();
+      clean = clean.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      return `<li style="margin-bottom: 8px;">${clean}</li>`;
+    }).join('');
+  };
+
+  const contentHtml = `
+    <div class="prescription-header">
+      <div class="header-main">
+        <h1>গাছের ডাক্তার (Gacher Doctor)</h1>
+        <p class="subtitle">ডিজিটাল শস্য রোগবালাই সনাক্তকরণ ও সমাধান প্রেসক্রিপশন</p>
+      </div>
+      <div class="header-meta">
+        <p><strong>তারিখ:</strong> ${formattedDate}</p>
+        <p><strong>আইডি:</strong> GD-${Math.floor(100000 + Math.random() * 900000)}</p>
+      </div>
+    </div>
+    
+    <div class="prescription-body">
+      <div class="info-row">
+        <div class="info-cell"><strong>ফসল:</strong> ${result.crop}</div>
+        <div class="info-cell"><strong>রোগের নাম:</strong> ${result.disease}</div>
+      </div>
+      <div class="info-row" style="margin-top: -10px;">
+        <div class="info-cell" style="grid-column: span 2;"><strong>জীবাণু/কারণ:</strong> ${result.cause}</div>
+      </div>
+
+      <div class="layout-grid">
+        <div class="left-col">
+          ${imgUrl ? `<img src="${imgUrl}" class="prescription-image" alt="Plant Leaf" />` : '<div class="no-img">ছবি সংযুক্ত নেই</div>'}
+          <div class="prescription-stamp">
+            <p>গাছের ডাক্তার দ্বারা অনুমোদিত</p>
+            <div class="stamp-circle">✓</div>
+          </div>
+        </div>
+        <div class="right-col">
+          <div class="section">
+            <div class="section-title">🔎 চিহ্নিত লক্ষণসমূহ</div>
+            <ul class="section-content">${cleanBullets(result.symptoms)}</ul>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">🌿 জৈবিক ও প্রাকৃতিক দমন সমাধান</div>
+            <ul class="section-content">${cleanBullets(result.treatment_organic)}</ul>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">🧪 রাসায়নিক দমন ও সঠিক ডোজ মাত্রা</div>
+            <ul class="section-content">${cleanBullets(result.treatment_chemical)}</ul>
+          </div>
+
+          ${result.preventive_measures ? `
+          <div class="section">
+            <div class="section-title">🛡️ ভবিষ্যৎ প্রতিরোধ ও সুরক্ষা গাইডলাইন</div>
+            <ul class="section-content">${cleanBullets(result.preventive_measures)}</ul>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>প্রেসক্রিপশন - গাছের ডাক্তার</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+          
+          body {
+            font-family: 'Hind Siliguri', sans-serif;
+            color: #1b3a2b;
+            background: #ffffff;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+          }
+          
+          .prescription-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #2e7d32;
+            padding: 25px;
+            border-radius: 12px;
+            background: #fafbf9;
+          }
+
+          .prescription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px double #2e7d32;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+          }
+
+          .header-main h1 {
+            color: #2e7d32;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+          }
+
+          .header-main .subtitle {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            color: #4a6b54;
+            font-weight: 600;
+          }
+
+          .header-meta {
+            text-align: right;
+            font-size: 12px;
+            color: #4a6b54;
+          }
+
+          .header-meta p {
+            margin: 2px 0;
+          }
+
+          .info-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: #e8f5e9;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            border-left: 5px solid #2e7d32;
+          }
+
+          .info-cell strong {
+            color: #2e7d32;
+          }
+
+          .layout-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+          }
+
+          .left-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .prescription-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #2e7d32;
+            margin-bottom: 15px;
+          }
+
+          .no-img {
+            width: 100%;
+            height: 150px;
+            background: #eee;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 15px;
+            border: 2px dashed #ccc;
+          }
+
+          .prescription-stamp {
+            text-align: center;
+            border: 2px dashed #2e7d32;
+            padding: 8px;
+            border-radius: 8px;
+            width: 80%;
+            background: #ffffff;
+          }
+
+          .prescription-stamp p {
+            margin: 0 0 4px 0;
+            font-size: 10px;
+            font-weight: bold;
+            color: #2e7d32;
+          }
+
+          .stamp-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #2e7d32;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            font-weight: bold;
+            font-size: 12px;
+          }
+
+          .right-col {
+            border-left: 2px solid #e8f5e9;
+            padding-left: 20px;
+          }
+
+          .section {
+            margin-bottom: 15px;
+          }
+
+          .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2e7d32;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e8f5e9;
+            padding-bottom: 4px;
+          }
+
+          .section-content {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 12.5px;
+            color: #333333;
+          }
+
+          .prescription-footer {
+            margin-top: 25px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 12px;
+            text-align: center;
+            font-size: 11px;
+            color: #4a6b54;
+            font-weight: bold;
+          }
+
+          @media print {
+            body {
+              padding: 0;
+              background: #ffffff;
+            }
+            .prescription-container {
+              border: none;
+              padding: 0;
+              background: #ffffff;
+            }
+            .info-row {
+              background: #f1f8e9 !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .section-title {
+              border-bottom-color: #f1f8e9 !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="prescription-container">
+          ${contentHtml}
+          <div class="prescription-footer">
+            কৃষকের পাশে গাছের ডাক্তার — www.gacherdoctor.site
+          </div>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 500);
+          }
+        </script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+};
+
 export default function LeafScanner() {
   const router = useRouter();
 
@@ -540,22 +847,31 @@ export default function LeafScanner() {
 
               </div>
 
-              {/* Reset/New Scan Button */}
-              <div className="pt-4 border-t border-green-primary/10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
-                <button
-                  type="button"
-                  onClick={clearImage}
-                  className="px-5 py-3 bg-green-primary hover:bg-green-soft text-soft-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center"
-                >
-                  নতুন পাতা পরীক্ষা করুন
-                </button>
+              {/* Reset/New Scan/Download Button */}
+              <div className="pt-4 border-t border-green-primary/10 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <div className="flex flex-col sm:flex-row gap-2.5 flex-1">
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="px-5 py-3 bg-green-primary hover:bg-green-soft text-soft-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center"
+                  >
+                    নতুন পাতা পরীক্ষা করুন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadPrescription(scannerResult, imgUrl)}
+                    className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-soft-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center"
+                  >
+                    প্রেসক্রিপশন ডাউনলোড করুন
+                  </button>
+                </div>
                 
                 <button
                   type="button"
                   onClick={() => {
                     router.push(`/chat?q=${encodeURIComponent(`${scannerResult.crop} এর ${scannerResult.disease} রোগের ব্যাপারে আরও সমাধান বলুন`)}`);
                   }}
-                  className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-green-primary/10 to-amber-500/10 hover:from-green-primary/15 hover:to-amber-500/15 border border-green-primary/20 rounded-2xl transition-all text-xs font-black text-green-primary shadow-sm hover:shadow-md cursor-pointer group"
+                  className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-green-primary/10 to-amber-500/10 hover:from-green-primary/15 hover:to-amber-500/15 border border-green-primary/20 rounded-2xl transition-all text-xs font-black text-green-primary shadow-sm hover:shadow-md cursor-pointer group shrink-0"
                 >
                   <span className="flex items-center gap-1.5">💬 গাছের ডাক্তারের সাথে সরাসরি কথা বলুন</span>
                   <ArrowRight className="w-4 h-4 text-green-primary transition-transform duration-200 group-hover:translate-x-1" />

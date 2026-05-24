@@ -199,8 +199,8 @@ export default function Home() {
             সমন্বিত <span className="text-sunlight drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">ডিজিটাল কৃষি সেবা</span>
           </h1>
           
-          <p className="text-sm md:text-lg text-soft-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-2xl font-bold">
-            এক ঠিকানায় মাঠের সব সমাধান! ৬৪ জেলার আবহাওয়া ভিত্তিক চাষাবাদ নির্দেশিকা, সারের সঠিক পরিমাণ হিসাব, এবং গাছের ডাক্তার পরামর্শ সেবা।
+          <p className="text-sm md:text-lg text-soft-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-2xl font-bold leading-relaxed">
+            মাঠের যেকোনো সমস্যার তাৎক্ষণিক সমাধান এখন আপনার হাতের মুঠোয়। প্রতিটি জেলার জন্য বিশেষ আবহাওয়া পরামর্শ, সারের সঠিক হিসাব এবং গাছের যেকোনো রোগবালাইয়ের নির্ভুল সমাধান নিয়ে আপনার পাশে আছে গাছের ডাক্তার।
           </p>
 
           {/* Interactive Chat Input Area */}
