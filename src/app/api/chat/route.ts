@@ -6,6 +6,8 @@ import dns from 'dns';
 
 dns.setDefaultResultOrder('ipv4first');
 
+export const maxDuration = 60; // Allow function to run up to 60 seconds on Vercel
+
 const sanitizeEnv = (val: string | undefined) => {
   if (!val) return undefined;
   const clean = val.trim().replace(/[\r\n]+/g, '');
@@ -296,8 +298,8 @@ ${context || 'No specific crop matching the query.'}
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
-        const timeLimit = Math.min(3500, getRemainingTime(9200));
-        if (timeLimit < 1000) {
+        const timeLimit = Math.min(15000, getRemainingTime(55000));
+        if (timeLimit < 2000) {
           console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
           break;
         }
