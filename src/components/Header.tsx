@@ -139,14 +139,14 @@ export default function Header() {
       <header className="sticky top-0 z-50 w-full border-b border-green-primary/10 bg-soft-white/95 backdrop-blur-md shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
           {/* Logo & Brand Name */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 select-none">
+          <Link href="/" className="flex items-center gap-1.5 xs:gap-2.5 min-w-0 select-none">
             <img 
               src="/logo.png" 
               alt="গাছের ডাক্তার লোগো" 
-              className="w-10 h-10 object-contain"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0"
               style={{ mixBlendMode: 'multiply' }}
             />
-            <span className="text-2xl font-black text-green-primary tracking-tight">
+            <span className="text-base xs:text-xl sm:text-2xl font-black text-green-primary tracking-tight truncate">
               গাছের ডাক্তার
             </span>
           </Link>
@@ -236,19 +236,19 @@ export default function Header() {
           </nav>
 
           {/* Mobile Hamburger Menu Toggle Button */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex md:hidden items-center gap-1.5 shrink-0">
             <Link 
               href="/chat"
-              className="px-3.5 py-1.5 text-xs font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-sm"
+              className="px-2.5 py-1.5 text-[10px] xs:text-xs font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-sm whitespace-nowrap"
             >
               জিজ্ঞেস করুন
             </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 hover:bg-green-primary/10 rounded-xl text-text-secondary transition-colors"
+              className="p-1.5 hover:bg-green-primary/10 rounded-xl text-text-secondary transition-colors"
               aria-label="মেনু"
             >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -373,8 +373,6 @@ export default function Header() {
         </Link>
       </nav>
 
-      {/* Spacer to push content above bottom nav on mobile */}
-      <div className="md:hidden h-16 w-full" />
     </>
   );
 }

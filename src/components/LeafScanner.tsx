@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Trash2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  ChevronDown
 } from 'lucide-react';
 
 export default function LeafScanner() {
@@ -28,6 +29,11 @@ export default function LeafScanner() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | null>('symptoms');
+
+  const toggleTab = (tab: string) => {
+    setActiveTab(activeTab === tab ? null : tab);
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -384,48 +390,76 @@ export default function LeafScanner() {
                 </div>
               </div>
 
-              {/* Detailed section-by-section Solutions */}
-              <div className="space-y-4">
+              {/* Detailed section-by-section Solutions in Collapsible Accordions */}
+              <div className="space-y-3">
                 
-                {/* 1. Visible Symptoms */}
-                <div className="text-sm text-text-primary bg-warm-bg/20 p-5 rounded-2xl border border-green-primary/5">
-                  <h4 className="font-extrabold text-text-primary text-xs uppercase mb-2 flex items-center gap-1.5">
-                    🔎 লক্ষণসমূহ:
-                  </h4>
-                  <p className="font-medium leading-relaxed whitespace-pre-line text-xs md:text-sm pl-2 border-l-2 border-amber-500/50">
-                    {scannerResult.symptoms}
-                  </p>
-                </div>
-
-                {/* 2. Organic Treatment */}
-                <div className="text-sm text-text-primary bg-green-primary/5 p-5 rounded-2xl border border-green-primary/10">
-                  <h4 className="font-extrabold text-green-primary text-xs uppercase mb-2 flex items-center gap-1.5">
-                    <CheckCircle className="w-4 h-4 text-green-primary" /> ১. জৈবিক ও প্রাকৃতিক দমন সমাধান:
-                  </h4>
-                  <div className="font-bold leading-relaxed whitespace-pre-line text-xs md:text-sm pl-2 border-l-2 border-green-primary/50 text-text-primary">
-                    {scannerResult.treatment_organic}
-                  </div>
-                </div>
-
-                {/* 3. Chemical Treatment */}
-                <div className="text-sm text-text-primary bg-amber-500/5 p-5 rounded-2xl border border-amber-500/20">
-                  <h4 className="font-extrabold text-amber-700 text-xs uppercase mb-2 flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" /> ②. রাসায়নিক দমন ও সঠিক প্রয়োগ মাত্রা:
-                  </h4>
-                  <div className="font-black leading-relaxed whitespace-pre-line text-xs md:text-sm pl-2 border-l-2 border-amber-500/50 text-text-primary">
-                    {scannerResult.treatment_chemical}
-                  </div>
-                </div>
-
-                {/* 4. Preventive Guidelines */}
-                {scannerResult.preventive_measures && (
-                  <div className="text-sm text-text-primary bg-orange-500/5 p-5 rounded-2xl border border-orange-500/20">
-                    <h4 className="font-extrabold text-orange-700 text-xs uppercase mb-2 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-orange-600" /> ৩. ভবিষ্যৎ প্রতিরোধ ও সুরক্ষা গাইডলাইন:
-                    </h4>
-                    <div className="font-bold leading-relaxed text-xs md:text-sm pl-2 border-l-2 border-orange-500/50 text-text-primary whitespace-pre-line">
-                      {scannerResult.preventive_measures}
+                {/* 1. Visible Symptoms Accordion */}
+                <div className="border border-green-primary/10 rounded-2xl overflow-hidden bg-warm-bg/5 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => toggleTab('symptoms')}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-text-primary bg-warm-bg/15 hover:bg-warm-bg/25 transition-all cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">🔎 চিহ্নিত লক্ষণসমূহ</span>
+                    <ChevronDown className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${activeTab === 'symptoms' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {activeTab === 'symptoms' && (
+                    <div className="p-5 border-t border-green-primary/5 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in">
+                      {scannerResult.symptoms}
                     </div>
+                  )}
+                </div>
+
+                {/* 2. Organic Treatment Accordion */}
+                <div className="border border-green-primary/10 rounded-2xl overflow-hidden bg-green-primary/5 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => toggleTab('organic')}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-green-primary bg-green-primary/10 hover:bg-green-primary/15 transition-all cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">🌿 ১. জৈবিক ও প্রাকৃতিক দমন সমাধান</span>
+                    <ChevronDown className={`w-4 h-4 text-green-primary transition-transform duration-200 ${activeTab === 'organic' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {activeTab === 'organic' && (
+                    <div className="p-5 border-t border-green-primary/10 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in">
+                      {scannerResult.treatment_organic}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Chemical Treatment Accordion */}
+                <div className="border border-amber-500/15 rounded-2xl overflow-hidden bg-amber-500/5 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => toggleTab('chemical')}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-amber-700 bg-amber-500/10 hover:bg-amber-500/15 transition-all cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">🧪 ২. রাসায়নিক দমন ও সঠিক ডোজ মাত্রা</span>
+                    <ChevronDown className={`w-4 h-4 text-amber-700 transition-transform duration-200 ${activeTab === 'chemical' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {activeTab === 'chemical' && (
+                    <div className="p-5 border-t border-amber-500/15 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in font-extrabold">
+                      {scannerResult.treatment_chemical}
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Preventive Guidelines Accordion */}
+                {scannerResult.preventive_measures && (
+                  <div className="border border-orange-500/15 rounded-2xl overflow-hidden bg-orange-500/5 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => toggleTab('preventive')}
+                      className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-orange-700 bg-orange-500/10 hover:bg-orange-500/15 transition-all cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">🛡️ ৩. ভবিষ্যৎ প্রতিরোধ ও সুরক্ষা গাইডলাইন</span>
+                      <ChevronDown className={`w-4 h-4 text-orange-700 transition-transform duration-200 ${activeTab === 'preventive' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeTab === 'preventive' && (
+                      <div className="p-5 border-t border-orange-500/15 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in">
+                        {scannerResult.preventive_measures}
+                      </div>
+                    )}
                   </div>
                 )}
 

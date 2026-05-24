@@ -29,7 +29,7 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className="antialiased min-h-screen flex flex-col">
+      <body className="antialiased min-h-screen flex flex-col pb-16 md:pb-0">
         {/* 🌾 Top Developer Attribution Banner */}
         <div className="w-full bg-gradient-to-r from-green-primary via-emerald-800 to-amber-600 text-soft-white text-center py-2 text-xs md:text-sm font-extrabold tracking-wider shadow-md border-b border-amber-400/20 flex items-center justify-center gap-1.5">
           <span>✨</span>
