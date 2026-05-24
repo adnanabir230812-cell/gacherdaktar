@@ -296,8 +296,14 @@ ${context || 'No specific crop matching the query.'}
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
+        const timeLimit = Math.min(3500, getRemainingTime(9200));
+        if (timeLimit < 1000) {
+          console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
+          break;
+        }
+
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-        const res = await postWithTimeout(
+        const res = await httpsPostWithTimeout(
           geminiUrl,
           { 'Content-Type': 'application/json' },
           JSON.stringify({
@@ -313,7 +319,7 @@ ${context || 'No specific crop matching the query.'}
               maxOutputTokens: 4000 // Increased limit to prevent cutoff
             }
           }),
-          8500 // 8.5 seconds timeout for Gemini
+          timeLimit
         );
 
         if (res.ok) {
