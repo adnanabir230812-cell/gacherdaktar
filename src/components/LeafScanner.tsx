@@ -57,6 +57,24 @@ const compressImage = (dataUrl: string, maxWidth: number = 800, maxHeight: numbe
   });
 };
 
+const formatMarkdown = (text: any) => {
+  if (!text) return '';
+  const cleanText = Array.isArray(text) ? text.join('\n') : String(text);
+  return cleanText.split('\n').map((line, lineIdx) => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    return (
+      <p key={lineIdx} className="mb-1 leading-relaxed text-xs md:text-sm">
+        {parts.map((part, partIdx) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+          }
+          return part;
+        })}
+      </p>
+    );
+  });
+};
+
 export default function LeafScanner() {
   const router = useRouter();
 
@@ -461,8 +479,8 @@ export default function LeafScanner() {
                     <ChevronDown className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${activeTab === 'symptoms' ? 'rotate-180' : ''}`} />
                   </button>
                   {activeTab === 'symptoms' && (
-                    <div className="p-5 border-t border-green-primary/5 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in">
-                      {scannerResult.symptoms}
+                    <div className="p-5 border-t border-green-primary/5 text-text-primary bg-white animate-fade-in">
+                      {formatMarkdown(scannerResult.symptoms)}
                     </div>
                   )}
                 </div>
@@ -478,8 +496,8 @@ export default function LeafScanner() {
                     <ChevronDown className={`w-4 h-4 text-green-primary transition-transform duration-200 ${activeTab === 'organic' ? 'rotate-180' : ''}`} />
                   </button>
                   {activeTab === 'organic' && (
-                    <div className="p-5 border-t border-green-primary/10 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in">
-                      {scannerResult.treatment_organic}
+                    <div className="p-5 border-t border-green-primary/10 text-text-primary bg-white animate-fade-in">
+                      {formatMarkdown(scannerResult.treatment_organic)}
                     </div>
                   )}
                 </div>
@@ -495,8 +513,8 @@ export default function LeafScanner() {
                     <ChevronDown className={`w-4 h-4 text-amber-700 transition-transform duration-200 ${activeTab === 'chemical' ? 'rotate-180' : ''}`} />
                   </button>
                   {activeTab === 'chemical' && (
-                    <div className="p-5 border-t border-amber-500/15 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in font-extrabold">
-                      {scannerResult.treatment_chemical}
+                    <div className="p-5 border-t border-amber-500/15 text-text-primary bg-white animate-fade-in">
+                      {formatMarkdown(scannerResult.treatment_chemical)}
                     </div>
                   )}
                 </div>
@@ -513,8 +531,8 @@ export default function LeafScanner() {
                       <ChevronDown className={`w-4 h-4 text-orange-700 transition-transform duration-200 ${activeTab === 'preventive' ? 'rotate-180' : ''}`} />
                     </button>
                     {activeTab === 'preventive' && (
-                      <div className="p-5 border-t border-orange-500/15 text-xs md:text-sm text-text-primary leading-relaxed whitespace-pre-line bg-white animate-fade-in">
-                        {scannerResult.preventive_measures}
+                      <div className="p-5 border-t border-orange-500/15 text-text-primary bg-white animate-fade-in">
+                        {formatMarkdown(scannerResult.preventive_measures)}
                       </div>
                     )}
                   </div>
@@ -523,11 +541,11 @@ export default function LeafScanner() {
               </div>
 
               {/* Reset/New Scan Button */}
-              <div className="pt-2 border-t border-green-primary/10 flex justify-between items-center gap-4 flex-wrap">
+              <div className="pt-4 border-t border-green-primary/10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
                 <button
                   type="button"
                   onClick={clearImage}
-                  className="px-5 py-2.5 bg-green-primary hover:bg-green-soft text-soft-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md"
+                  className="px-5 py-3 bg-green-primary hover:bg-green-soft text-soft-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center"
                 >
                   নতুন পাতা পরীক্ষা করুন
                 </button>
@@ -537,9 +555,10 @@ export default function LeafScanner() {
                   onClick={() => {
                     router.push(`/chat?q=${encodeURIComponent(`${scannerResult.crop} এর ${scannerResult.disease} রোগের ব্যাপারে আরও সমাধান বলুন`)}`);
                   }}
-                  className="text-xs text-green-primary font-black hover:underline flex items-center gap-1 cursor-pointer"
+                  className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-green-primary/10 to-amber-500/10 hover:from-green-primary/15 hover:to-amber-500/15 border border-green-primary/20 rounded-2xl transition-all text-xs font-black text-green-primary shadow-sm hover:shadow-md cursor-pointer group"
                 >
-                  গাছের ডাক্তারের সাথে কথা বলুন <ArrowRight className="w-4 h-4" />
+                  <span className="flex items-center gap-1.5">💬 গাছের ডাক্তারের সাথে সরাসরি কথা বলুন</span>
+                  <ArrowRight className="w-4 h-4 text-green-primary transition-transform duration-200 group-hover:translate-x-1" />
                 </button>
               </div>
 
