@@ -18,6 +18,45 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+const compressImage = (dataUrl: string, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.75): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = dataUrl;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(dataUrl);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => {
+      resolve(dataUrl); // Fallback to original on error
+    };
+  });
+};
+
 export default function LeafScanner() {
   const router = useRouter();
 
@@ -77,7 +116,7 @@ export default function LeafScanner() {
     setIsCameraActive(false);
   };
 
-  const capturePhoto = () => {
+  const capturePhoto = async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -87,7 +126,13 @@ export default function LeafScanner() {
         canvas.height = video.videoHeight || 480;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/jpeg');
-        setImgUrl(dataUrl);
+        try {
+          const compressed = await compressImage(dataUrl);
+          setImgUrl(compressed);
+        } catch (err) {
+          console.error("Compression failed:", err);
+          setImgUrl(dataUrl);
+        }
         stopCamera();
       }
     }
@@ -113,8 +158,14 @@ export default function LeafScanner() {
       const file = e.dataTransfer.files[0];
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          setImgUrl(reader.result as string);
+        reader.onloadend = async () => {
+          try {
+            const compressed = await compressImage(reader.result as string);
+            setImgUrl(compressed);
+          } catch (err) {
+            console.error("Drop compression failed:", err);
+            setImgUrl(reader.result as string);
+          }
           setScannerResult(null);
           stopCamera();
         };
@@ -127,8 +178,14 @@ export default function LeafScanner() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImgUrl(reader.result as string);
+      reader.onloadend = async () => {
+        try {
+          const compressed = await compressImage(reader.result as string);
+          setImgUrl(compressed);
+        } catch (err) {
+          console.error("Upload compression failed:", err);
+          setImgUrl(reader.result as string);
+        }
         setScannerResult(null);
         stopCamera();
       };
