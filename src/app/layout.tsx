@@ -48,15 +48,21 @@ export default function RootLayout({
                 গাছের ডাক্তার
               </span>
             </a>
-            <nav className="flex items-center gap-6">
+            <nav className="flex flex-wrap items-center gap-4 sm:gap-6">
               <a href="/crops" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
-                📖 ফসলের বই
+                ফসলের বই
               </a>
               <a href="/calculator" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
-                🧪 সারের হিসাব-নিকাশ
+                সারের হিসাব-নিকাশ
               </a>
-              <a href="/chat" className="px-5 py-2 text-sm font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-1.5">
-                🩺 গাছের ডাক্তার
+              <a href="/prices" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
+                পাইকারি বাজার দর
+              </a>
+              <a href="/articles" className="text-sm font-bold text-text-secondary hover:text-green-primary transition-colors">
+                তথ্য ভান্ডার
+              </a>
+              <a href="/chat" className="px-5 py-2 text-sm font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-md hover:shadow-lg transition-all">
+                গাছের ডাক্তার
               </a>
             </nav>
           </div>
