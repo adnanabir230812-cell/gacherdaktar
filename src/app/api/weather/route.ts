@@ -24,7 +24,9 @@ export async function GET(request: Request) {
 
   let data;
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(3000), // 3-second timeout to prevent hangs
+    });
     if (!res.ok) {
       throw new Error('Open-Meteo returned status ' + res.status);
     }
