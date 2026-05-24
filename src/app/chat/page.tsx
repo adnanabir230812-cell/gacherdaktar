@@ -117,7 +117,11 @@ function ChatContent() {
       console.error('Speech recognition error', e);
       setIsListening(false);
       if (e.error === 'not-allowed') {
-        alert('ভয়েস ইনপুট দেওয়ার জন্য অনুগ্রহ করে আপনার ব্রাউজারে মাইক্রোফোন পারমিশন (Microphone Permission) দিন।');
+        alert('ভয়েস ইনপুট দেওয়ার জন্য অনুগ্রহ করে আপনার ব্রাউজারের অ্যাড্রেস বারের বামে থাকা লক (Lock) আইকনে ক্লিক করে মাইক্রোফোন পারমিশনটি (Microphone Permission) Allow বা অন করে দিন।');
+      } else if (e.error === 'service-not-allowed') {
+        alert('আপনার ব্রাউজারে স্পিচ সার্ভিস অনুমতি নেই। অনুগ্রহ করে গুগল ক্রোম বা সাফারি ব্রাউজার ব্যবহার করুন।');
+      } else if (e.error === 'audio-capture') {
+        alert('আপনার ডিভাইসে কোনো সচল মাইক্রোফোন খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সংযোগটি চেক করুন।');
       }
     };
 
@@ -186,33 +190,71 @@ function ChatContent() {
 
   // Text to Speech Function
   const speakText = (text: string, messageId: string) => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      if (isSpeaking && currentlySpeakingId === messageId) {
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-        setCurrentlySpeakingId(null);
-        return;
-      }
-
-      window.speechSynthesis.cancel();
-      const cleaned = cleanForSpeech(text);
-      const utterance = new SpeechSynthesisUtterance(cleaned);
-      utterance.lang = 'bn-BD';
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        setCurrentlySpeakingId(null);
-      };
-
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-        setCurrentlySpeakingId(null);
-      };
-
-      setCurrentlySpeakingId(messageId);
-      setIsSpeaking(true);
-      window.speechSynthesis.speak(utterance);
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      alert('দুঃখিত, আপনার ব্রাউজারটি ভয়েস রিডিং সমর্থন করে না।');
+      return;
     }
+
+    if (isSpeaking && currentlySpeakingId === messageId) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setCurrentlySpeakingId(null);
+      return;
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    setCurrentlySpeakingId(null);
+
+    // iOS and Chrome require a tiny timeout after cancel() before speaking a new text
+    setTimeout(() => {
+      try {
+        const cleaned = cleanForSpeech(text);
+        const utterance = new SpeechSynthesisUtterance(cleaned);
+        
+        // Find the best available Bengali voice (bn-BD, bn-IN, or containing bengali/bangla)
+        const voices = window.speechSynthesis.getVoices();
+        const bengaliVoice = voices.find(v => 
+          v.lang === 'bn-BD' || 
+          v.lang === 'bn-IN' || 
+          v.lang.startsWith('bn') || 
+          v.name.toLowerCase().includes('bengali') || 
+          v.name.toLowerCase().includes('bangla')
+        );
+
+        if (bengaliVoice) {
+          utterance.voice = bengaliVoice;
+          utterance.lang = bengaliVoice.lang;
+        } else {
+          utterance.lang = 'bn-BD';
+        }
+
+        utterance.rate = 0.95; // Slightly slower for natural reading
+
+        utterance.onstart = () => {
+          setIsSpeaking(true);
+          setCurrentlySpeakingId(messageId);
+        };
+
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          setCurrentlySpeakingId(null);
+        };
+
+        utterance.onerror = (err) => {
+          console.error('Speech synthesis error:', err);
+          setIsSpeaking(false);
+          setCurrentlySpeakingId(null);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error('Speech Synthesis failed:', err);
+        setIsSpeaking(false);
+        setCurrentlySpeakingId(null);
+      }
+    }, 100);
   };
 
   // Toggle voice recognition
@@ -583,9 +625,14 @@ function ChatContent() {
             {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
           </button>
         ) : (
-          <div className="p-3 rounded-full bg-green-primary/5 text-text-secondary/40 cursor-not-allowed" title="ভয়েস ইনপুট সমর্থিত নয়">
+          <button
+            type="button"
+            onClick={() => alert('ভয়েস ইনপুট আপনার বর্তমান ব্রাউজারে সমর্থিত নয় অথবা আপনি সাইটটিতে সুরক্ষিত সংযোগ (HTTPS) ছাড়া প্রবেশ করেছেন। দয়া করে গুগল ক্রোম (Google Chrome) বা সাফারি (Safari) ব্রাউজার ব্যবহার করুন এবং মাইক্রোফোন পারমিশন দিন।')}
+            className="p-3 rounded-full bg-green-primary/5 text-text-secondary/40 cursor-pointer"
+            title="ভয়েস ইনপুট সমর্থিত নয় (সহায়তার জন্য এখানে ক্লিক করুন)"
+          >
             <MicOff className="w-5 h-5" />
-          </div>
+          </button>
         )}
 
         <input
