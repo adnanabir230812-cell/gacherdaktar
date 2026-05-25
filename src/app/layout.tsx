@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: "গাছের ডাক্তার — বাংলার কৃষকের বিশ্বস্ত ডিজিটাল ফসল বিশেষজ্ঞ",
@@ -58,6 +59,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
