@@ -18,6 +18,7 @@ import {
   CornerDownRight,
   Info
 } from 'lucide-react';
+import { detectUserDistrict } from '@/lib/location';
 
 interface Message {
   id: string;
@@ -71,9 +72,12 @@ function ChatContent() {
       .then(res => res.json())
       .then(data => {
         setDistricts(data);
-        // Find default or fallback
       })
       .catch(err => console.error(err));
+
+    detectUserDistrict('ঢাকা').then(detected => {
+      setDistrict(detected);
+    });
   }, []);
 
   // Initialize Speech Recognition Support Check

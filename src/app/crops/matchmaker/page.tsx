@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, HelpCircle, CheckCircle, TrendingUp, Info } from 'lucide-react';
+import { detectUserDistrict } from '@/lib/location';
 
 interface Recommendation {
   crop_name: string;
@@ -26,6 +27,10 @@ export default function SoilCropMatchmaker() {
       .then(res => res.json())
       .then(data => setDistrictsList(data))
       .catch(err => console.error(err));
+
+    detectUserDistrict('ঢাকা').then(detected => {
+      setDistrict(detected);
+    });
   }, []);
 
   // Run matching logic

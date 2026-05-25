@@ -27,6 +27,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import LeafScanner from '@/components/LeafScanner';
+import { detectUserDistrict } from '@/lib/location';
 
 interface AdvisoryDetail {
   status: string;
@@ -111,6 +112,10 @@ export default function Home() {
       .then(res => res.json())
       .then(data => setDistricts(data))
       .catch(err => console.error(err));
+
+    detectUserDistrict('ঢাকা').then(detected => {
+      setSelectedDistrict(detected);
+    });
   }, []);
 
   // Fetch weather data for selected district

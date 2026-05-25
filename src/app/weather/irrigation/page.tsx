@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, MapPin, Droplets, CloudRain, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
+import { detectUserDistrict } from '@/lib/location';
 
 interface WeatherData {
   district: string;
@@ -32,11 +33,12 @@ export default function IrrigationAdvisor() {
       .then(res => res.json())
       .then(data => {
         setDistricts(data);
-        if (data.length > 0) {
-          // Keep selected district or default
-        }
       })
       .catch(err => console.error(err));
+
+    detectUserDistrict('ঢাকা').then(detected => {
+      setSelectedDistrict(detected);
+    });
   }, []);
 
   // Fetch weather and advisory

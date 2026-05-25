@@ -20,6 +20,7 @@ import {
   HelpCircle,
   RefreshCw
 } from 'lucide-react';
+import { detectUserDistrict } from '@/lib/location';
 
 const DISTRICTS = [
   // ঢাকা বিভাগ (Dhaka Division)
@@ -181,6 +182,13 @@ export default function SoilPHCalculator() {
       }
     };
   }, [stream]);
+
+  // Auto-detect user district on mount
+  useEffect(() => {
+    detectUserDistrict('ময়মনসিংহ').then(detected => {
+      setLocation(detected);
+    });
+  }, []);
 
   // Webcam actions
   const startCamera = async () => {
