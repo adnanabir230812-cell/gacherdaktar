@@ -166,13 +166,27 @@ export default function Home() {
     }
   };
 
+  const getCountrywideSummary = () => {
+    const now = new Date();
+    const month = now.getMonth(); // 0 is January, 4 is May, 5 is June
+    if (month >= 10 || month <= 1) { // Nov, Dec, Jan, Feb (Winter)
+      return "কুয়াশাচ্ছন্ন আবহাওয়া ও মৃদু ঠাণ্ডা পরিবেশ বিরাজ করতে পারে। রবি শস্যের চারা রক্ষা করতে রাতে বীজতলা পলিথিন দিয়ে ঢেকে রাখুন এবং কুয়াশাজনিত বালাই দমনে বালাইনাশক স্প্রে করতে পারেন।";
+    } else if (month >= 2 && month <= 4) { // Mar, Apr, May (Summer/Pre-monsoon)
+      return "তীব্র রোদ ও ভ্যাপসা গরম থাকতে পারে এবং কিছু অঞ্চলে বজ্রবিদ্যুৎসহ ঝড়ো হাওয়া ও কালবৈশাখী ঝড়ের সম্ভাবনা রয়েছে। খরা পরিস্থিতি নিয়ন্ত্রণে নিয়মিত সেচ দিন এবং ঝড়ের সময় মাঠে অবস্থান করা থেকে বিরত থাকুন।";
+    } else { // Jun, Jul, Aug, Sep, Oct (Monsoon/Rainy)
+      return "মাঝারি থেকে ভারী বৃষ্টিপাত এবং আকাশ মেঘলা থাকার সম্ভাবনা রয়েছে। নিচু জমিতে অতিরিক্ত পানি জমে ফসল যাতে পচে না যায় সেজন্য পানি নিষ্কাশন নালাগুলো পরিষ্কার ও উন্মুক্ত রাখুন এবং বৃষ্টির সময় কীটনাশক স্প্রে করা বন্ধ রাখুন।";
+    }
+  };
+
   const getTickerText = () => {
-    const baseText = "স্বাগতম প্রিয় কৃষক ভাই! ";
+    const baseText = "স্বাগতম প্রিয় কৃষক ভাই! আজ সারাদেশে ";
+    const countrywideSummary = getCountrywideSummary();
+    
     if (loadingWeather) {
-      return baseText + "আজকের আবহাওয়া ফোরকাস্ট ও কৃষি পরামর্শ লোড হচ্ছে...";
+      return baseText + countrywideSummary + " (আজকের আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...)";
     }
     if (!weather) {
-      return baseText + "আজকের আবহাওয়া ফোরকাস্ট ও কৃষি পরামর্শ: আউশ ধানের ক্ষেতের আগাছা পরিষ্কার করুন এবং রোপা আমন ধানের বীজতলা তৈরির কাজ শুরু করে দিন। শাকসবজি যেমন চালকুমড়া ও চিচিঙ্গার মাচা তৈরি করুন এবং হালকা সেচ দিন।";
+      return baseText + countrywideSummary + " আজকের কৃষি পরামর্শ: আউশ ধানের ক্ষেতের আগাছা পরিষ্কার করুন এবং রোপা আমন ধানের বীজতলা তৈরির কাজ শুরু করে দিন। শাকসবজি যেমন চালকুমড়া ও চিচিঙ্গার মাচা তৈরি করুন এবং হালকা সেচ দিন।";
     }
     
     // Build a dynamic alert message based on district weather
@@ -193,17 +207,17 @@ export default function Home() {
       advices.push(weather.advice.harvest.msg);
     }
     
-    return baseText + "আজকের আবহাওয়া ফোরকাস্ট ও কৃষি পরামর্শ: " + weatherAlert + advices.join(" ");
+    return baseText + countrywideSummary + " " + weatherAlert + advices.join(" ");
   };
 
   return (
     <div className="relative min-h-screen space-y-10 pb-16">
       
       {/* 🌤️ PREMIUM WEATHER MARQUEE TICKER */}
-      <div className="w-full bg-[#1B4332] border-2 border-[#B79400] rounded-2xl overflow-hidden shadow-lg flex items-center h-12 md:h-14">
-        {/* Sticky Label */}
-        <div className="bg-[#B79400] text-green-950 font-black px-4 py-2 text-xs md:text-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 h-full relative z-10 shadow-[4px_0_12px_rgba(0,0,0,0.15)] border-r border-[#1B4332]/20">
-          <CloudSun className="w-4.5 h-4.5 text-green-950" />
+      <div className="w-full bg-[#1B4332] border-2 border-[#B79400] rounded-2xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] flex items-center h-12 md:h-14">
+        {/* Sticky Label with 3D Embossed Metallic Gold effect */}
+        <div className="bg-gradient-to-b from-[#E5B83B] via-[#B79400] to-[#8C7000] text-white font-extrabold px-4 py-2 text-xs md:text-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 h-full relative z-10 shadow-[4px_0_15px_rgba(0,0,0,0.3)] border-r border-[#1B4332]/30 [text-shadow:0_1.5px_2px_rgba(0,0,0,0.4)]">
+          <CloudSun className="w-4.5 h-4.5 text-white filter drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.3)] animate-pulse" />
           <span>আবহাওয়া বার্তা</span>
         </div>
         
