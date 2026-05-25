@@ -770,15 +770,23 @@ export default function SoilPHCalculator() {
         >
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1B4332', paddingBottom: '15px', marginBottom: '20px' }}>
-            <div>
-              <h1 style={{ color: '#1B4332', margin: '0 0 5px 0', fontSize: '28px', fontWeight: 'bold' }}>
-                গাছের ডাক্তার (Gacher Doctor)
-              </h1>
-              <p style={{ margin: 0, fontSize: '12px', color: '#40916C', fontWeight: '600' }}>
-                ডিজিটাল মৃত্তিকা (মাটি) পরীক্ষা ও সমাধান প্রেসক্রিপশন
-              </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/logo.png" 
+                alt="গাছের ডাক্তার লোগো" 
+                style={{ width: '55px', height: '55px', objectFit: 'contain' }}
+              />
+              <div>
+                <h1 style={{ color: '#1B4332', margin: '0 0 3px 0', fontSize: '24px', fontWeight: 'bold' }}>
+                  গাছের ডাক্তার (Gacher Doctor)
+                </h1>
+                <p style={{ margin: 0, fontSize: '11px', color: '#40916C', fontWeight: '600' }}>
+                  ডিজিটাল মৃত্তিকা (মাটি) পরীক্ষা ও সমাধান প্রেসক্রিপশন
+                </p>
+              </div>
             </div>
-            <div style={{ textAlign: 'right', fontSize: '12px', color: '#4B5563' }}>
+            <div style={{ textAlign: 'right', fontSize: '11px', color: '#4B5563' }}>
               <p style={{ margin: '2px 0' }}><strong>তারিখ:</strong> {translateToBanglaDigits(new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }))}</p>
               <p style={{ margin: '2px 0' }}><strong>রিপোর্ট আইডি:</strong> GD-{translateToBanglaDigits(Math.floor(100000 + Math.random() * 900000))}</p>
             </div>

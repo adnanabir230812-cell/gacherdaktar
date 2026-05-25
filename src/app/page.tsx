@@ -166,9 +166,61 @@ export default function Home() {
     }
   };
 
+  const getTickerText = () => {
+    const baseText = "স্বাগতম প্রিয় কৃষক ভাই! ";
+    if (loadingWeather) {
+      return baseText + "আজকের আবহাওয়া ফোরকাস্ট ও কৃষি পরামর্শ লোড হচ্ছে...";
+    }
+    if (!weather) {
+      return baseText + "আজকের আবহাওয়া ফোরকাস্ট ও কৃষি পরামর্শ: আউশ ধানের ক্ষেতের আগাছা পরিষ্কার করুন এবং রোপা আমন ধানের বীজতলা তৈরির কাজ শুরু করে দিন। শাকসবজি যেমন চালকুমড়া ও চিচিঙ্গার মাচা তৈরি করুন এবং হালকা সেচ দিন।";
+    }
+    
+    // Build a dynamic alert message based on district weather
+    let weatherAlert = `${weather.district} জেলায় আজকের তাপমাত্রা ${translateNumberToBangla(weather.temp)}°C, অবস্থা: ${weather.condition}। `;
+    
+    // Add specific recommendations from weather.advice
+    const advices = [];
+    if (weather.advice.rain && weather.advice.rain.msg) {
+      advices.push(weather.advice.rain.msg);
+    }
+    if (weather.advice.disease_risk && weather.advice.disease_risk.msg) {
+      advices.push(weather.advice.disease_risk.msg);
+    }
+    if (weather.advice.soil && weather.advice.soil.msg) {
+      advices.push(weather.advice.soil.msg);
+    }
+    if (weather.advice.harvest && weather.advice.harvest.msg) {
+      advices.push(weather.advice.harvest.msg);
+    }
+    
+    return baseText + "আজকের আবহাওয়া ফোরকাস্ট ও কৃষি পরামর্শ: " + weatherAlert + advices.join(" ");
+  };
+
   return (
-    <div className="relative min-h-screen space-y-16 pb-16">
+    <div className="relative min-h-screen space-y-10 pb-16">
       
+      {/* 🌤️ PREMIUM WEATHER MARQUEE TICKER */}
+      <div className="w-full bg-[#1B4332] border-2 border-[#B79400] rounded-2xl overflow-hidden shadow-lg flex items-center h-12 md:h-14">
+        {/* Sticky Label */}
+        <div className="bg-[#B79400] text-green-950 font-black px-4 py-2 text-xs md:text-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 h-full relative z-10 shadow-[4px_0_12px_rgba(0,0,0,0.15)] border-r border-[#1B4332]/20">
+          <CloudSun className="w-4.5 h-4.5 text-green-950" />
+          <span>আবহাওয়া বার্তা</span>
+        </div>
+        
+        {/* Scrolling Marquee Container */}
+        <div className="flex-1 overflow-hidden flex items-center h-full relative bg-gradient-to-r from-[#1B4332] via-[#245e46] to-[#1B4332]">
+          {React.createElement(
+            'marquee',
+            {
+              scrollamount: '5',
+              direction: 'right',
+              className: 'w-full font-bold text-soft-white text-xs md:text-sm py-1.5 cursor-default hover:[pointer-events:none]'
+            },
+            getTickerText()
+          )}
+        </div>
+      </div>
+
       {/* 🌾 RUSTIC AGRICULTURAL HERO HEADER */}
       <section className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-green-primary/30 min-h-[500px] flex items-center bg-gradient-to-b from-green-950 to-green-900">
         
