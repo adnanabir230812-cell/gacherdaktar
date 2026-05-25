@@ -274,7 +274,11 @@ export default function LeafScanner() {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        setScannerResult(data.result);
+        if (data.result && data.result.is_valid === false) {
+          alert(data.result.error_message || 'এটি কোনো গাছ, লতাপাতা বা ফসলের ছবি নয়। দয়া করে আক্রান্ত ফসলের একটি স্পষ্ট ছবি আপলোড করুন।');
+        } else {
+          setScannerResult(data.result);
+        }
       } else {
         alert(data.error || 'গাছের ডাক্তার রোগ নির্ণয় করতে ব্যর্থ হয়েছেন। দয়া করে একটু পরিষ্কার ছবি নিয়ে পুনরায় চেষ্টা করুন।');
       }

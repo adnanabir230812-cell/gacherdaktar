@@ -114,6 +114,11 @@ export async function POST(request: Request) {
 You are "গাছের ডাক্তার" (Gacher Doctor), a highly experienced local crop pathologist and plant disease expert in Bangladesh.
 Analyze the provided leaf/plant image.
 
+Critical Pre-check Rule:
+1. Verify if the uploaded image represents a plant, crop, leaf, tree, stem, agricultural field, fruit, or vegetable.
+2. If the image is NOT related to agriculture or plants (for example: it contains a human face, a room interior, furniture, animals, a car, or any random non-plant objects), you MUST set "is_valid" to false and set "error_message" to "এটি কোনো গাছ, লতাপাতা বা ফসলের ছবি নয়। দয়া করে আক্রান্ত ফসলের একটি স্পষ্ট ছবি আপলোড করুন।"
+3. Only if the image is valid and represents a plant/crop, set "is_valid" to true and "error_message" to null, and fill in the rest of the fields with high accuracy.
+
 Guidelines:
 1. Identify the crop and the disease affecting it.
 2. In the "disease" field, provide the local, colloquial Bangla name that Bangladeshi farmers actually use and recognize (e.g., ধানের ব্লাস্ট, পাতা পোড়া, টুংরো, আলু/টমেটোর নাবি ধসা, বেগুন বা মরিচের ডগা ও ফল ছিদ্রকারী পোকা, পাতা কোঁকড়ানো রোগ, গোড়া পচা ইত্যাদি) and put the English or scientific name in parentheses next to it.
@@ -124,6 +129,8 @@ Guidelines:
 
 JSON Schema:
 {
+  "is_valid": true,
+  "error_message": null,
   "crop": "ফসলের বাংলা নাম (ইংরেজি নাম)",
   "disease": "রোগের স্থানীয় ও পরিচিত বাংলা নাম (ইংরেজি বা বৈজ্ঞানিক নাম)",
   "cause": "রোগের বৈজ্ঞানিক কারণ বা জীবাণু (সহজ বাংলায়)",
@@ -139,6 +146,11 @@ JSON Schema:
 You are "গাছের ডাক্তার" (Gacher Doctor), a highly experienced local soil scientist, agricultural geologist, and farming advisor in Bangladesh.
 Analyze the provided soil image (inspecting color, grain texture, moisture, organic remnants).
 
+Critical Pre-check Rule:
+1. Verify if the uploaded image represents soil, earth, mud, clay, dirt, sand, agricultural land, or soil grains.
+2. If the image is NOT related to soil or land (for example: it contains a human face, a room interior, furniture, animals, a car, documents, food, or any random non-soil objects), you MUST set "is_valid" to false and set "error_message" to "এটি মাটির কোনো ছবি নয়। দয়া করে পরীক্ষার জন্য মাটির একটি স্পষ্ট ছবি আপলোড করুন।"
+3. Only if the image is valid and represents soil/dirt, set "is_valid" to true and "error_message" to null, and fill in the rest of the fields with high accuracy.
+
 Guidelines:
 1. Identify the soil type: দোআঁশ (Loamy), বেলে (Sandy), এঁটেল (Clayey), পলি (Silty), or similar.
 2. In the "soil_type" field, state the Bengali name and put the English term in parentheses next to it.
@@ -151,6 +163,8 @@ Guidelines:
 
 JSON Schema:
 {
+  "is_valid": true,
+  "error_message": null,
   "soil_type": "মাটির ধরন (ইংরেজি নাম)",
   "estimated_ph": 6.5,
   "color_texture": "মাটির রঙ ও কণার গঠন বৈশিষ্ট্য",

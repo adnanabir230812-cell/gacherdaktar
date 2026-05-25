@@ -312,7 +312,11 @@ export default function SoilPHCalculator() {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        setScannerResult(data.result);
+        if (data.result && data.result.is_valid === false) {
+          alert(data.result.error_message || 'এটি মাটির কোনো ছবি নয়। দয়া করে পরীক্ষার জন্য মাটির একটি স্পষ্ট ছবি আপলোড করুন।');
+        } else {
+          setScannerResult(data.result);
+        }
       } else {
         alert(data.error || 'গাছের ডাক্তার মাটি পরীক্ষা করতে ব্যর্থ হয়েছেন। দয়া করে একটু পরিষ্কার ছবি নিয়ে পুনরায় চেষ্টা করুন।');
       }
