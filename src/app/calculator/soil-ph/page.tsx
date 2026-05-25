@@ -122,314 +122,33 @@ const getPhStatusBangla = (ph: number) => {
 };
 
 // Soil Prescription Download Helper
-const downloadSoilPrescription = (result: any, imgUrl: string | null, locationStr: string) => {
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  document.body.appendChild(iframe);
-
-  const currentDate = new Date().toLocaleDateString('bn-BD', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  const formattedDate = translateToBanglaDigits(currentDate);
-
-  const cleanBullets = (text: any) => {
-    if (!text) return '';
-    const lines = Array.isArray(text) ? text : String(text).split('\n');
-    return lines.map((line: string) => {
-      let clean = line.replace(/^\s*[-*•]\s*/, '').trim();
-      clean = clean.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      return `<li style="margin-bottom: 8px;">${clean}</li>`;
-    }).join('');
-  };
-
-  const contentHtml = `
-    <div class="prescription-header">
-      <div class="header-main">
-        <h1>গাছের ডাক্তার (Gacher Doctor)</h1>
-        <p class="subtitle">ডিজিটাল মৃত্তিকা (মাটি) পরীক্ষা ও সমাধান প্রেসক্রিপশন</p>
-      </div>
-      <div class="header-meta">
-        <p><strong>তারিখ:</strong> ${formattedDate}</p>
-        <p><strong>আইডি:</strong> GD-${Math.floor(100000 + Math.random() * 900000)}</p>
-      </div>
-    </div>
+const downloadSoilPrescription = async (result: any, imgUrl: string | null, locationStr: string) => {
+  const html2canvas = (await import('html2canvas')).default;
+  const jsPDF = (await import('jspdf')).default;
+  const element = document.getElementById('soil-prescription-pdf');
+  if (!element) return;
+  
+  try {
+    const canvas = await html2canvas(element, {
+      scale: 2, // high quality
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    });
     
-    <div class="prescription-body">
-      <div class="info-row">
-        <div class="info-cell"><strong>মাটির ধরন:</strong> ${result.soil_type}</div>
-        <div class="info-cell"><strong>পরীক্ষার স্থান (জেলা):</strong> ${locationStr}</div>
-      </div>
-      <div class="info-row" style="margin-top: -10px;">
-        <div class="info-cell"><strong>আনুমানিক pH মান:</strong> ${translateToBanglaDigits(result.estimated_ph)}</div>
-        <div class="info-cell"><strong>মাটির অবস্থা:</strong> ${getPhStatusBangla(result.estimated_ph)}</div>
-      </div>
-
-      <div class="layout-grid">
-        <div class="left-col">
-          ${imgUrl ? `<img src="${imgUrl}" class="prescription-image" alt="Soil Sample" />` : '<div class="no-img">ছবি সংযুক্ত নেই</div>'}
-          <div class="prescription-stamp">
-            <p>গাছের ডাক্তার দ্বারা অনুমোদিত</p>
-            <div class="stamp-circle">✓</div>
-          </div>
-        </div>
-        <div class="right-col">
-          <div class="section">
-            <div class="section-title">🔎 মাটির কণার গঠন ও বৈশিষ্ট্য</div>
-            <div class="section-content">${result.color_texture.replace(/\n/g, '<br>')}</div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">🌾 চাষের উপযোগী লাভজনক ফসলসমূহ</div>
-            <ul class="section-content">${cleanBullets(result.suitable_crops)}</ul>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">🌿 জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি গাইড</div>
-            <ul class="section-content">${cleanBullets(result.organic_advice)}</ul>
-          </div>
-
-          <div class="section">
-            <div class="section-title">🧪 অম্লত্ব/ক্ষারত্ব সংশোধন হিসাব ও সার সুপারিশ</div>
-            <ul class="section-content">${cleanBullets(result.chemical_advice)}</ul>
-          </div>
-
-          ${result.preventive_measures ? `
-          <div class="section">
-            <div class="section-title">🛡️ মাটি ক্ষয় রোধ ও দীর্ঘমেয়াদী উর্বরতা পরামর্শ</div>
-            <ul class="section-content">${cleanBullets(result.preventive_measures)}</ul>
-          </div>
-          ` : ''}
-        </div>
-      </div>
-    </div>
-  `;
-
-  const doc = iframe.contentWindow?.document;
-  if (!doc) return;
-
-  doc.write(`
-    <html>
-      <head>
-        <title>প্রেসক্রিপশন - গাছের ডাক্তার</title>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
-          
-          body {
-            font-family: 'Hind Siliguri', sans-serif;
-            color: #1b3a2b;
-            background: #ffffff;
-            margin: 0;
-            padding: 20px;
-            font-size: 14px;
-            line-height: 1.5;
-          }
-          
-          .prescription-container {
-            max-width: 800px;
-            margin: 0 auto;
-            border: 2px solid #2e7d32;
-            padding: 25px;
-            border-radius: 12px;
-            background: #fafbf9;
-          }
-
-          .prescription-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 3px double #2e7d32;
-            padding-bottom: 12px;
-            margin-bottom: 15px;
-          }
-
-          .header-main h1 {
-            color: #2e7d32;
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-          }
-
-          .header-main .subtitle {
-            margin: 4px 0 0 0;
-            font-size: 12px;
-            color: #4a6b54;
-            font-weight: 600;
-          }
-
-          .header-meta {
-            text-align: right;
-            font-size: 12px;
-            color: #4a6b54;
-          }
-
-          .header-meta p {
-            margin: 2px 0;
-          }
-
-          .info-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            background: #e8f5e9;
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            border-left: 5px solid #2e7d32;
-          }
-
-          .info-cell strong {
-            color: #2e7d32;
-          }
-
-          .layout-grid {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 20px;
-          }
-
-          .left-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-          }
-
-          .prescription-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid #2e7d32;
-            margin-bottom: 15px;
-          }
-
-          .no-img {
-            width: 100%;
-            height: 150px;
-            background: #eee;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #777;
-            margin-bottom: 15px;
-            border: 2px dashed #ccc;
-          }
-
-          .prescription-stamp {
-            text-align: center;
-            border: 2px dashed #2e7d32;
-            padding: 8px;
-            border-radius: 8px;
-            width: 80%;
-            background: #ffffff;
-          }
-
-          .prescription-stamp p {
-            margin: 0 0 4px 0;
-            font-size: 10px;
-            font-weight: bold;
-            color: #2e7d32;
-          }
-
-          .stamp-circle {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #2e7d32;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            font-weight: bold;
-            font-size: 12px;
-          }
-
-          .right-col {
-            border-left: 2px solid #e8f5e9;
-            padding-left: 20px;
-          }
-
-          .section {
-            margin-bottom: 15px;
-          }
-
-          .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #2e7d32;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #e8f5e9;
-            padding-bottom: 4px;
-          }
-
-          .section-content {
-            font-size: 12.5px;
-            color: #333333;
-            margin: 0;
-            padding-left: 15px;
-          }
-
-          .prescription-footer {
-            margin-top: 25px;
-            border-top: 1px solid #e0e0e0;
-            padding-top: 12px;
-            text-align: center;
-            font-size: 11px;
-            color: #4a6b54;
-            font-weight: bold;
-          }
-
-          @media print {
-            body {
-              padding: 0;
-              background: #ffffff;
-            }
-            .prescription-container {
-              border: none;
-              padding: 0;
-              background: #ffffff;
-            }
-            .info-row {
-              background: #f1f8e9 !important;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            .section-title {
-              border-bottom-color: #f1f8e9 !important;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="prescription-container">
-          ${contentHtml}
-          <div class="prescription-footer">
-            কৃষকের পাশে গাছের ডাক্তার — www.gacherdoctor.site
-          </div>
-        </div>
-      </body>
-    </html>
-  `);
-  doc.close();
-
-  setTimeout(() => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 2000);
-  }, 400);
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210; // A4 width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+    
+    const fileName = `Soil_Prescription_${locationStr}_${result.soil_type.replace(/\s+/g, '_')}.pdf`;
+    pdf.save(fileName);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('পিডিএফ ডাউনলোড করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+  }
 };
 
 export default function SoilPHCalculator() {
@@ -645,10 +364,9 @@ export default function SoilPHCalculator() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        
+      <div className={scannerResult ? "grid grid-cols-1 lg:grid-cols-5 gap-8" : "max-w-2xl mx-auto"}>
         {/* Input Panel (Left 2 Columns) */}
-        <div className="lg:col-span-2 space-y-4 flex flex-col justify-start">
+        <div className={scannerResult ? "lg:col-span-2 space-y-4 flex flex-col justify-start" : "w-full space-y-4 flex flex-col justify-start"}>
           
           {/* Location Selector */}
           <div className="space-y-2">
@@ -694,7 +412,7 @@ export default function SoilPHCalculator() {
                   <button
                     type="button"
                     onClick={capturePhoto}
-                    className="px-6 py-2.5 bg-green-primary text-soft-white font-extrabold text-xs md:text-sm rounded-full shadow-lg hover:bg-green-soft active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-6 py-2.5 bg-green-primary text-white font-extrabold text-xs md:text-sm rounded-full shadow-lg hover:bg-[#153526] active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Camera className="w-4 h-4" />
                     ছবি তুলুন
@@ -702,7 +420,7 @@ export default function SoilPHCalculator() {
                   <button
                     type="button"
                     onClick={stopCamera}
-                    className="px-4 py-2.5 bg-red-600 text-soft-white font-extrabold text-xs rounded-full shadow-lg hover:bg-red-700 active:scale-95 transition-all cursor-pointer"
+                    className="px-4 py-2.5 bg-red-600 text-white font-extrabold text-xs rounded-full shadow-lg hover:bg-red-700 active:scale-95 transition-all cursor-pointer"
                   >
                     বন্ধ করুন
                   </button>
@@ -736,7 +454,7 @@ export default function SoilPHCalculator() {
                 {scanning && (
                   <div className="absolute inset-0 bg-green-primary/5 rounded-2xl overflow-hidden">
                     <div className="absolute left-0 right-0 h-1 bg-green-500 shadow-[0_0_15px_#22c55e] scanner-laser" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-soft-white text-xs font-bold gap-3">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white text-xs font-bold gap-3">
                       <Cpu className="w-8 h-8 animate-spin text-green-400" />
                       <span className="text-sm font-extrabold tracking-wide">গাছের ডাক্তার মাটি পরীক্ষা করছেন...</span>
                     </div>
@@ -763,7 +481,7 @@ export default function SoilPHCalculator() {
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="w-full py-3 bg-green-primary text-soft-white font-bold text-xs md:text-sm rounded-xl hover:bg-green-soft shadow-md active:scale-98 transition-all cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-green-primary text-white font-bold text-xs md:text-sm rounded-xl hover:bg-[#153526] shadow-md active:scale-98 transition-all cursor-pointer flex items-center justify-center gap-2"
                   >
                     <Camera className="w-4 h-4" />
                     ক্যামেরা দিয়ে ছবি তুলুন
@@ -805,7 +523,7 @@ export default function SoilPHCalculator() {
               <button
                 type="button"
                 onClick={runSoilClassification}
-                className="flex-1 py-3 bg-green-primary hover:bg-green-soft text-soft-white font-extrabold text-sm rounded-xl shadow-md cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-green-primary hover:bg-[#153526] text-white font-extrabold text-sm rounded-xl shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300"
               >
                 <Cpu className="w-4 h-4" />
                 গাছের ডাক্তারকে দেখান
@@ -813,18 +531,30 @@ export default function SoilPHCalculator() {
               <button
                 type="button"
                 onClick={clearImage}
-                className="py-3 px-4 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-bold text-sm cursor-pointer flex items-center justify-center"
+                className="py-3 px-4 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-bold text-sm cursor-pointer flex items-center justify-center active:scale-95 transition-all duration-300"
                 title="মুছে ফেলুন"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           )}
+
+          {scanning && (
+            <div className="p-5 border border-green-primary/15 bg-white rounded-2xl flex flex-col items-center justify-center text-center space-y-3 shadow-sm">
+              <Cpu className="w-8 h-8 text-green-primary animate-spin" />
+              <div>
+                <h4 className="font-bold text-text-primary text-sm">মাটি পরীক্ষা করা হচ্ছে...</h4>
+                <p className="text-xs text-text-secondary mt-0.5 font-semibold">
+                  গাছের এআই ডাক্তার মাটির কণা ও আনুমানিক পিএইচ পরীক্ষা করছেন। অনুগ্রহ করে অপেক্ষা করুন...
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Diagnostic Soil Report Output (Right 3 Columns) */}
-        <div className="lg:col-span-3">
-          {scannerResult ? (
+        {/* Diagnostic Soil Report Output (Right 3 Columns) - Only visible when result is ready */}
+        {scannerResult && (
+          <div className="lg:col-span-3">
             <div className="bg-white border border-green-primary/15 rounded-3xl p-6 shadow-sm space-y-6 animate-fade-in">
               
               {/* Report Header */}
@@ -977,14 +707,14 @@ export default function SoilPHCalculator() {
                   <button
                     type="button"
                     onClick={clearImage}
-                    className="px-5 py-3 bg-green-primary hover:bg-green-soft text-soft-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center"
+                    className="px-5 py-3 bg-green-primary hover:bg-[#153526] text-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center active:scale-95 duration-300"
                   >
                     নতুন মাটি পরীক্ষা করুন
                   </button>
                   <button
                     type="button"
                     onClick={() => downloadSoilPrescription(scannerResult, imgUrl, location)}
-                    className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-soft-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center"
+                    className="px-5 py-3 bg-[#1B4332] hover:bg-[#0F2F1D] text-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center active:scale-95 duration-300"
                   >
                     প্রেসক্রিপশন ডাউনলোড করুন
                   </button>
@@ -995,45 +725,19 @@ export default function SoilPHCalculator() {
                   onClick={() => {
                     router.push(`/chat?q=${encodeURIComponent(`${location} জেলায় আমার মাটির ধরণ ${scannerResult.soil_type} এবং আনুমানিক pH মান ${scannerResult.estimated_ph}। এটি সংশোধন করতে পরামর্শ দিন`)}`);
                   }}
-                  className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-green-primary/10 to-amber-500/10 hover:from-green-primary/15 hover:to-amber-500/15 border border-green-primary/20 rounded-2xl transition-all text-xs font-black text-green-primary shadow-sm hover:shadow-md cursor-pointer group shrink-0"
+                  className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-[#1B4332]/10 to-[#B79400]/10 hover:from-[#1B4332]/15 hover:to-[#B79400]/15 border border-[#1B4332]/20 rounded-2xl transition-all text-xs font-black text-[#1B4332] shadow-sm hover:shadow-md cursor-pointer group shrink-0 duration-300 hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <span className="flex items-center gap-1.5">💬 মাটির স্বাস্থ্য নিয়ে কথা বলুন</span>
-                  <ArrowRight className="w-4 h-4 text-green-primary transition-transform duration-200 group-hover:translate-x-1" />
+                  <ArrowRight className="w-4 h-4 text-[#1B4332] transition-transform duration-200 group-hover:translate-x-1" />
                 </button>
               </div>
-
             </div>
-          ) : (
-            <div className="h-full min-h-[350px] border-2 border-dashed border-green-primary/20 rounded-3xl flex flex-col items-center justify-center text-center p-8 space-y-4 bg-soft-white/40">
-              {scanning ? (
-                <div className="flex flex-col items-center space-y-3">
-                  <Cpu className="w-12 h-12 text-green-primary animate-spin" />
-                  <div>
-                    <h4 className="font-bold text-text-primary">মাটি পরীক্ষা চলছে</h4>
-                    <p className="text-xs text-text-secondary max-w-xs mt-1 font-semibold animate-pulse">
-                      গাছের ডাক্তার মাটির গঠন ও pH বিশ্লেষণ করছেন। অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন...
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <Info className="w-12 h-12 text-green-primary/40 animate-bounce" />
-                  <div>
-                    <h4 className="font-bold text-text-primary">মাটি পরীক্ষার ফলাফল দেখতে</h4>
-                    <p className="text-xs text-text-secondary max-w-xs mt-1 font-semibold">
-                      বামদিকের জেলা সিলেক্ট করে মাটির একটি পরিষ্কার ও রোদেলা ছবি তুলুন অথবা আপলোড করুন এবং "গাছের ডাক্তারকে দেখান" বাটনে চাপুন।
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
+          </div>
+        )}
       </div>
 
       {/* 💡 AI Doctor Call-To-Action (CTA) Banner */}
-      <div className="bg-gradient-to-r from-green-primary/10 via-emerald-700/5 to-amber-500/10 border border-green-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm mt-8">
+      <div className="bg-gradient-to-r from-[#1B4332]/10 via-[#1B4332]/5 to-[#B79400]/10 border border-[#1B4332]/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm mt-8">
         <div className="space-y-1 text-center md:text-left">
           <h4 className="font-extrabold text-text-primary text-base">মাটির অম্লত্ব, ক্ষারত্ব বা লবণাক্ততা সমস্যা কীভাবে সমাধান করবেন বুঝতে পারছেন না?</h4>
           <p className="text-xs text-text-secondary font-bold">আপনার মাটির ধরন ও বিস্তারিত লক্ষণ লিখে সরাসরি গাছের ডাক্তারের সাথে পরামর্শ করুন।</p>
@@ -1042,12 +746,138 @@ export default function SoilPHCalculator() {
           onClick={() => {
             router.push(`/chat?q=${encodeURIComponent(`মাটির পিএইচ (pH) অম্লত্ব ও ক্ষারত্ব দূর করার উপায় কি?`)}`);
           }}
-          className="px-6 py-3 bg-green-primary hover:bg-green-soft text-soft-white font-extrabold text-sm rounded-xl shadow-md transition-all shrink-0 cursor-pointer text-center"
+          className="px-6 py-3 bg-green-primary hover:bg-[#153526] text-white font-extrabold text-sm rounded-xl shadow-md transition-all shrink-0 cursor-pointer text-center active:scale-95 duration-300"
         >
           গাছের ডাক্তারের পরামর্শ নিন →
         </button>
       </div>
 
+      {/* Hidden PDF template for html2canvas */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <div 
+          id="soil-prescription-pdf" 
+          style={{
+            width: '794px', 
+            minHeight: '1123px', 
+            padding: '50px', 
+            boxSizing: 'border-box', 
+            backgroundColor: '#FFFFFF',
+            color: '#1F2937', 
+            fontFamily: "'Hind Siliguri', sans-serif",
+            position: 'relative',
+            border: '8px double #1B4332'
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1B4332', paddingBottom: '15px', marginBottom: '20px' }}>
+            <div>
+              <h1 style={{ color: '#1B4332', margin: '0 0 5px 0', fontSize: '28px', fontWeight: 'bold' }}>
+                গাছের ডাক্তার (Gacher Doctor)
+              </h1>
+              <p style={{ margin: 0, fontSize: '12px', color: '#40916C', fontWeight: '600' }}>
+                ডিজিটাল মৃত্তিকা (মাটি) পরীক্ষা ও সমাধান প্রেসক্রিপশন
+              </p>
+            </div>
+            <div style={{ textAlign: 'right', fontSize: '12px', color: '#4B5563' }}>
+              <p style={{ margin: '2px 0' }}><strong>তারিখ:</strong> {translateToBanglaDigits(new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }))}</p>
+              <p style={{ margin: '2px 0' }}><strong>রিপোর্ট আইডি:</strong> GD-{translateToBanglaDigits(Math.floor(100000 + Math.random() * 900000))}</p>
+            </div>
+          </div>
+
+          {/* Details Table */}
+          <div style={{ backgroundColor: '#E8F5E9', padding: '15px', borderRadius: '8px', marginBottom: '20px', borderLeft: '6px solid #1B4332' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '14px', fontWeight: 'bold', color: '#1B4332' }}>
+              <div>🌾 মাটির ধরন: <span style={{ color: '#1F2937' }}>{scannerResult?.soil_type}</span></div>
+              <div>📍 স্থান: <span style={{ color: '#1F2937' }}>{location} জেলা</span></div>
+              <div>💧 আনুমানিক pH মান: <span style={{ color: '#1F2937' }}>{scannerResult ? translateToBanglaDigits(scannerResult.estimated_ph) : ''}</span></div>
+              <div>🧪 অবস্থা: <span style={{ color: '#1F2937' }}>{scannerResult ? getPhStatusBangla(scannerResult.estimated_ph) : ''}</span></div>
+            </div>
+          </div>
+
+          {/* Grid Content */}
+          <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '25px' }}>
+            {/* Left Column */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {imgUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  src={imgUrl} 
+                  alt="Soil Sample" 
+                  style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #1B4332', marginBottom: '20px' }}
+                />
+              ) : (
+                <div style={{ width: '100%', height: '160px', backgroundColor: '#F3F4F6', borderRadius: '8px', border: '2px dashed #D1D5DB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#9CA3AF', marginBottom: '20px' }}>
+                  ছবি সংযুক্ত নেই
+                </div>
+              )}
+              <div style={{ border: '2px dashed #1B4332', padding: '12px', borderRadius: '8px', textAlign: 'center', width: '90%', backgroundColor: '#FFFFFF' }}>
+                <p style={{ margin: '0 0 5px 0', fontSize: '10px', fontWeight: 'bold', color: '#1B4332' }}>গাছের ডাক্তার দ্বারা অনুমোদিত</p>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#1B4332', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontWeight: 'bold', fontSize: '14px' }}>✓</div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div style={{ borderLeft: '2px solid #E8F5E9', paddingLeft: '20px' }}>
+              <div style={{ marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🔍 মাটির কণার গঠন ও বৈশিষ্ট্য</h3>
+                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+                  {scannerResult?.color_texture && String(scannerResult.color_texture).split('\n').map((line, idx) => (
+                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌾 চাষের উপযোগী লাভজনক ফসলসমূহ</h3>
+                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+                  {scannerResult?.suitable_crops && String(scannerResult.suitable_crops).split('\n').map((line, idx) => (
+                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌿 জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি</h3>
+                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+                  {scannerResult?.organic_advice && String(scannerResult.organic_advice).split('\n').map((line, idx) => (
+                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🧪 অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার সুপারিশ</h3>
+                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+                  {scannerResult?.chemical_advice && String(scannerResult.chemical_advice).split('\n').map((line, idx) => (
+                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                  ))}
+                </div>
+              </div>
+
+              {scannerResult?.preventive_measures && (
+                <div>
+                  <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🛡️ মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন</h3>
+                  <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+                    {String(scannerResult.preventive_measures).split('\n').map((line, idx) => (
+                      <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ position: 'absolute', bottom: '40px', left: '50px', right: '50px', borderTop: '1px solid #E5E7EB', paddingTop: '15px', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 4px 0', fontSize: '11px', fontWeight: 'bold', color: '#1B4332' }}>
+              কৃষকের পাশে গাছের ডাক্তার — www.gacherdoctor.site
+            </p>
+            <p style={{ margin: 0, fontSize: '9px', color: '#9CA3AF' }}>
+              * এটি একটি এআই ভিত্তিক পরামর্শ রিপোর্ট। মাঠে ব্যবহারের পূর্বে বিশদ নির্দেশিকা ভালোভাবে জেনে নিন।
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
