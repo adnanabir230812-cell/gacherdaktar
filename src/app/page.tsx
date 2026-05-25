@@ -214,15 +214,15 @@ export default function Home() {
     <div className="relative min-h-screen space-y-10 pb-16">
       
       {/* 🌤️ PREMIUM WEATHER MARQUEE TICKER */}
-      <div className="w-full bg-[#1B4332] border-2 border-[#B79400] rounded-2xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] flex items-center h-12 md:h-14">
+      <div className="w-full bg-[#1B4332] border-2 border-[#B79400] rounded-2xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.15)] flex flex-col md:flex-row items-stretch md:items-center min-h-[70px] md:min-h-0 md:h-14">
         {/* Sticky Label with 3D Embossed Metallic Gold effect */}
-        <div className="bg-gradient-to-b from-[#E5B83B] via-[#B79400] to-[#8C7000] text-white font-extrabold px-4 py-2 text-xs md:text-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 h-full relative z-10 shadow-[4px_0_15px_rgba(0,0,0,0.3)] border-r border-[#1B4332]/30 [text-shadow:0_1.5px_2px_rgba(0,0,0,0.4)]">
+        <div className="bg-gradient-to-b from-[#E5B83B] via-[#B79400] to-[#8C7000] text-white font-extrabold px-4 py-2 text-xs md:text-sm whitespace-nowrap shrink-0 flex items-center justify-center md:justify-start gap-1.5 relative z-10 shadow-[0_3px_6px_rgba(0,0,0,0.2)] md:shadow-[4px_0_15px_rgba(0,0,0,0.3)] border-b md:border-b-0 md:border-r border-[#1B4332]/30 [text-shadow:0_1.5px_2px_rgba(0,0,0,0.4)]">
           <CloudSun className="w-4.5 h-4.5 text-white filter drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.3)] animate-pulse" />
           <span>আবহাওয়া বার্তা</span>
         </div>
         
         {/* Scrolling Marquee Container */}
-        <div className="flex-1 overflow-hidden flex items-center h-full relative bg-gradient-to-r from-[#1B4332] via-[#245e46] to-[#1B4332]">
+        <div className="flex-1 overflow-hidden flex items-center min-h-[36px] md:h-full relative bg-gradient-to-r from-[#1B4332] via-[#245e46] to-[#1B4332]">
           {React.createElement(
             'marquee',
             {

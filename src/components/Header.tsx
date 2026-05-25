@@ -159,10 +159,10 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-bold transition-colors ${
+                  className={`text-sm font-bold relative pb-1 transition-all duration-300 hover:scale-105 active:scale-95 transform ${
                     isActive 
-                      ? 'text-green-primary border-b-2 border-green-primary pb-0.5' 
-                      : 'text-text-secondary hover:text-green-primary'
+                      ? 'text-green-primary after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:bg-green-primary' 
+                      : 'text-text-secondary hover:text-green-primary after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-green-primary after:transition-transform after:duration-300 hover:after:origin-bottom-left hover:after:scale-x-100'
                   }`}
                 >
                   {link.label}
@@ -179,10 +179,10 @@ export default function Header() {
             >
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`flex items-center gap-1 text-sm font-bold transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 text-sm font-bold transition-all duration-300 hover:scale-105 active:scale-95 transform cursor-pointer relative pb-1 ${
                   isDropdownOpen || pathname.includes('/calculator/') || pathname.includes('/crops/') || pathname.includes('/weather/') || pathname.includes('/directory/') || pathname === '/chat' || pathname === '/articles'
-                    ? 'text-green-primary'
-                    : 'text-text-secondary hover:text-green-primary'
+                    ? 'text-green-primary after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:bg-green-primary'
+                    : 'text-text-secondary hover:text-green-primary after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-green-primary after:transition-transform after:duration-300 hover:after:origin-bottom-left hover:after:scale-x-100'
                 }`}
               >
                 সকল কৃষি সেবা
@@ -229,7 +229,7 @@ export default function Header() {
 
             <Link 
               href="/chat" 
-              className="px-5 py-2 text-sm font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-md hover:shadow-lg transition-all"
+              className="px-5 py-2 text-sm font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-md hover:shadow-xl hover:scale-[1.04] active:scale-95 transition-all duration-300 transform hover:shadow-[0_4px_20px_rgba(46,125,50,0.35)]"
             >
               গাছের ডাক্তার চ্যাট
             </Link>
@@ -239,7 +239,7 @@ export default function Header() {
           <div className="flex md:hidden items-center gap-1.5 shrink-0">
             <Link 
               href="/chat"
-              className="px-2.5 py-1.5 text-[10px] xs:text-xs font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-sm whitespace-nowrap"
+              className="px-2.5 py-1.5 text-[10px] xs:text-xs font-bold text-soft-white bg-green-primary hover:bg-green-soft rounded-full shadow-sm whitespace-nowrap hover:scale-[1.04] active:scale-95 transition-all duration-300 transform hover:shadow-[0_2px_10px_rgba(46,125,50,0.25)]"
             >
               জিজ্ঞেস করুন
             </Link>
