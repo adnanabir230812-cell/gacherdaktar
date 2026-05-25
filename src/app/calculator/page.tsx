@@ -157,15 +157,15 @@ function CalculatorContent() {
                 onChange={(e) => setLandSize(e.target.value === '' ? '' : Number(e.target.value))}
                 min="0.1"
                 step="any"
-                className="flex-1 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+                className="flex-1 min-w-0 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
               />
               <select
                 value={landUnit}
                 onChange={(e) => setLandUnit(e.target.value)}
-                className="bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+                className="bg-soft-white border border-green-primary/20 rounded-xl px-3 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary shrink-0 cursor-pointer"
               >
-                <option value="bigha">বিঘা (Bigha)</option>
-                <option value="decimal">শতক (Decimal)</option>
+                <option value="bigha">বিঘা</option>
+                <option value="decimal">শতক</option>
               </select>
             </div>
             <p className="text-[10px] text-text-secondary">নোট: ১ বিঘা = ৩৩ শতক।</p>
