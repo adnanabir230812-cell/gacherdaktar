@@ -148,7 +148,7 @@ export default function SeedCalculator() {
 
     setResult({
       cropName: crop.name_bn,
-      totalSeedWeight: Math.round(totalWeight * 100) / 100,
+      totalSeedWeight: totalWeight, // Keep full precision
       spacing: crop.spacing_bn,
       depth: crop.depth_bn,
       method: crop.sowing_method_bn,
@@ -165,6 +165,20 @@ export default function SeedCalculator() {
       '.': '.'
     };
     return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
+  };
+
+  const formatSeedWeight = (weightInKg: number): string => {
+    if (weightInKg < 1) {
+      const grams = Math.round(weightInKg * 1000);
+      return `${translateToBanglaDigits(grams)} গ্রাম`;
+    } else {
+      const kg = Math.floor(weightInKg);
+      const grams = Math.round((weightInKg - kg) * 1000);
+      if (grams === 0) {
+        return `${translateToBanglaDigits(kg)} কেজি`;
+      }
+      return `${translateToBanglaDigits(kg)} কেজি ${translateToBanglaDigits(grams)} গ্রাম`;
+    }
   };
 
   return (
@@ -247,7 +261,7 @@ export default function SeedCalculator() {
                   <div className="border border-green-primary/10 rounded-2xl p-6 text-center bg-green-primary/5 space-y-1">
                     <h4 className="font-bold text-text-primary text-xs">প্রয়োজনীয় বীজের মোট ওজন</h4>
                     <p className="text-3xl font-black text-green-primary">
-                      {translateToBanglaDigits(result.totalSeedWeight)} কেজি
+                      {formatSeedWeight(result.totalSeedWeight)}
                     </p>
                     <span className="text-xs text-text-secondary block font-bold">
                       {result.cropName} এর জন্য ({translateToBanglaDigits(landSize)} {landUnit === 'bigha' ? 'বিঘা' : 'শতক'} জমি)
