@@ -127,6 +127,7 @@ Guidelines:
 3. Provide extremely detailed, section-by-section explanations and solutions in warm, friendly, natural Bangla (colloquial Bangladeshi farming dialect). Avoid any academic jargon.
 4. DO NOT mention "AI", "Large Language Model", "machine learning", or similar tech terms anywhere in the response. Speak as "গাছের ডাক্তার" (Gacher Doctor) who has diagnosed the plant.
 5. Provide specific, real-world remedies available in Bangladesh, specifying actual brand names (e.g., Nativo, Virtako, Amistar Top, Ridomil Gold, Tilt) and their precise water/dosage application guidelines.
+   - Critical Dosage Formatting Rule: NEVER write pesticide or seed/fertilizer dosages in decimal kilograms (e.g., do NOT write "0.03 kg", "0.5 kg", "0.05 kg" or "০.০৩ কেজি"). Convert all decimal kilogram measurements to grams and write them in standard Bangla (e.g., "৩০ গ্রাম", "৫০০ গ্রাম", "৫০ গ্রাম"). If a measurement is 1 kg or more, write it as "X কেজি Y গ্রাম" (e.g., for 1.2 kg write "১ কেজি ২০০ গ্রাম", for 1 kg write "১ কেজি") instead of "1.2 kg" or "১.২ কেজি".
 6. Return ONLY a valid JSON object matching the schema below. No extra text or markdown wrapping outside the JSON.
 
 JSON Schema:
@@ -169,7 +170,8 @@ Guidelines:
 3. Estimate the pH level of this soil (between 4.0 and 9.0) based on its visual traits and the farmer's location/district: "${location}".
 4. In the "suitable_crops" field, list the most profitable and suitable crops that grow well in this type of soil in "${location}" district of Bangladesh (bullet points in Bangla).
 5. In the "organic_advice" field, provide highly detailed, step-by-step organic/natural methods to improve this soil's fertility, structure, and water retention (colloquial Bangla dialect).
-6. In the "chemical_advice" field, specify the exact chemical amendments needed if the pH is off (e.g. dolomite/dololime for acidic soil, gypsum for alkaline/saline soil) with actual dosage amounts (in kg per bigha) and fertilizer instructions (colloquial Bangla).
+6. In the "chemical_advice" field, specify the exact chemical amendments needed if the pH is off (e.g. dolomite/dololime for acidic soil, gypsum for alkaline/saline soil) with actual dosage amounts (colloquial Bangla).
+   - Critical Dosage Formatting Rule: NEVER write fertilizer or chemical dosages/weights in decimal kilograms (e.g., do NOT write "0.03 kg", "0.5 kg", "0.05 kg" or "০.০৩ কেজি"). Convert all decimal kilogram measurements to grams and write them in standard Bangla (e.g., "৩০ গ্রাম", "৫০০ gram" or "৫০ গ্রাম"). If a measurement is 1 kg or more, write it as "X কেজি Y গ্রাম" (e.g., for 1.2 kg write "১ কেজি ২০০ গ্রাম", for 1 kg write "১ কেজি") instead of "1.2 kg" or "১.২ কেজি".
 7. DO NOT mention "AI", "Large Language Model", "machine learning", or similar tech terms anywhere in the response. Speak as "গাছের ডাক্তার" (Gacher Doctor) who has diagnosed the soil.
 8. Return ONLY a valid JSON object matching the schema below. No extra text or markdown wrapping outside the JSON.
 
