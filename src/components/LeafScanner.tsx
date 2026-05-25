@@ -125,6 +125,8 @@ export default function LeafScanner() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>('symptoms');
+  const [clarifyingQuestions, setClarifyingQuestions] = useState<any[] | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const toggleTab = (tab: string) => {
     setActiveTab(activeTab === tab ? null : tab);
@@ -253,6 +255,8 @@ export default function LeafScanner() {
   const clearImage = () => {
     setImgUrl(null);
     setScannerResult(null);
+    setClarifyingQuestions(null);
+    setAnswers({});
     setCameraError(null);
     stopCamera();
     if (fileInputRef.current) {
@@ -260,24 +264,38 @@ export default function LeafScanner() {
     }
   };
 
-  const runClassification = async () => {
+  const runClassification = async (userAnswers: Record<string, string> = {}) => {
     if (!imgUrl) return;
     setScanning(true);
-    setScannerResult(null);
+    
+    // Only clear result if not submitting clarifications
+    if (Object.keys(userAnswers).length === 0) {
+      setScannerResult(null);
+      setClarifyingQuestions(null);
+      setAnswers({});
+    }
+    
     try {
       const response = await fetch('/api/classify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ image: imgUrl })
+        body: JSON.stringify({ 
+          image: imgUrl,
+          answers: userAnswers
+        })
       });
       const data = await response.json();
       if (response.ok && data.success) {
         if (data.result && data.result.is_valid === false) {
           alert(data.result.error_message || 'এটি কোনো গাছ, লতাপাতা বা ফসলের ছবি নয়। দয়া করে আক্রান্ত ফসলের একটি স্পষ্ট ছবি আপলোড করুন।');
+        } else if (data.result && data.result.need_clarification === true) {
+          setClarifyingQuestions(data.result.questions);
+          setScannerResult(null);
         } else {
           setScannerResult(data.result);
+          setClarifyingQuestions(null);
         }
       } else {
         alert(data.error || 'গাছের ডাক্তার রোগ নির্ণয় করতে ব্যর্থ হয়েছেন। দয়া করে একটু পরিষ্কার ছবি নিয়ে পুনরায় চেষ্টা করুন।');
@@ -319,9 +337,9 @@ export default function LeafScanner() {
         </div>
       </div>
 
-      <div className={scannerResult ? "grid grid-cols-1 lg:grid-cols-5 gap-8" : "max-w-2xl mx-auto"}>
+      <div className={scannerResult || clarifyingQuestions ? "grid grid-cols-1 lg:grid-cols-5 gap-8" : "max-w-2xl mx-auto"}>
         {/* Camera / Upload Panel (Left 2 Columns) */}
-        <div className={scannerResult ? "lg:col-span-2 space-y-4 flex flex-col justify-start" : "w-full space-y-4 flex flex-col justify-start"}>
+        <div className={scannerResult || clarifyingQuestions ? "lg:col-span-2 space-y-4 flex flex-col justify-start" : "w-full space-y-4 flex flex-col justify-start"}>
           
           {/* Main interactive area with Drag and Drop */}
           <div 
@@ -344,7 +362,7 @@ export default function LeafScanner() {
                   autoPlay 
                   playsInline 
                   muted 
-                  className="w-full h-80 rounded-2xl object-cover bg-black"
+                  className="w-full max-h-[350px] rounded-2xl object-contain bg-black"
                 />
                 <div className="absolute bottom-4 flex gap-2">
                   <button
@@ -373,7 +391,7 @@ export default function LeafScanner() {
                 <img 
                   src={imgUrl} 
                   alt="Captured Plant Preview" 
-                  className="w-full h-80 rounded-2xl object-cover"
+                  className="w-full max-h-[420px] rounded-2xl object-contain bg-[#122e1b]/5 border border-green-primary/10"
                 />
                 
                 {/* Easy Delete Overlay Button */}
@@ -461,7 +479,7 @@ export default function LeafScanner() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={runClassification}
+                onClick={() => runClassification()}
                 className="flex-1 py-3 bg-green-primary hover:bg-[#153526] text-white font-extrabold text-sm rounded-xl shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300"
               >
                 <Cpu className="w-4 h-4" />
@@ -491,6 +509,67 @@ export default function LeafScanner() {
           )}
 
         </div>
+
+        {/* Clarifying Questions Panel (Right 3 Columns) - Visible when AI needs more details */}
+        {clarifyingQuestions && (
+          <div className="lg:col-span-3 space-y-6 bg-gradient-to-br from-amber-50/50 to-orange-50/10 border-2 border-[#B79400]/25 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-700 shrink-0">
+                <HelpCircle className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <h4 className="text-lg md:text-xl font-black text-amber-950">অতিরিক্ত কিছু তথ্য প্রয়োজন</h4>
+                <p className="text-xs font-bold text-amber-900/70 mt-0.5 leading-relaxed">
+                  রোগটি শতভাগ নিশ্চিতভাবে সনাক্ত করতে অনুগ্রহ করে নিচের সহজ প্রশ্নগুলোর উত্তর দিন:
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-5 mt-4">
+              {clarifyingQuestions.map((q) => (
+                <div key={q.id} className="space-y-3 p-4 bg-white/80 border border-[#B79400]/10 rounded-2xl shadow-sm">
+                  <h5 className="text-sm font-black text-text-primary flex items-start gap-2 leading-relaxed">
+                    <span className="w-5 h-5 flex items-center justify-center bg-amber-500 text-white rounded-full text-[10px] font-black shrink-0 mt-0.5">
+                      ?
+                    </span>
+                    {q.text}
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    {q.options.map((opt: string) => {
+                      const isSelected = answers[q.id] === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setAnswers({ ...answers, [q.id]: opt })}
+                          className={`px-3 py-2 text-xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-green-primary text-white border-green-primary shadow-md scale-[1.02]'
+                              : 'bg-soft-white hover:bg-green-primary/5 text-text-secondary border-green-primary/10'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <button
+                type="button"
+                onClick={() => runClassification(answers)}
+                disabled={scanning || Object.keys(answers).length < clarifyingQuestions.length}
+                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-green-primary to-green-soft text-white font-extrabold text-xs md:text-sm rounded-full shadow-md hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none disabled:scale-100 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                {scanning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                ফলাফল নিশ্চিত করুন
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Diagnostic Output Report (Right 3 Columns) - Only visible when result is ready */}
         {scannerResult && (

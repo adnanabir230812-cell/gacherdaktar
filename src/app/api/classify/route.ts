@@ -94,7 +94,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { image, type = 'leaf', location = 'ঢাকা' } = await request.json();
+    const { image, type = 'leaf', location = 'ঢাকা', answers } = await request.json();
 
     if (!image) {
       return NextResponse.json({ error: 'Image data is required' }, { status: 400 });
@@ -114,10 +114,12 @@ export async function POST(request: Request) {
 You are "গাছের ডাক্তার" (Gacher Doctor), a highly experienced local crop pathologist and plant disease expert in Bangladesh.
 Analyze the provided leaf/plant image.
 
-Critical Pre-check Rule:
+Critical Pre-check & Clarification Rules:
 1. Verify if the uploaded image represents a plant, crop, leaf, tree, stem, agricultural field, fruit, or vegetable.
-2. If the image is NOT related to agriculture or plants (for example: it contains a human face, a room interior, furniture, animals, a car, or any random non-plant objects), you MUST set "is_valid" to false and set "error_message" to "এটি কোনো গাছ, লতাপাতা বা ফসলের ছবি নয়। দয়া করে আক্রান্ত ফসলের একটি স্পষ্ট ছবি আপলোড করুন।"
-3. Only if the image is valid and represents a plant/crop, set "is_valid" to true and "error_message" to null, and fill in the rest of the fields with high accuracy.
+   - NOTE: It is completely normal for a farmer's hand or fingers to be visible holding the leaf/fruit, or for there to be soil/ground/feet in the background. As long as a plant/crop is visible, it is VALID.
+   - If the image does NOT contain any plants, leaves, crops, or agricultural fields at all (for example: it contains ONLY a human face, a room interior, furniture, animals, a car, text documents, or any random non-plant objects), you MUST set "is_valid" to false, "error_message" to "এটি কোনো গাছ, লতাপাতা বা ফসলের ছবি নয়। দয়া করে আক্রান্ত ফসলের একটি স্পষ্ট ছবি আপলোড করুন।" and set "need_clarification" to false.
+2. If the image is valid but there is ambiguity, or the confidence is low (confidence < 0.85), or you need more details to be 100% accurate (e.g. crop age, water level, symptoms on other parts), you MUST set "need_clarification" to true, list 2 to 3 simple multiple-choice questions in the "questions" array for the farmer to answer, and you can leave "crop", "disease", "cause", "symptoms", "treatment_organic", "treatment_chemical", and "preventive_measures" empty or null.
+3. If you are confident (confidence >= 0.85) OR if the user has already answered the clarifying questions (listed under "User's Answers to Clarifying Questions"), you MUST set "need_clarification" to false, set "questions" to null, and fill in all the diagnostic fields with 100% accuracy.
 
 Guidelines:
 1. Identify the crop and the disease affecting it.
@@ -131,6 +133,14 @@ JSON Schema:
 {
   "is_valid": true,
   "error_message": null,
+  "need_clarification": false,
+  "questions": [
+    {
+      "id": "q1",
+      "text": "প্রশ্ন ১ (যেমন: গাছটির বয়স কত?)",
+      "options": ["বিকল্প ১", "বিকল্প ২", "বিকল্প ৩"]
+    }
+  ],
   "crop": "ফসলের বাংলা নাম (ইংরেজি নাম)",
   "disease": "রোগের স্থানীয় ও পরিচিত বাংলা নাম (ইংরেজি বা বৈজ্ঞানিক নাম)",
   "cause": "রোগের বৈজ্ঞানিক কারণ বা জীবাণু (সহজ বাংলায়)",
@@ -146,10 +156,12 @@ JSON Schema:
 You are "গাছের ডাক্তার" (Gacher Doctor), a highly experienced local soil scientist, agricultural geologist, and farming advisor in Bangladesh.
 Analyze the provided soil image (inspecting color, grain texture, moisture, organic remnants).
 
-Critical Pre-check Rule:
+Critical Pre-check & Clarification Rules:
 1. Verify if the uploaded image represents soil, earth, mud, clay, dirt, sand, agricultural land, or soil grains.
-2. If the image is NOT related to soil or land (for example: it contains a human face, a room interior, furniture, animals, a car, documents, food, or any random non-soil objects), you MUST set "is_valid" to false and set "error_message" to "এটি মাটির কোনো ছবি নয়। দয়া করে পরীক্ষার জন্য মাটির একটি স্পষ্ট ছবি আপলোড করুন।"
-3. Only if the image is valid and represents soil/dirt, set "is_valid" to true and "error_message" to null, and fill in the rest of the fields with high accuracy.
+   - NOTE: It is completely normal for a farmer's hand or fingers to be visible holding the soil sample, or for there to be ground/feet/clutter in the background. As long as soil is visible, it is VALID.
+   - If the image does NOT contain any soil or land at all (for example: it contains ONLY a human face, a room interior, furniture, animals, a car, documents, food, or any random non-soil objects), you MUST set "is_valid" to false, "error_message" to "এটি মাটির কোনো ছবি নয়। দয়া করে পরীক্ষার জন্য মাটির একটি স্পষ্ট ছবি আপলোড করুন।" and set "need_clarification" to false.
+2. If the image is valid but there is ambiguity, or the confidence is low (confidence < 0.85), or you need more details to be 100% accurate (e.g. soil stickiness when wet, smell, crop history), you MUST set "need_clarification" to true, list 2 to 3 simple multiple-choice questions in the "questions" array for the farmer to answer, and you can leave "soil_type", "estimated_ph", "color_texture", "suitable_crops", "organic_advice", "chemical_advice", and "preventive_measures" empty or null.
+3. If you are confident (confidence >= 0.85) OR if the user has already answered the clarifying questions (listed under "User's Answers to Clarifying Questions"), you MUST set "need_clarification" to false, set "questions" to null, and fill in all the diagnostic fields with 100% accuracy.
 
 Guidelines:
 1. Identify the soil type: দোআঁশ (Loamy), বেলে (Sandy), এঁটেল (Clayey), পলি (Silty), or similar.
@@ -165,6 +177,14 @@ JSON Schema:
 {
   "is_valid": true,
   "error_message": null,
+  "need_clarification": false,
+  "questions": [
+    {
+      "id": "q1",
+      "text": "প্রশ্ন ১ (যেমন: মাটিটি ভেজা অবস্থায় কি আঠালো অনুভূত হয়?)",
+      "options": ["বিকল্প ১", "বিকল্প ২", "বিকল্প ৩"]
+    }
+  ],
   "soil_type": "মাটির ধরন (ইংরেজি নাম)",
   "estimated_ph": 6.5,
   "color_texture": "মাটির রঙ ও কণার গঠন বৈশিষ্ট্য",
@@ -176,7 +196,10 @@ JSON Schema:
 }
 `;
 
-    const activePrompt = type === 'soil' ? systemPromptSoil : systemPrompt;
+    let activePrompt = type === 'soil' ? systemPromptSoil : systemPrompt;
+    if (answers && Object.keys(answers).length > 0) {
+      activePrompt += `\n\nUser's Answers to Clarifying Questions:\n${JSON.stringify(answers, null, 2)}\nUse these answers to resolve any ambiguity, set "need_clarification" to false, set "questions" to null, and output the final diagnostic results.`;
+    }
 
     const geminiKeys = getGeminiApiKeys();
     if (geminiKeys.length === 0) {
