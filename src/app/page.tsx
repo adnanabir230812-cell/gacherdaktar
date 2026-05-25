@@ -213,7 +213,7 @@ export default function Home() {
             'marquee',
             {
               scrollamount: '5',
-              direction: 'right',
+              direction: 'left',
               className: 'w-full font-bold text-soft-white text-xs md:text-sm py-1.5 cursor-default hover:[pointer-events:none]'
             },
             getTickerText()
