@@ -101,6 +101,17 @@ export async function detectUserDistrict(defaultFallback: string = 'ঢাকা
     return defaultFallback;
   }
 
+  // Check cache first
+  try {
+    const cached = localStorage.getItem('detected_district');
+    if (cached && Object.values(DISTRICT_MAP).includes(cached)) {
+      console.log('Retrieving cached district:', cached);
+      return cached;
+    }
+  } catch (e) {
+    console.warn('Failed to read from localStorage:', e);
+  }
+
   // 1st Service: ip-api.com (extremely fast, CORS friendly)
   try {
     const res = await fetch('https://ip-api.com/json/?fields=status,city,regionName');
@@ -110,14 +121,24 @@ export async function detectUserDistrict(defaultFallback: string = 'ঢাকা
         const city = String(data.city || '').toLowerCase().trim();
         const region = String(data.regionName || '').toLowerCase().trim();
         
-        if (DISTRICT_MAP[city]) return DISTRICT_MAP[city];
-        if (DISTRICT_MAP[region]) return DISTRICT_MAP[region];
-        
-        // Check fuzzy match
-        for (const [key, value] of Object.entries(DISTRICT_MAP)) {
-          if (city.includes(key) || key.includes(city) || region.includes(key)) {
-            return value;
+        let detected = '';
+        if (DISTRICT_MAP[city]) detected = DISTRICT_MAP[city];
+        else if (DISTRICT_MAP[region]) detected = DISTRICT_MAP[region];
+        else {
+          // Check fuzzy match
+          for (const [key, value] of Object.entries(DISTRICT_MAP)) {
+            if (city.includes(key) || key.includes(city) || region.includes(key)) {
+              detected = value;
+              break;
+            }
           }
+        }
+
+        if (detected) {
+          try {
+            localStorage.setItem('detected_district', detected);
+          } catch (e) {}
+          return detected;
         }
       }
     }
@@ -133,14 +154,24 @@ export async function detectUserDistrict(defaultFallback: string = 'ঢাকা
       const city = String(data.city || '').toLowerCase().trim();
       const region = String(data.region || '').toLowerCase().trim();
       
-      if (DISTRICT_MAP[city]) return DISTRICT_MAP[city];
-      if (DISTRICT_MAP[region]) return DISTRICT_MAP[region];
-      
-      // Check fuzzy match
-      for (const [key, value] of Object.entries(DISTRICT_MAP)) {
-        if (city.includes(key) || key.includes(city) || region.includes(key)) {
-          return value;
+      let detected = '';
+      if (DISTRICT_MAP[city]) detected = DISTRICT_MAP[city];
+      else if (DISTRICT_MAP[region]) detected = DISTRICT_MAP[region];
+      else {
+        // Check fuzzy match
+        for (const [key, value] of Object.entries(DISTRICT_MAP)) {
+          if (city.includes(key) || key.includes(city) || region.includes(key)) {
+            detected = value;
+            break;
+          }
         }
+      }
+
+      if (detected) {
+        try {
+          localStorage.setItem('detected_district', detected);
+        } catch (e) {}
+        return detected;
       }
     }
   } catch (err) {

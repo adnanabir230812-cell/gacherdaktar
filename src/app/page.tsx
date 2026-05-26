@@ -88,6 +88,154 @@ const translateNumberToBangla = (num: number | string): string => {
   return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
 };
 
+const GREGORIAN_MONTHS_BN = [
+  'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+  'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+];
+
+interface BanglaDateResult {
+  day: number;
+  month: string;
+  year: number;
+}
+
+function getBanglaDateInfo(d: Date): BanglaDateResult {
+  const gYear = d.getFullYear();
+  const gMonth = d.getMonth() + 1; // 1-indexed (1: Jan, 12: Dec)
+  const gDate = d.getDate();
+
+  let bDay = 1;
+  let bMonth = '';
+  let bYear = gYear - 593; // Default for post-April 14
+
+  // Check if leap year
+  const isLeapYear = (gYear % 4 === 0 && gYear % 100 !== 0) || (gYear % 400 === 0);
+
+  if (gMonth === 1) { // Jan
+    if (gDate < 15) {
+      bMonth = 'পৌষ';
+      bDay = gDate + 16;
+      bYear = gYear - 594;
+    } else {
+      bMonth = 'মাঘ';
+      bDay = gDate - 14;
+      bYear = gYear - 594;
+    }
+  } else if (gMonth === 2) { // Feb
+    if (gDate < 14) {
+      bMonth = 'মাঘ';
+      bDay = gDate + 17;
+      bYear = gYear - 594;
+    } else {
+      bMonth = 'ফাল্গুন';
+      bDay = gDate - 13;
+      bYear = gYear - 594;
+    }
+  } else if (gMonth === 3) { // Mar
+    if (gDate < 16) {
+      bMonth = 'ফাল্গুন';
+      bDay = gDate + 15;
+      bYear = gYear - 594;
+    } else {
+      bMonth = 'চৈত্র';
+      bDay = gDate - 15;
+      bYear = gYear - 594;
+    }
+  } else if (gMonth === 4) { // Apr
+    if (gDate < 14) {
+      bMonth = 'চৈত্র';
+      bDay = gDate + 15;
+      bYear = gYear - 594;
+    } else {
+      bMonth = 'বৈশাখ';
+      bDay = gDate - 13;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 5) { // May
+    if (gDate < 15) {
+      bMonth = 'বৈশাখ';
+      bDay = gDate + 17;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'জ্যৈষ্ঠ';
+      bDay = gDate - 14;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 6) { // Jun
+    if (gDate < 15) {
+      bMonth = 'জ্যৈষ্ঠ';
+      bDay = gDate + 17;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'আষাঢ়';
+      bDay = gDate - 14;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 7) { // Jul
+    if (gDate < 16) {
+      bMonth = 'আষাঢ়';
+      bDay = gDate + 16;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'শ্রাবণ';
+      bDay = gDate - 15;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 8) { // Aug
+    if (gDate < 16) {
+      bMonth = 'শ্রাবণ';
+      bDay = gDate + 16;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'ভাদ্র';
+      bDay = gDate - 15;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 9) { // Sep
+    if (gDate < 16) {
+      bMonth = 'ভাদ্র';
+      bDay = gDate + 16;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'আশ্বিন';
+      bDay = gDate - 15;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 10) { // Oct
+    if (gDate < 17) {
+      bMonth = 'আশ্বিন';
+      bDay = gDate + 15;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'কার্তিক';
+      bDay = gDate - 16;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 11) { // Nov
+    if (gDate < 16) {
+      bMonth = 'কার্তিক';
+      bDay = gDate + 14;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'অগ্রহায়ণ';
+      bDay = gDate - 15;
+      bYear = gYear - 593;
+    }
+  } else if (gMonth === 12) { // Dec
+    if (gDate < 16) {
+      bMonth = 'অগ্রহায়ণ';
+      bDay = gDate + 15;
+      bYear = gYear - 593;
+    } else {
+      bMonth = 'পৌষ';
+      bDay = gDate - 15;
+      bYear = gYear - 593;
+    }
+  }
+
+  return { day: bDay, month: bMonth, year: bYear };
+}
+
 export default function Home() {
   const router = useRouter();
   const [districts, setDistricts] = useState<any[]>([]);
@@ -96,6 +244,7 @@ export default function Home() {
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [activeWeatherTab, setActiveWeatherTab] = useState<'all' | 'rain' | 'disease' | 'spray' | 'soil' | 'harvest'>('all');
+  const [marqueeDatePrefix, setMarqueeDatePrefix] = useState('');
 
   // Prompt suggestions
   const promptChips = [
@@ -116,6 +265,20 @@ export default function Home() {
     detectUserDistrict('ঢাকা').then(detected => {
       setSelectedDistrict(detected);
     });
+
+    // Calculate and set dynamic date prefix on mount (client-side only to avoid hydration mismatch)
+    const now = new Date();
+    const engDay = translateNumberToBangla(now.getDate());
+    const engMonth = GREGORIAN_MONTHS_BN[now.getMonth()];
+    const engYear = translateNumberToBangla(now.getFullYear());
+    const englishDateString = `${engDay} ${engMonth}, ${engYear}`;
+    
+    const banglaDate = getBanglaDateInfo(now);
+    const bgDayStr = translateNumberToBangla(banglaDate.day);
+    const bgYearStr = translateNumberToBangla(banglaDate.year);
+    const banglaDateString = `${bgDayStr} ${banglaDate.month} ${bgYearStr}`;
+    
+    setMarqueeDatePrefix(`আজ: ${englishDateString} (${banglaDateString}) | `);
   }, []);
 
   // Fetch weather data for selected district
@@ -184,18 +347,41 @@ export default function Home() {
   };
 
   const getTickerText = () => {
-    const baseText = "স্বাগতম প্রিয় কৃষক ভাই! আজ সারাদেশে ";
+    // Fallback if client-side date is not loaded yet
+    if (!marqueeDatePrefix) {
+      return "স্বাগতম প্রিয় কৃষক ভাই! আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...";
+    }
+    
     const countrywideSummary = getCountrywideSummary();
     
+    // Select greeting & time-based countrywide warning based on current hour
+    const now = new Date();
+    const hour = now.getHours();
+    let timeGreeting = 'স্বাগতম প্রিয় কৃষক ভাই!';
+    let timeAdvisory = '';
+    
+    if (hour >= 5 && hour < 12) {
+      timeGreeting = 'শুভ সকাল কৃষক ভাই!';
+      timeAdvisory = 'সকালের শান্ত বাতাসে ফসলে সেচ ও বালাইনাশক স্প্রে করার কাজ সম্পন্ন করুন এবং দুপুরের কড়া রোদে মাঠে কাজ করা থেকে বিরত থাকুন।';
+    } else if (hour >= 12 && hour < 18) {
+      timeGreeting = 'শুভ অপরাহ্ন কৃষক ভাই!';
+      timeAdvisory = 'দুপুরের কড়া রোদে ফসলে সেচ দেওয়া বা সার ছিটানো থেকে বিরত থাকুন। কিছু অঞ্চলে বিকালের দিকে ঝড়-বৃষ্টি ও বজ্রপাতের সম্ভাবনা রয়েছে, তাই সতর্ক থাকুন।';
+    } else {
+      timeGreeting = 'শুভ রাত্রি কৃষক ভাই!';
+      timeAdvisory = 'আজ রাতে দেশের কোথাও কোথাও গুঁড়ি গুঁড়ি বৃষ্টি বা তাপমাত্রা কিছুটা হ্রাস পেতে পারে। রাতের অতিরিক্ত আর্দ্রতার কারণে ছত্রাকের আক্রমণ ঠেকাতে সজাগ থাকুন এবং আগামীকাল সকালের কৃষি কাজের প্রস্তুতি নিন।';
+    }
+    
+    const timeBasedCountrywideText = `${marqueeDatePrefix}${timeGreeting} আজ সারাদেশে ${countrywideSummary} ${timeAdvisory}`;
+    
     if (loadingWeather) {
-      return baseText + countrywideSummary + " (আজকের আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...)";
+      return timeBasedCountrywideText + " (আজকের আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...)";
     }
     if (!weather) {
-      return baseText + countrywideSummary + " আজকের কৃষি পরামর্শ: আউশ ধানের ক্ষেতের আগাছা পরিষ্কার করুন এবং রোপা আমন ধানের বীজতলা তৈরির কাজ শুরু করে দিন। শাকসবজি যেমন চালকুমড়া ও চিচিঙ্গার মাচা তৈরি করুন এবং হালকা সেচ দিন।";
+      return timeBasedCountrywideText + " আজকের কৃষি পরামর্শ: আউশ ধানের ক্ষেতের আগাছা পরিষ্কার করুন এবং রোপা আমন ধানের বীজতলা তৈরির কাজ শুরু করে দিন।";
     }
     
     // Build a dynamic alert message based on district weather
-    let weatherAlert = `${weather.district} জেলায় আজকের তাপমাত্রা ${translateNumberToBangla(weather.temp)}°C, অবস্থা: ${weather.condition}। `;
+    let weatherAlert = ` [লাইভ আবহাওয়া - ${weather.district} জেলা]: আজকের তাপমাত্রা ${translateNumberToBangla(weather.temp)}°C, অবস্থা: ${weather.condition}। `;
     
     // Add specific recommendations from weather.advice
     const advices = [];
@@ -212,7 +398,7 @@ export default function Home() {
       advices.push(weather.advice.harvest.msg);
     }
     
-    return baseText + countrywideSummary + " " + weatherAlert + advices.join(" ");
+    return timeBasedCountrywideText + weatherAlert + advices.join(" ");
   };
 
   return (
@@ -231,6 +417,7 @@ export default function Home() {
           {React.createElement(
             'marquee',
             {
+              key: selectedDistrict + '_' + (weather ? 'loaded' : 'loading') + '_' + (marqueeDatePrefix ? 'date' : 'nodate') + '_' + (new Date().getHours()),
               scrollamount: '5',
               direction: 'left',
               className: 'w-full font-bold text-soft-white text-xs md:text-sm py-1.5 cursor-default hover:[pointer-events:none]'
