@@ -265,7 +265,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { query, district = "ঢাকা", season = "বোরো" } = await request.json();
+    const { query, history = [], district = "ঢাকা", season = "বোরো" } = await request.json();
 
     if (!query || !query.trim()) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -288,7 +288,7 @@ RULES & BANGLADESH CONTEXT:
    - For Potato/Tomato Late Blight: রিডোমিল গোল্ড ৬৮ডব্লিউজি (Ridomil Gold 68WG - ২ গ্রাম প্রতি লিটার পানি) or ডাইথেন এম-৪৫ (Dithane M-45 - ২ গ্রাম প্রতি লিটার পানি)।
    - For Borers/Caterpillars (মাজরা পোকা / ডগা ও ফল ছিদ্রকারী পোকা): ভার্টাকো ৪০ডব্লিউজি (Virtako 40WG - ০.১৫ গ্রাম প্রতি লিটার পানি) or সবিক্রন ৪২৫ইসি (Sobicron 425EC - ২ মিলি প্রতি লিটার পানি) or প্রোক্লেম ৫এসজি (Proclaim 5SG - ১ গ্রাম প্রতি লিটার পানি)।
    - For Sucking Insects/Leaf Curl (জাব পোকা / সাদা মাছি / থ্রিপস / পাতা কোঁকড়ানো রোগ): অ্যাডমায়ার ২০০এসএল (Admire 200SL - ০.৫ মিলি প্রতি লিটার পানি) or টিডো ২০০এসএল (Tido 200SL - ০.৫ মিলি প্রতি লিটার পানি)।
-   - For Red Spider Mites (लाल मakড়): ভার্টিমেক ১.৮ইসি (Vertimec 1.8EC - ১.২ মিলি প্রতি লিটার পানি)।
+   - For Red Spider Mites (লাল মাকড়): ভার্টিমেক ১.৮ইসি (Vertimec 1.8EC - ১.২ মিলি প্রতি লিটার পানি)।
    - For Acidic Soil (pH < 6.0): ডলোচুন (Dolomite Powder / Dololime) - প্রতি শতকে ১ থেকে ১.৫ কেজি মাটির শেষ চাষে।
    - For Alkaline/Saline Soil (pH > 7.5): জিপসাম (Gypsum) - প্রতি শতকে ১.৫ থেকে ২ কেজি শেষ চাষে।
 4. **Detailed Explaining Tone ("Bujhano Tone") Requirement**:
@@ -297,7 +297,12 @@ RULES & BANGLADESH CONTEXT:
      - **HOW** to mix/apply step-by-step (e.g., "১ লিটার পানিতে ০.৬ গ্রাম (অথবা ১০ লিটার পানির ডোপে ৬ গ্রাম) নাティブো ভালোভাবে মিশিয়ে নিয়ে বিকেলের রোদে স্প্রে করতে হবে...").
      - **PRECAUTIONS** (e.g., "স্প্রে করার সময় সতর্কতা অবলম্বন করুন, মুখে মাস্ক পরবেন এবং বালাইনাশক ব্যবহারের পর ১৪ দিন পর্যন্ত ফসল সংগ্রহ করবেন না...").
 5. Critical Dosage Formatting Rule: NEVER write fertilizer, seed, or chemical dosages/weights in decimal kilograms (e.g., do NOT write "0.03 kg", "0.5 kg", "0.05 kg" or "০.০৩ কেজি"). Convert all decimal kilogram measurements to grams and write them in standard Bangla (e.g., "৩০ গ্রাম", "৫০০ গ্রাম", "৫০ গ্রাম"). If a measurement is 1 kg or more, write it as "X কেজি Y গ্রাম" (e.g., for 1.2 kg write "১ কেজি ২০০ গ্রাম", for 1 kg write "১ কেজি") instead of "1.2 kg" or "১.২ কেজি".
-6. Provide response ONLY in JSON format matching the following schema. No extra text outside JSON.
+6. Context & Flow Retention Rules (Stateful Chat):
+   - You will receive the previous conversation history in the "contents" list. Read it carefully.
+   - Pay close attention to context. If the farmer's current query is very short, incomplete, or refers to a previous topic (e.g., "১৫ বছরের" or "কী সার দেব?" or "ওটার জন্য কী সমাধান?"), identify what crop or problem they are referring to from the history (e.g., the 15-year-old coconut tree from the previous question).
+   - Never respond as if the short message is a new, isolated query. Respond directly to the topic (e.g., "আপনার ১৫ বছরের নারিকেল গাছটির জন্য নিচে সার ও পরিচর্যার বিবরণ দেওয়া হলো: ...").
+   - If there is ambiguity or you need more details to give an authentic dose (e.g. crop symptoms, soil type), ask exactly 1 or 2 clear, warm, contextually related follow-up questions to help them diagnose it.
+7. Provide response ONLY in JSON format matching the following schema. No extra text outside JSON.
 
 JSON Schema:
 {
@@ -319,6 +324,22 @@ JSON Schema:
 কৃষি সম্পর্কিত তথ্য (Context):
 ${context || 'No specific crop matching the query.'}
 `;
+
+    // Map history to Gemini API format
+    const contents: any[] = [];
+    if (history && Array.isArray(history)) {
+      history.forEach((turn: { sender: 'user' | 'bot'; text: string }) => {
+        contents.push({
+          role: turn.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: turn.text }]
+        });
+      });
+    }
+    // Append the latest user query
+    contents.push({
+      role: 'user',
+      parts: [{ text: userPrompt }]
+    });
 
     const geminiKeys = getGeminiApiKeys();
     const shuffledKeys = [...geminiKeys].sort(() => Math.random() - 0.5);
@@ -343,13 +364,12 @@ ${context || 'No specific crop matching the query.'}
           geminiUrl,
           { 'Content-Type': 'application/json' },
           JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: `${systemPrompt}\n\nUser Question: ${userPrompt}` }
-                ]
-              }
-            ],
+            contents: contents,
+            systemInstruction: {
+              parts: [
+                { text: systemPrompt }
+              ]
+            },
             generationConfig: {
               responseMimeType: "application/json",
               maxOutputTokens: 4000 // Increased limit to prevent cutoff

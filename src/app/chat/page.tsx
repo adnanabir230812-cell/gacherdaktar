@@ -289,6 +289,14 @@ function ChatContent() {
     ];
     setMessages(updatedMessages);
 
+    // Filter and format history for the API
+    const chatHistory = currentHistory
+      .filter(m => m.id !== 'welcome' && !m.loading)
+      .map(m => ({
+        sender: m.sender,
+        text: m.text
+      }));
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -297,6 +305,7 @@ function ChatContent() {
         },
         body: JSON.stringify({
           query: textToSend,
+          history: chatHistory,
           district: district,
           season: season
         })

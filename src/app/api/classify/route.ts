@@ -94,7 +94,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { image, type = 'leaf', location = 'ঢাকা', answers } = await request.json();
+    const { image, type = 'leaf', location = 'ঢাকা', answers, crop } = await request.json();
 
     if (!image) {
       return NextResponse.json({ error: 'Image data is required' }, { status: 400 });
@@ -220,6 +220,11 @@ JSON Schema:
 `;
 
     let activePrompt = type === 'soil' ? systemPromptSoil : systemPrompt;
+
+    if (crop && type !== 'soil') {
+      activePrompt += `\n\nFarmer's Specified Crop: The farmer has explicitly selected that this crop is "${crop}". Focus your diagnosis ONLY on diseases that affect "${crop}" crops. If the leaf in the image does not match "${crop}" at all, you can flag it as invalid or need clarification, but if it is valid, diagnose it under the context of "${crop}".`;
+    }
+
     if (answers && Object.keys(answers).length > 0) {
       activePrompt += `\n\nUser's Answers to Clarifying Questions:\n${JSON.stringify(answers, null, 2)}\nUse these answers to resolve any ambiguity, set "need_clarification" to false, set "questions" to null, and output the final diagnostic results.`;
     }

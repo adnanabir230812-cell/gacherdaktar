@@ -18,6 +18,26 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+const CROPS_LIST = [
+  // Commonly Cultivated Crops (Top)
+  "ধান", "গম", "আলু", "পেঁয়াজ", "বেগুন", "মরিচ", "টমেটো", "পাট", "সরিষা", "রসুন",
+  
+  // Vegetables
+  "ফুলকপি", "বাঁধাকপি", "গাজর", "মুলা", "পটল", "করলা", "ঝিঙা", "চিচিঙ্গা", "চালকুমড়া", 
+  "মিষ্টি কুমড়া", "লাউ", "ঢেঁড়স", "বরবটি", "সীম", "লালশাক", "পালংশাক", "পুঁইশাক", 
+  "শসা", "কাঁকরোল", "ধন্দুল", "ডুমুর", "ওলকচু", "মানকচু",
+  
+  // Fruits
+  "আম", "কাঁঠাল", "লিচু", "কলা", "পেঁপে", "পেয়ারা", "নারিকেল", "লেবু", "তরমুজ", 
+  "কুল (বরই)", "আনারস", "কামরাঙ্গা", "সফেদা", "জাম্বুরা", "ডালিম", "বেল", "কদবেল",
+  
+  // Pulses & Oilseeds
+  "মসুর ডাল", "মুগ ডাল", "খেসারি ডাল", "ছোলা", "চিনাবাদাম", "তিল", "সূর্যমুখী",
+  
+  // Spices & Others
+  "আদা", "হলুদ", "ধনে", "তেজপাতা", "পান পাতা", "সুপারি", "আখ"
+];
+
 const compressImage = (dataUrl: string, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.75): Promise<string> => {
   return new Promise((resolve) => {
     const img = new Image();
@@ -127,6 +147,9 @@ export default function LeafScanner() {
   const [activeTab, setActiveTab] = useState<string | null>('symptoms');
   const [clarifyingQuestions, setClarifyingQuestions] = useState<any[] | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [selectedCrop, setSelectedCrop] = useState('');
+  const [cropSearchQuery, setCropSearchQuery] = useState('');
+  const [isCropDropdownOpen, setIsCropDropdownOpen] = useState(false);
 
   const toggleTab = (tab: string) => {
     setActiveTab(activeTab === tab ? null : tab);
@@ -283,7 +306,8 @@ export default function LeafScanner() {
         },
         body: JSON.stringify({ 
           image: imgUrl,
-          answers: userAnswers
+          answers: userAnswers,
+          crop: selectedCrop
         })
       });
       const data = await response.json();
@@ -341,6 +365,86 @@ export default function LeafScanner() {
         {/* Camera / Upload Panel (Left 2 Columns) */}
         <div className={scannerResult || clarifyingQuestions ? "lg:col-span-2 space-y-4 flex flex-col justify-start" : "w-full space-y-4 flex flex-col justify-start"}>
           
+          {/* Custom Searchable Crop Dropdown */}
+          <div className="relative space-y-2">
+            <label className="block text-xs md:text-sm font-black text-text-primary flex items-center gap-1.5">
+              🌾 ফসল নির্বাচন করুন (বাধ্যতামূলক):
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={cropSearchQuery}
+                onFocus={() => setIsCropDropdownOpen(true)}
+                onBlur={() => {
+                  setTimeout(() => {
+                    setIsCropDropdownOpen(false);
+                  }, 200);
+                }}
+                onChange={(e) => {
+                  setCropSearchQuery(e.target.value);
+                  setSelectedCrop(''); // Reset selected crop until clicked
+                  setIsCropDropdownOpen(true);
+                }}
+                placeholder="ফসলের নাম লিখুন বা নিচের তালিকা থেকে সিলেক্ট করুন..."
+                className="w-full px-4 py-3 rounded-xl border-2 border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary focus:border-transparent font-bold text-xs md:text-sm shadow-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setIsCropDropdownOpen(!isCropDropdownOpen)}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-text-secondary hover:text-green-primary cursor-pointer"
+              >
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCropDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+
+            {/* Dropdown List Overlay */}
+            {isCropDropdownOpen && (
+              <div className="absolute z-20 w-full mt-1 bg-white border border-green-primary/15 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-green-primary/5">
+                {(() => {
+                  const filtered = CROPS_LIST.filter(c => 
+                    c.toLowerCase().includes(cropSearchQuery.toLowerCase())
+                  );
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="px-4 py-3 text-xs text-text-secondary font-medium">
+                        কোনো ফসল খুঁজে পাওয়া যায়নি
+                      </div>
+                    );
+                  }
+                  return filtered.map((crop) => {
+                    const isSelected = selectedCrop === crop;
+                    const isCommon = ["ধান", "গম", "আলু", "পেঁয়াজ", "বেগুন", "مরিচ", "টমেটো", "পাট", "সরিষা", "রসুন"].includes(crop);
+                    return (
+                      <button
+                        key={crop}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCrop(crop);
+                          setCropSearchQuery(crop);
+                          setIsCropDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-2.5 text-left text-xs md:text-sm font-bold transition-colors hover:bg-green-primary/5 flex items-center justify-between cursor-pointer ${
+                          isSelected ? 'bg-green-primary/10 text-green-primary' : 'text-text-primary'
+                        }`}
+                      >
+                        <span>{crop} {isCommon && <span className="ml-1.5 text-[9px] bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded-md border border-amber-500/10 font-bold">জনপ্রিয়</span>}</span>
+                        {isSelected && <span className="text-green-primary font-bold">✓</span>}
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+          </div>
+
+          {/* Warning Banner if crop is not selected */}
+          {imgUrl && !selectedCrop && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-900 rounded-xl font-bold text-xs flex items-start gap-2 shadow-sm animate-pulse">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+              <span>রোগ নির্ণয় করার জন্য অনুগ্রহ করে উপর থেকে আপনার আক্রান্ত ফসলটি নির্বাচন করুন।</span>
+            </div>
+          )}
+
           {/* Main interactive area with Drag and Drop */}
           <div 
             onDragEnter={handleDrag}
@@ -480,7 +584,8 @@ export default function LeafScanner() {
               <button
                 type="button"
                 onClick={() => runClassification()}
-                className="flex-1 py-3 bg-green-primary hover:bg-[#153526] text-white font-extrabold text-sm rounded-xl shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300"
+                disabled={!selectedCrop}
+                className="flex-1 py-3 bg-green-primary hover:bg-[#153526] disabled:bg-[#FAF8F2] disabled:text-text-secondary disabled:border-green-primary/10 disabled:cursor-not-allowed border-2 border-green-primary text-white font-extrabold text-sm rounded-xl shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300"
               >
                 <Cpu className="w-4 h-4" />
                 গাছের ডাক্তারকে দেখান
