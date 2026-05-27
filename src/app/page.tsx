@@ -502,7 +502,7 @@ export default function Home() {
       </section>
 
       {/* 🌤️ WEATHER INTELLIGENCE DASHBOARD (MAIN FEATURE) */}
-      <section className="space-y-8 bg-gradient-to-r from-green-primary/5 via-amber-500/5 to-green-primary/5 p-8 rounded-3xl border-2 border-green-primary/10 shadow-xl">
+      <section className="space-y-8 bg-gradient-to-r from-green-primary/5 via-amber-500/5 to-green-primary/5 p-8 rounded-3xl border-2 border-green-primary/10 shadow-xl scroll-reveal">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b-2 border-green-primary/10 pb-6">
           <div>
             <div className="inline-flex items-center gap-2 text-green-primary font-black text-sm mb-1 uppercase tracking-wider">
@@ -847,7 +847,7 @@ export default function Home() {
       </section>
 
       {/* 📊 INTERACTIVE TWIN PORTLET: CROP CALENDAR & MARKET PRICES */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-reveal">
         
         {/* Portlet 1: Bangla Crop Calendar */}
         <div className="gold-card p-8 space-y-6 shadow-xl relative overflow-hidden">
@@ -936,7 +936,7 @@ export default function Home() {
       </section>
 
       {/* 🛠️ HIGHLIGHTED FEATURE MATRIX */}
-      <section className="space-y-6">
+      <section className="space-y-6 scroll-reveal">
         <div className="border-b-2 border-green-primary/10 pb-4">
           <div className="inline-flex items-center gap-1.5 text-green-primary font-black text-sm mb-1 uppercase tracking-wider">
             <Compass className="w-5 h-5" /> স্মার্ট চাষাবাদ প্রযুক্তি টুলস
@@ -945,7 +945,7 @@ export default function Home() {
           <p className="text-sm text-text-secondary font-medium">সহজতম মোবাইল ফ্রেন্ডলি ইন্টারফেস এবং সমৃদ্ধ ইউজার অভিজ্ঞতা</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 scroll-reveal scroll-reveal-grid">
           
           {/* Feature 1: Gacher Doctor */}
           <div 
@@ -1250,7 +1250,7 @@ export default function Home() {
       </section>
 
       {/* 🌾 SEASONAL CROP RECOMMENDATION MATRIX */}
-      <section className="bg-soft-white/90 rounded-3xl border-2 border-green-primary/10 p-8 space-y-6 shadow-xl relative overflow-hidden">
+      <section className="bg-soft-white/90 rounded-3xl border-2 border-green-primary/10 p-8 space-y-6 shadow-xl relative overflow-hidden scroll-reveal">
         
         {/* Soft sun glow inside crop section */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-sunlight/10 rounded-full blur-3xl pointer-events-none" />
