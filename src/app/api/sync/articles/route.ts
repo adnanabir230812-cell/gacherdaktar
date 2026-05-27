@@ -7,13 +7,20 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const forceFallback = searchParams.get('force') === 'true';
 
-    // Security Check: Enforce SYNC_SECRET to prevent unauthorized write/delete on database
+    // Security Check: Enforce SYNC_SECRET or CRON_SECRET to prevent unauthorized write/delete on database
     const syncSecret = process.env.SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
+    const cronSecret = process.env.CRON_SECRET;
+    
     const authHeader = request.headers.get('Authorization');
     const paramSecret = searchParams.get('secret');
     const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
 
-    if (token !== syncSecret && paramSecret !== syncSecret) {
+    const isAuthorized = 
+      (token && token === syncSecret) || 
+      (paramSecret && paramSecret === syncSecret) ||
+      (cronSecret && token && token === cronSecret);
+
+    if (!isAuthorized) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Invalid sync secret' },
         { status: 401 }
