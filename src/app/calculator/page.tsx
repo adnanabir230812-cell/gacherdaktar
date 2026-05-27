@@ -226,7 +226,7 @@ function CalculatorContent() {
     <div className="space-y-8 relative">
       <div className="border-b border-green-primary/10 pb-6">
         <h1 className="text-3xl font-extrabold text-text-primary flex items-center gap-2">
-          🧪 スマート সার ক্যালকুলেটর
+          🧪 স্মার্ট সার ক্যালকুলেটর
         </h1>
         <p className="text-text-secondary text-sm">
           আপনার জমির পরিমাপ বা গাছের সংখ্যা অনুযায়ী প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ ও জিপসাম সারের সঠিক হিসাব।
