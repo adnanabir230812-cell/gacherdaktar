@@ -86,6 +86,94 @@ function cleanJSONString(str: string): string {
   return cleaned.trim();
 }
 
+function parseClassificationResponse(text: string): any {
+  const cleaned = cleanJSONString(text);
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (parsed && typeof parsed === 'object') {
+      return parsed;
+    }
+  } catch (e) {
+    console.error("JSON.parse failed on classification response, attempting regex fallback:", e);
+  }
+
+  // Regex fallback: try to extract fields manually
+  const extractFieldString = (field: string): string => {
+    const match = cleaned.match(new RegExp(`"${field}"\\s*:\\s*"((?:[^"\\\\]|\\\\.|[\\r\\n])*)"`)) || 
+                  cleaned.match(new RegExp(`"${field}"\\s*:\\s*'((?:[^'\\\\]|\\\\.|[\\r\\n])*)'`));
+    if (match) {
+      try {
+        return JSON.parse(`"${match[1]}"`);
+      } catch {
+        return match[1];
+      }
+    }
+    return "";
+  };
+
+  const extractFieldBoolean = (field: string, defaultVal: boolean): boolean => {
+    const match = cleaned.match(new RegExp(`"${field}"\\s*:\\s*(true|false)`, 'i'));
+    if (match) {
+      return match[1].toLowerCase() === 'true';
+    }
+    return defaultVal;
+  };
+
+  const extractFieldFloat = (field: string, defaultVal: number): number => {
+    const match = cleaned.match(new RegExp(`"${field}"\\s*:\\s*([0-9.]+)`));
+    return match ? parseFloat(match[1]) : defaultVal;
+  };
+
+  const extractFieldArray = (field: string): any[] | null => {
+    const match = cleaned.match(new RegExp(`"${field}"\\s*:\\s*\\[([^\\]]*)\\]`));
+    if (!match) return null;
+    const arrayStr = match[1];
+    
+    if (field === 'questions') {
+      try {
+        return JSON.parse(`[${arrayStr}]`);
+      } catch {
+        const questions: any[] = [];
+        const objRegex = /\{\s*"id"\s*:\s*"([^"]+)"\s*,\s*"text"\s*:\s*"([^"]+)"\s*,\s*"options"\s*:\s*\[([^\]]*)\]\s*\}/g;
+        let m;
+        while ((m = objRegex.exec(arrayStr)) !== null) {
+          const id = m[1];
+          const text = m[2];
+          const optionsStr = m[3];
+          const options: string[] = [];
+          const optRegex = /"([^"]+)"|'([^']+)'/g;
+          let optMatch;
+          while ((optMatch = optRegex.exec(optionsStr)) !== null) {
+            options.push(optMatch[1] || optMatch[2]);
+          }
+          questions.push({ id, text, options });
+        }
+        return questions.length > 0 ? questions : null;
+      }
+    }
+    return null;
+  };
+
+  const is_valid = extractFieldBoolean('is_valid', true);
+  const need_clarification = extractFieldBoolean('need_clarification', false);
+  const confidence = extractFieldFloat('confidence', 0.85);
+
+  return {
+    is_valid,
+    error_message: extractFieldString('error_message') || null,
+    need_clarification,
+    questions: extractFieldArray('questions'),
+    crop: extractFieldString('crop'),
+    disease: extractFieldString('disease'),
+    cause: extractFieldString('cause'),
+    symptoms: extractFieldString('symptoms'),
+    treatment_organic: extractFieldString('treatment_organic'),
+    treatment_chemical: extractFieldString('treatment_chemical'),
+    preventive_measures: extractFieldString('preventive_measures'),
+    confidence
+  };
+}
+
 export async function POST(request: Request) {
   const startTime = Date.now();
   const getRemainingTime = (maxDurationMs: number) => {
@@ -301,8 +389,7 @@ JSON Schema:
       return NextResponse.json({ error: 'All API keys failed or timed out during classification' }, { status: 500 });
     }
 
-    const cleanedJson = cleanJSONString(responseText);
-    const parsedData = JSON.parse(cleanedJson);
+    const parsedData = parseClassificationResponse(responseText);
 
     return NextResponse.json({ success: true, result: parsedData });
   } catch (error: any) {

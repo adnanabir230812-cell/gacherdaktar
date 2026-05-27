@@ -7,6 +7,19 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const forceFallback = searchParams.get('force') === 'true';
 
+    // Security Check: Enforce SYNC_SECRET to prevent unauthorized write/delete on database
+    const syncSecret = process.env.SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
+    const authHeader = request.headers.get('Authorization');
+    const paramSecret = searchParams.get('secret');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
+
+    if (token !== syncSecret && paramSecret !== syncSecret) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Invalid sync secret' },
+        { status: 401 }
+      );
+    }
+
     let syncedArticles: any[] = [...OFFICIAL_FALLBACK_ARTICLES];
 
     if (!forceFallback) {
