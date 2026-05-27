@@ -100,14 +100,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Image data is required' }, { status: 400 });
     }
 
-    // Extract raw base64 data and mimeType from data URL
-    const match = image.match(/^data:([^;]+);base64,(.+)$/);
+    // Extract raw base64 data and mimeType from data URL securely without regex ReDoS risk
     let mimeType = "image/jpeg";
     let base64Data = image;
 
-    if (match) {
-      mimeType = match[1];
-      base64Data = match[2];
+    if (image.startsWith('data:')) {
+      const semiIndex = image.indexOf(';');
+      if (semiIndex !== -1) {
+        mimeType = image.substring(5, semiIndex);
+      }
+      const base64Index = image.indexOf(';base64,');
+      if (base64Index !== -1) {
+        base64Data = image.substring(base64Index + 8);
+      }
     }
 
     const systemPrompt = `
