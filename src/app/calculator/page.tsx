@@ -14,6 +14,20 @@ interface CalculationResult {
   guidelines: string[];
 }
 
+const FRUIT_TREE_DENSITY: { [key: string]: number } = {
+  '36': 20,   // আম (২০টি গাছ/বিঘা)
+  '37': 15,   // কাঁঠাল (১৫টি গাছ/বিঘা)
+  '38': 15,   // লিচু (১৫টি গাছ/বিঘা)
+  '39': 150,  // কলা (১৫০টি গাছ/বিঘা)
+  '40': 80,   // পেয়ারা (৮০টি গাছ/বিঘা)
+  '41': 60,   // পেঁপে (৬০টি গাছ/বিঘা)
+  '42': 1000, // আনারস (১০০০টি গাছ/বিঘা)
+  '43': 300,  // তরমুজ (৩০০টি মাদা/বিঘা)
+  '44': 100,  // লেবু (১০০টি গাছ/বিঘা)
+  '45': 20,   // নারিকেল (২০টি গাছ/বিঘা)
+  '52': 15    // লিচু (১৫টি গাছ/বিঘা)
+};
+
 const translateNumberToBangla = (num: number | string): string => {
   const englishToBanglaMap: { [key: string]: string } = {
     '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
@@ -43,8 +57,11 @@ function CalculatorContent() {
   const [selectedCropId, setSelectedCropId] = useState('');
   const [selectedSeason, setSelectedSeason] = useState('বোরো');
   const [landSize, setLandSize] = useState<number | ''>(1);
-  const [landUnit, setLandUnit] = useState('bigha'); // bigha or decimal
+  const [landUnit, setLandUnit] = useState('bigha'); // bigha, decimal, or unit
   const [result, setResult] = useState<CalculationResult | null>(null);
+
+  const crop = CROPS.find(c => c.id === selectedCropId);
+  const isFruit = crop?.category === 'fruit';
 
   // Initialize data
   useEffect(() => {
@@ -56,6 +73,19 @@ function CalculatorContent() {
       setSelectedCropId(CROPS[0].id);
     }
   }, [searchParams]);
+
+  // Adjust unit automatically when crop changes
+  useEffect(() => {
+    if (!selectedCropId) return;
+    const selected = CROPS.find(c => c.id === selectedCropId);
+    if (selected) {
+      if (selected.category === 'fruit') {
+        setLandUnit('unit');
+      } else if (landUnit === 'unit') {
+        setLandUnit('bigha');
+      }
+    }
+  }, [selectedCropId]);
 
   // Dynamic calculations
   useEffect(() => {
@@ -70,8 +100,13 @@ function CalculatorContent() {
     let rule = crop.fertilizers.find(f => f.season === selectedSeason);
     if (!rule) rule = crop.fertilizers[0];
 
+    const isFruit = crop.category === 'fruit';
+    const density = FRUIT_TREE_DENSITY[crop.id] || 50;
+
     // Convert land size to bighas (1 bigha = 33 decimals)
-    const landInBigha = landUnit === 'decimal' ? (Number(landSize) / 33) : Number(landSize);
+    const landInBigha = isFruit 
+      ? (Number(landSize) / density) 
+      : (landUnit === 'decimal' ? (Number(landSize) / 33) : Number(landSize));
 
     const ureaTotal = rule.urea * landInBigha;
     const tspTotal = rule.tsp * landInBigha;
@@ -79,11 +114,28 @@ function CalculatorContent() {
     const gypsumTotal = rule.gypsum * landInBigha;
     const zincTotal = rule.zinc * landInBigha;
 
-    const guidelines = [
-      `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ৩টি কিস্তিতে সমানভাগে প্রয়োগ করুন। ১ম কিস্তি চারা রোপণের ১৫ দিন পর, ২য় কিস্তি ৩০ দিন পর এবং ৩য় কিস্তি কাইচ থোড় আসার ৫-৭ দিন আগে দিতে হবে।`,
-      `২. জমি শেষ চাষের সময় সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
-      `৩. এমওপি সার (${formatWeight(mopTotal)}) ২ কিস্তিতে প্রয়োগ করতে হবে: অর্ধেক জমি শেষ চাষের সময় এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর (২য় বার ইউরিয়া দেওয়ার সময়)।`
-    ];
+    let guidelines: string[];
+
+    if (isFruit) {
+      // Per tree doses
+      const ureaPerTree = rule.urea / density;
+      const tspPerTree = rule.tsp / density;
+      const mopPerTree = rule.mop / density;
+      const gypsumPerTree = rule.gypsum / density;
+      const zincPerTree = rule.zinc / density;
+
+      guidelines = [
+        `১. গাছ/গর্ত প্রতি গড় বার্ষিক ডোজ: ইউরিয়া (${formatWeight(ureaPerTree)}), টিএসপি (${formatWeight(tspPerTree)}), এমওপি (${formatWeight(mopPerTree)}), জিপসাম (${formatWeight(gypsumPerTree)}) এবং দস্তা (${formatWeight(zincPerTree)})।`,
+        `২. সার প্রয়োগ পদ্ধতি: গাছের গোড়া থেকে ১-১.৫ ফুট দূরে বৃত্তাকার নালা কেটে মাটির সাথে সার ভালোভাবে মিশিয়ে দিন ও হালকা সেচ দিন। বছরে ২ বার (বর্ষার আগে বৈশাখ-জ্যৈষ্ঠ মাসে এবং বর্ষার পরে আশ্বিন-কার্তিক মাসে) সমান কিস্তিতে এই সার প্রয়োগ করুন।`,
+        `৩. নতুন গর্ত তৈরির সময়: চারা রোপণের ১০-১৫ দিন পূর্বে গর্তের মাটির সাথে সার ভালোভাবে মিশিয়ে গর্ত ভরাট করে রাখুন।`
+      ];
+    } else {
+      guidelines = [
+        `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ৩টি কিস্তিতে সমানভাগে প্রয়োগ করুন। ১ম কিস্তি চারা রোপণের ১৫ দিন পর, ২য় কিস্তি ৩০ দিন পর এবং ৩য় কিস্তি কাইচ থোড় আসার ৫-৭ দিন আগে দিতে হবে।`,
+        `২. জমি শেষ চাষের সময় সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. এমওপি সার (${formatWeight(mopTotal)}) ২ কিস্তিতে প্রয়োগ করতে হবে: অর্ধেক জমি শেষ চাষের সময় এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর (২য় বার ইউরিয়া দেওয়ার সময়)।`
+      ];
+    }
 
     setResult({
       urea: ureaTotal,
@@ -100,10 +152,10 @@ function CalculatorContent() {
     <div className="space-y-8 relative">
       <div className="border-b border-green-primary/10 pb-6">
         <h1 className="text-3xl font-extrabold text-text-primary flex items-center gap-2">
-          🧪 স্মার্ট সার ক্যালকুলেটর
+          🧪 スマート সার ক্যালকুলেটর
         </h1>
         <p className="text-text-secondary text-sm">
-          আপনার জমির পরিমাপ অনুযায়ী প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ ও জিপসাম সারের সঠিক হিসাব।
+          আপনার জমির পরিমাপ বা গাছের সংখ্যা অনুযায়ী প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ ও জিপসাম সারের সঠিক হিসাব।
         </p>
       </div>
 
@@ -112,7 +164,7 @@ function CalculatorContent() {
         <div className="glass-card p-6 h-fit space-y-6">
           <h3 className="font-bold text-lg text-text-primary flex items-center gap-1.5 border-b border-green-primary/5 pb-2">
             <ClipboardList className="w-5 h-5 text-green-primary" />
-            জমির বিবরণ লিখুন
+            {isFruit ? 'বাগানের বিবরণ লিখুন' : 'জমির বিবরণ লিখুন'}
           </h3>
 
           {/* Crop Selector */}
@@ -147,15 +199,17 @@ function CalculatorContent() {
             </select>
           </div>
 
-          {/* Land Size Input */}
+          {/* Land Size Input / Tree Count Input */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-text-primary">জমির পরিমাণ:</label>
+            <label className="text-sm font-semibold text-text-primary">
+              {isFruit ? 'গাছ বা গর্তের সংখ্যা:' : 'জমির পরিমাণ:'}
+            </label>
             <div className="flex gap-2">
               <input
                 type="number"
                 value={landSize}
                 onChange={(e) => setLandSize(e.target.value === '' ? '' : Number(e.target.value))}
-                min="0.1"
+                min="1"
                 step="any"
                 className="flex-1 min-w-0 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
               />
@@ -163,12 +217,21 @@ function CalculatorContent() {
                 value={landUnit}
                 onChange={(e) => setLandUnit(e.target.value)}
                 className="bg-soft-white border border-green-primary/20 rounded-xl px-3 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary shrink-0 cursor-pointer"
+                disabled={isFruit}
               >
-                <option value="bigha">বিঘা</option>
-                <option value="decimal">শতক</option>
+                {isFruit ? (
+                  <option value="unit">টি</option>
+                ) : (
+                  <>
+                    <option value="bigha">বিঘা</option>
+                    <option value="decimal">শতক</option>
+                  </>
+                )}
               </select>
             </div>
-            <p className="text-[10px] text-text-secondary">নোট: ১ বিঘা = ৩৩ শতক।</p>
+            <p className="text-[10px] text-text-secondary">
+              {isFruit ? 'নোট: গাছ বা প্রস্তুতকৃত গর্তের মোট সংখ্যা লিখুন।' : 'নোট: ১ বিঘা = ৩৩ শতক।'}
+            </p>
           </div>
         </div>
 
