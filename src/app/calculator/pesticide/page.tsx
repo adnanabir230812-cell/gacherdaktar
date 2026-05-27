@@ -47,6 +47,7 @@ export default function PesticideCalculator() {
   const [pesticideForm, setPesticideForm] = useState<'liquid' | 'powder'>('liquid');
   const [severity, setSeverity] = useState<'preventive' | 'mild' | 'severe'>('mild');
   const [landArea, setLandArea] = useState<number>(10); // Land in decimal (শতক) or tree count
+  const [calculating, setCalculating] = useState(false);
   
   const [result, setResult] = useState<{
     dosageRate: number; // per Litre
@@ -69,65 +70,70 @@ export default function PesticideCalculator() {
       return;
     }
 
-    // Determine dosage rate based on Chemical Class and severity (ml or g per Litre)
-    let rate = 2.0;
-    if (pesticideClass === 'insecticide') {
-      if (severity === 'preventive') rate = 0.5;
-      else if (severity === 'mild') rate = 1.0;
-      else if (severity === 'severe') rate = 1.5;
-    } else if (pesticideClass === 'fungicide') {
-      if (severity === 'preventive') rate = 1.5;
-      else if (severity === 'mild') rate = 2.0;
-      else if (severity === 'severe') rate = 2.5;
-    } else if (pesticideClass === 'herbicide') {
-      if (severity === 'preventive') rate = 4.0;
-      else if (severity === 'mild') rate = 6.0;
-      else if (severity === 'severe') rate = 8.0;
-    } else if (pesticideClass === 'pgr') {
-      if (severity === 'preventive') rate = 0.5;
-      else if (severity === 'mild') rate = 0.8;
-      else if (severity === 'severe') rate = 1.0;
-    }
-
-    // Calculate total water volume needed (in Litres)
-    let totalWater = 25.0; // default fallback
-    if (isTreeBased) {
-      totalWater = landArea * 5.0; // 5 Litres of spray mixture per tree canopy
-    } else {
-      // Land area based. Crop-specific water volume:
-      if (selectedCrop === 'rice' || selectedCrop === 'wheat' || selectedCrop === 'maize' || selectedCrop === 'mustard' || selectedCrop === 'lentil') {
-        totalWater = landArea * 2.0; // 2.0 Litres per decimal
-      } else if (['tomato', 'eggplant', 'cabbage', 'cauliflower', 'cucumber', 'bottle_gourd', 'sweet_gourd'].includes(selectedCrop)) {
-        totalWater = landArea * 3.0; // 3.0 Litres per decimal
-      } else {
-        totalWater = landArea * 2.5; // 2.5 Litres per decimal
+    setCalculating(true);
+    const timer = setTimeout(() => {
+      // Determine dosage rate based on Chemical Class and severity (ml or g per Litre)
+      let rate = 2.0;
+      if (pesticideClass === 'insecticide') {
+        if (severity === 'preventive') rate = 0.5;
+        else if (severity === 'mild') rate = 1.0;
+        else if (severity === 'severe') rate = 1.5;
+      } else if (pesticideClass === 'fungicide') {
+        if (severity === 'preventive') rate = 1.5;
+        else if (severity === 'mild') rate = 2.0;
+        else if (severity === 'severe') rate = 2.5;
+      } else if (pesticideClass === 'herbicide') {
+        if (severity === 'preventive') rate = 4.0;
+        else if (severity === 'mild') rate = 6.0;
+        else if (severity === 'severe') rate = 8.0;
+      } else if (pesticideClass === 'pgr') {
+        if (severity === 'preventive') rate = 0.5;
+        else if (severity === 'mild') rate = 0.8;
+        else if (severity === 'severe') rate = 1.0;
       }
-    }
 
-    const chemicalPerTank = tankSize * rate;
-    const totalChemical = totalWater * rate;
-    const tanks = Math.ceil(totalWater / tankSize);
+      // Calculate total water volume needed (in Litres)
+      let totalWater = 25.0; // default fallback
+      if (isTreeBased) {
+        totalWater = landArea * 5.0; // 5 Litres of spray mixture per tree canopy
+      } else {
+        // Land area based. Crop-specific water volume:
+        if (selectedCrop === 'rice' || selectedCrop === 'wheat' || selectedCrop === 'maize' || selectedCrop === 'mustard' || selectedCrop === 'lentil') {
+          totalWater = landArea * 2.0; // 2.0 Litres per decimal
+        } else if (['tomato', 'eggplant', 'cabbage', 'cauliflower', 'cucumber', 'bottle_gourd', 'sweet_gourd'].includes(selectedCrop)) {
+          totalWater = landArea * 3.0; // 3.0 Litres per decimal
+        } else {
+          totalWater = landArea * 2.5; // 2.5 Litres per decimal
+        }
+      }
 
-    // 1 teaspoon = 5 ml or 5 gm
-    const teaspoonsPerTank = chemicalPerTank / 5;
-    const totalTeaspoons = totalChemical / 5;
+      const chemicalPerTank = tankSize * rate;
+      const totalChemical = totalWater * rate;
+      const tanks = Math.ceil(totalWater / tankSize);
 
-    // 1 standard cap = 5 ml (only for liquid)
-    const capsPerTank = pesticideForm === 'liquid' ? chemicalPerTank / 5 : undefined;
-    const totalCaps = pesticideForm === 'liquid' ? totalChemical / 5 : undefined;
+      // 1 teaspoon = 5 ml or 5 gm
+      const teaspoonsPerTank = chemicalPerTank / 5;
+      const totalTeaspoons = totalChemical / 5;
 
-    setResult({
-      dosageRate: rate,
-      chemicalPerTank: Math.round(chemicalPerTank * 100) / 100,
-      tanksNeeded: tanks,
-      totalWaterNeeded: Math.round(totalWater * 100) / 100,
-      totalChemicalNeeded: Math.round(totalChemical * 100) / 100,
-      teaspoonsPerTank: Math.round(teaspoonsPerTank * 10) / 10,
-      capsPerTank: capsPerTank ? Math.round(capsPerTank * 10) / 10 : undefined,
-      totalTeaspoons: Math.round(totalTeaspoons * 10) / 10,
-      totalCaps: totalCaps ? Math.round(totalCaps * 10) / 10 : undefined,
-    });
+      // 1 standard cap = 5 ml (only for liquid)
+      const capsPerTank = pesticideForm === 'liquid' ? chemicalPerTank / 5 : undefined;
+      const totalCaps = pesticideForm === 'liquid' ? totalChemical / 5 : undefined;
 
+      setResult({
+        dosageRate: rate,
+        chemicalPerTank: Math.round(chemicalPerTank * 100) / 100,
+        tanksNeeded: tanks,
+        totalWaterNeeded: Math.round(totalWater * 100) / 100,
+        totalChemicalNeeded: Math.round(totalChemical * 100) / 100,
+        teaspoonsPerTank: Math.round(teaspoonsPerTank * 10) / 10,
+        capsPerTank: capsPerTank ? Math.round(capsPerTank * 10) / 10 : undefined,
+        totalTeaspoons: Math.round(totalTeaspoons * 10) / 10,
+        totalCaps: totalCaps ? Math.round(totalCaps * 10) / 10 : undefined,
+      });
+      setCalculating(false);
+    }, 600);
+
+    return () => clearTimeout(timer);
   }, [tankSize, pesticideClass, pesticideForm, severity, landArea, selectedCrop, isTreeBased]);
 
   const translateToBanglaDigits = (num: number | string): string => {
@@ -288,7 +294,20 @@ export default function PesticideCalculator() {
 
         {/* Calculation Result & Guidelines (Right 2 Columns) */}
         <div className="lg:col-span-2 space-y-6">
-          {result ? (
+          {calculating ? (
+            <div className="h-full min-h-[300px] border border-green-primary/10 rounded-3xl flex flex-col items-center justify-center text-center p-8 space-y-4 bg-soft-white/60 backdrop-blur-md animate-pulse">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-full border-4 border-green-primary/20 border-t-green-primary animate-spin" />
+                <ShieldCheck className="w-6 h-6 text-green-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              </div>
+              <div>
+                <h4 className="font-bold text-text-primary">বালাইনাশক ডোজ হিসাব করা হচ্ছে...</h4>
+                <p className="text-xs text-text-secondary max-w-sm mt-1">
+                  ডিজিটাল কৃষি তথ্যভাণ্ডার থেকে আপনার ফসল ({CROPS_LIST.find(c => c.id === selectedCrop)?.name || ''}) এর জন্য নিরাপদ রাসায়নিক স্প্রে মাত্রা হিসাব করা হচ্ছে।
+                </p>
+              </div>
+            </div>
+          ) : result ? (
             <div className="space-y-6">
               
               {/* Output stats grid */}
