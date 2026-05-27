@@ -43,9 +43,10 @@ export default function PesticideCalculator() {
   const router = useRouter();
   const [selectedCrop, setSelectedCrop] = useState<string>('rice');
   const [tankSize, setTankSize] = useState<number>(16); // Sprayer size in Litres
+  const [pesticideClass, setPesticideClass] = useState<'insecticide' | 'fungicide' | 'herbicide' | 'pgr'>('insecticide');
   const [pesticideForm, setPesticideForm] = useState<'liquid' | 'powder'>('liquid');
   const [severity, setSeverity] = useState<'preventive' | 'mild' | 'severe'>('mild');
-  const [landArea, setLandArea] = useState<number>(10); // Land in decimal (শতক)
+  const [landArea, setLandArea] = useState<number>(10); // Land in decimal (শতক) or tree count
   
   const [result, setResult] = useState<{
     dosageRate: number; // per Litre
@@ -59,25 +60,50 @@ export default function PesticideCalculator() {
     totalCaps?: number;
   } | null>(null);
 
+  const TREE_BASED_CROPS = ['mango', 'jackfruit', 'guava', 'coconut', 'citrus'];
+  const isTreeBased = TREE_BASED_CROPS.includes(selectedCrop);
+
   useEffect(() => {
     if (tankSize <= 0 || landArea <= 0) {
       setResult(null);
       return;
     }
 
-    // Determine dosage rate based on form and severity
-    let rate = 2.0; // default ml or gm per Litre
-    if (pesticideForm === 'liquid') {
+    // Determine dosage rate based on Chemical Class and severity (ml or g per Litre)
+    let rate = 2.0;
+    if (pesticideClass === 'insecticide') {
+      if (severity === 'preventive') rate = 0.5;
+      else if (severity === 'mild') rate = 1.0;
+      else if (severity === 'severe') rate = 1.5;
+    } else if (pesticideClass === 'fungicide') {
       if (severity === 'preventive') rate = 1.5;
-      else if (severity === 'mild') rate = 2.5;
-      else if (severity === 'severe') rate = 4.0;
-    } else {
-      if (severity === 'preventive') rate = 1.0;
       else if (severity === 'mild') rate = 2.0;
-      else if (severity === 'severe') rate = 3.0;
+      else if (severity === 'severe') rate = 2.5;
+    } else if (pesticideClass === 'herbicide') {
+      if (severity === 'preventive') rate = 4.0;
+      else if (severity === 'mild') rate = 6.0;
+      else if (severity === 'severe') rate = 8.0;
+    } else if (pesticideClass === 'pgr') {
+      if (severity === 'preventive') rate = 0.5;
+      else if (severity === 'mild') rate = 0.8;
+      else if (severity === 'severe') rate = 1.0;
     }
 
-    const totalWater = landArea * 2.5; // 2.5 Litres per decimal
+    // Calculate total water volume needed (in Litres)
+    let totalWater = 25.0; // default fallback
+    if (isTreeBased) {
+      totalWater = landArea * 5.0; // 5 Litres of spray mixture per tree canopy
+    } else {
+      // Land area based. Crop-specific water volume:
+      if (selectedCrop === 'rice' || selectedCrop === 'wheat' || selectedCrop === 'maize' || selectedCrop === 'mustard' || selectedCrop === 'lentil') {
+        totalWater = landArea * 2.0; // 2.0 Litres per decimal
+      } else if (['tomato', 'eggplant', 'cabbage', 'cauliflower', 'cucumber', 'bottle_gourd', 'sweet_gourd'].includes(selectedCrop)) {
+        totalWater = landArea * 3.0; // 3.0 Litres per decimal
+      } else {
+        totalWater = landArea * 2.5; // 2.5 Litres per decimal
+      }
+    }
+
     const chemicalPerTank = tankSize * rate;
     const totalChemical = totalWater * rate;
     const tanks = Math.ceil(totalWater / tankSize);
@@ -102,7 +128,7 @@ export default function PesticideCalculator() {
       totalCaps: totalCaps ? Math.round(totalCaps * 10) / 10 : undefined,
     });
 
-  }, [tankSize, pesticideForm, severity, landArea]);
+  }, [tankSize, pesticideClass, pesticideForm, severity, landArea, selectedCrop, isTreeBased]);
 
   const translateToBanglaDigits = (num: number | string): string => {
     const englishToBanglaMap: { [key: string]: string } = {
@@ -157,6 +183,21 @@ export default function PesticideCalculator() {
                   {crop.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Pesticide Class Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-text-primary">ওষুধের ক্যাটাগরি (Pesticide Class):</label>
+            <select
+              value={pesticideClass}
+              onChange={(e) => setPesticideClass(e.target.value as any)}
+              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary cursor-pointer font-bold"
+            >
+              <option value="insecticide">কীটনাশক (Insecticide - পোকা দমন)</option>
+              <option value="fungicide">ছত্রাকনাশক (Fungicide - পচন ও দাগ রোগ দমন)</option>
+              <option value="herbicide">আগাছানাশক (Herbicide - ঘাস/আগাছা দমন)</option>
+              <option value="pgr">পিজিআর / হরমোন (PGR / Growth Regulator)</option>
             </select>
           </div>
 
@@ -218,21 +259,30 @@ export default function PesticideCalculator() {
             </select>
           </div>
 
-          {/* Land Area */}
+          {/* Land Area / Tree Count Input */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-text-primary">জমির পরিমাণ (শতক হিসেবে):</label>
+            <label className="text-sm font-bold text-text-primary">
+              {isTreeBased ? 'গাছের সংখ্যা (টি হিসেবে):' : 'জমির পরিমাণ (শতক হিসেবে):'}
+            </label>
             <div className="relative">
               <input
                 type="number"
                 value={landArea}
                 onChange={(e) => setLandArea(e.target.value === '' ? 0 : Number(e.target.value))}
                 min="1"
-                placeholder="যেমন: ১০"
+                placeholder={isTreeBased ? "যেমন: ৫" : "যেমন: ১০"}
                 className="w-full bg-soft-white border border-green-primary/20 rounded-xl pl-4 pr-16 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold"
               />
-              <span className="absolute right-4 top-3 text-xs font-bold text-text-secondary">শতক</span>
+              <span className="absolute right-4 top-3 text-xs font-bold text-text-secondary">
+                {isTreeBased ? 'টি গাছ' : 'শতক'}
+              </span>
             </div>
-            <p className="text-[10px] text-text-secondary font-semibold">* ৩৩ শতক = ১ বিঘা।</p>
+            <p className="text-[10px] text-text-secondary font-semibold">
+              {isTreeBased 
+                ? '* ফল ও বৃক্ষ জাতীয় ফসলের ক্ষেত্রে গাছ প্রতি গড় ৫ লিটার পানি ধরে হিসাব করা হয়েছে।' 
+                : '* ৩৩ শতক = ১ বিঘা। ফসলের পাতার ঘনত্ব অনুযায়ী পানির মোট ড্রাম হিসাব করা হয়েছে।'
+              }
+            </p>
           </div>
         </div>
 
@@ -303,6 +353,16 @@ export default function PesticideCalculator() {
                   <p className="mt-1 text-text-secondary font-medium">* বালাইনাশক প্রয়োগের পূর্বে সর্বদা বোতলের গায়ে লিখিত নির্দেশনাবলী ভালোভাবে পড়ুন।</p>
                 </div>
               </div>
+
+              {isTreeBased && pesticideClass === 'herbicide' && (
+                <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-start gap-2.5">
+                  <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div className="text-xs text-text-primary leading-relaxed font-bold">
+                    <p className="text-rose-800 mb-1">⚠️ সতর্কবার্তা (Warning):</p>
+                    <p className="text-rose-700">ফল বা বৃক্ষ জাতীয় ফসলে সরাসরি আগাছানাশক (Herbicide) স্প্রে করা অত্যন্ত বিপজ্জনক। এটি গাছের শিকড় ও কাণ্ডের মারাত্মক ক্ষতি করতে পারে বা গাছ মেরে ফেলতে পারে। গাছের গোড়া থেকে নির্দিষ্ট দূরত্ব বজায় রেখে এবং শুধুমাত্র অনাকাঙ্ক্ষিত আগাছার উপরেই সাবধানতার সাথে আগাছানাশক প্রয়োগ করুন। প্রয়োজনে স্থানীয় কৃষি কর্মকর্তার পরামর্শ নিন।</p>
+                  </div>
+                </div>
+              )}
 
               {/* Safety Steps Guide */}
               <div className="glass-card p-6 space-y-4">

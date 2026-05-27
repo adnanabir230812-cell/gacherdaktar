@@ -115,6 +115,12 @@ function CalculatorContent() {
     const zincTotal = rule.zinc * landInBigha;
 
     let guidelines: string[];
+    let organicManure = '';
+
+    if (crop.category !== 'fruit') {
+      const compostKg = Math.round(600 * landInBigha);
+      organicManure = `🌱 জমি তৈরির গোবর সার: জমি শেষ চাষের সময় প্রতি বিঘায় প্রায় ${translateNumberToBangla(compostKg)} কেজি পচা গোবর বা কম্পোস্ট সার মাটির সাথে ভালো করে মিশিয়ে দিন।`;
+    }
 
     if (isFruit) {
       // Per tree doses
@@ -127,14 +133,82 @@ function CalculatorContent() {
       guidelines = [
         `১. গাছ/গর্ত প্রতি গড় বার্ষিক ডোজ: ইউরিয়া (${formatWeight(ureaPerTree)}), টিএসপি (${formatWeight(tspPerTree)}), এমওপি (${formatWeight(mopPerTree)}), জিপসাম (${formatWeight(gypsumPerTree)}) এবং দস্তা (${formatWeight(zincPerTree)})।`,
         `২. সার প্রয়োগ পদ্ধতি: গাছের গোড়া থেকে ১-১.৫ ফুট দূরে বৃত্তাকার নালা কেটে মাটির সাথে সার ভালোভাবে মিশিয়ে দিন ও হালকা সেচ দিন। বছরে ২ বার (বর্ষার আগে বৈশাখ-জ্যৈষ্ঠ মাসে এবং বর্ষার পরে আশ্বিন-কার্তিক মাসে) সমান কিস্তিতে এই সার প্রয়োগ করুন।`,
-        `৩. নতুন গর্ত তৈরির সময়: চারা রোপণের ১০-১৫ দিন পূর্বে গর্তের মাটির সাথে সার ভালোভাবে মিশিয়ে গর্ত ভরাট করে রাখুন।`
+        `৩. নতুন গর্ত তৈরির সময়: চারা রোপণের ১০-১৫ দিন পূর্বে গর্তের মাটির সাথে সার (বিশেষ করে গোবর ১৫ কেজি, টিএসপি ৫০০ গ্রাম ও জিপসাম ২০০ গ্রাম) ভালোভাবে মিশিয়ে গর্ত ভরাট করে রাখুন।`
+      ];
+    } else if (crop.id === '1' || crop.id === '2' || crop.id === '3' || crop.name_bn.includes('ধান')) {
+      // RICE (ধান) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ৩টি সমান কিস্তিতে উপরি-প্রয়োগ করুন: ১ম কিস্তি চারা রোপণের ১৫-২০ দিন পর (কুশি গজানোর শুরুতে), ২য় কিস্তি ৩০-৩৫ দিন পর (সর্বোচ্চ কুশি গজানো অবস্থায়) এবং ৩য় কিস্তি কাইচ থোড় আসার ৫-৭ দিন আগে।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. এমওপি (পটাশ) সার (${formatWeight(mopTotal)}) ২ কিস্তিতে প্রয়োগ করুন: অর্ধেক জমি তৈরির শেষ চাষের সময় এবং বাকি অর্ধেক ২য় কিস্তি ইউরিয়া দেওয়ার সময় (রোপণের ৩৫ দিন পর)।`
+      ];
+    } else if (crop.id === '4' || crop.name_bn.includes('গম')) {
+      // WHEAT (গম) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ২ কিস্তিতে প্রয়োগ করুন: ২/৩ অংশ (দুই-তৃতীয়াংশ) শেষ চাষের সময় এবং বাকি ১/৩ অংশ প্রথম সেচের সময় (বীজ বপনের ২১-২৫ দিন পর, ক্রাউন রুট বা CRI পর্যায়)।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), এমওপি (${formatWeight(mopTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার শেষ চাষের সময় মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. বিশেষ বোরন পরামর্শ: গমের দানা পুষ্ট করতে শেষ চাষের সময় বিঘায় ১.৫ কেজি সলুবোর বোরন সার প্রয়োগ করুন। সেচ দেওয়ার পর জমিতে জো (রস কমলে) আসলে উপরি-প্রয়োগ করুন।`
+      ];
+    } else if (crop.id === '5' || crop.name_bn.includes('ভুট্টা')) {
+      // MAIZE (ভুট্টা) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ৩ কিস্তিতে প্রয়োগ করুন: ১/৩ অংশ শেষ চাষে, ১/৩ অংশ বীজ গজানোর ২৫-৩০ দিন পর (৪-৬ পাতা পর্যায়) এবং বাকি ১/৩ অংশ ৫০-৫৫ দিন পর (১০-১২ পাতা বা ফুল আসার পূর্বে)।`,
+        `২. এমওপি (পটাশ) সার (${formatWeight(mopTotal)}) ২ কিস্তিতে প্রয়োগ করুন: অর্ধেক শেষ চাষে এবং বাকি অর্ধেক ৫০-৫৫ দিন পর ইউরিয়ার শেষ কিস্তির সাথে।`,
+        `৩. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার মাটির সাথে মিশিয়ে দিন। সার দেওয়ার পর গাছের গোড়ায় মাটি তুলে দিন।`
+      ];
+    } else if (crop.id === '6' || crop.name_bn.includes('আলু')) {
+      // POTATO (আলু) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া (${formatWeight(ureaTotal)}) ও এমওপি (${formatWeight(mopTotal)}) সার ২টি কিস্তিতে প্রয়োগ করুন: অর্ধেক জমি তৈরির শেষ চাষের সময় এবং বাকি অর্ধেক রোপণের ৩০-৩৫ দিন পর গাছের গোড়ায় মাটি তোলার সময় (Earthing up)।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}) এবং জিপসাম (${formatWeight(gypsumTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. বিশেষ গুণগত পরামর্শ: ভালো ফলন ও আলুর খোসা মসৃণ রাখতে শেষ চাষের সময় জিপসামের পাশাপাশি বিঘাপ্রতি ২.৫ কেজি ম্যাগনেসিয়াম সালফেট সার প্রয়োগ করুন।`
+      ];
+    } else if (crop.category === 'commercial' && (crop.id === '46' || crop.name_bn.includes('পাট'))) {
+      // JUTE (পাট) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ২টি কিস্তিতে প্রয়োগ করুন: অর্ধেক শেষ চাষের সময় এবং বাকি অর্ধেক বীজ বপনের ৪০-৪৫ দিন পর (চারা পাতলা করার পর নিড়ানি দেওয়ার সময়)।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}) এবং এমওপি (${formatWeight(mopTotal)}) সার শেষ চাষের সময় মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. বিশেষ পরামর্শ: পাটের আঁশ সোনালী ও লম্বা করতে বীজ লাইনে বপন করুন। পাট কাটার পর পাতাগুলো জমিতে ফেলে পচতে দিন, এটি পরবর্তী আমন ধানের জন্য চমৎকার জৈব সার হিসেবে কাজ করে।`
+      ];
+    } else if (crop.category === 'commercial' && (crop.id === '47' || crop.name_bn.includes('আখ'))) {
+      // SUGARCANE (আখ) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া (${formatWeight(ureaTotal)}) ও এমওপি (${formatWeight(mopTotal)}) সার ৩টি কিস্তিতে প্রয়োগ করুন: ১ম কিস্তি আখের কুশি আসার শুরুতে (৪০-৪৫ দিন), ২য় কিস্তি ৯০-১০০ দিন পর এবং ৩য় কিস্তি ১৫০-১৬০ দিন পর আখের বাড়ন্ত পর্যায়ে।`,
+        `২. রোপণের সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার নালা বা খাদের (Trench) মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. বিশেষ পরামর্শ: আখের কান্ড মজবুত ও চিনি বাড়াতে ৩য় কিস্তির পর গোড়ায় ভালোভাবে মাটি তুলে দিয়ে আখের ঝাড় একসাথে বেঁধে দিন।`
+      ];
+    } else if (crop.id === '34' || crop.id === '35' || (crop.category === 'grain' && (crop.name_bn.includes('ডাল') || crop.name_bn.includes('মসুর') || crop.name_bn.includes('মুগ')))) {
+      // PULSES (মসুর, মুগ, খেসারি) specific guidelines
+      guidelines = [
+        `১. নাইট্রোজেন নিয়ামক: ডাল ফসলের শিকড়ে গুটি থাকায় ইউরিয়া সার খুব কম লাগে। সম্পূর্ণ ইউরিয়া (${formatWeight(ureaTotal)}) শেষ চাষে একবারে দিয়ে দিন, কোনো কিস্তি বা উপরি-প্রয়োগের প্রয়োজন নেই।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), এমওপি (${formatWeight(mopTotal)}) এবং জিপসাম (${formatWeight(gypsumTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. বিশেষ রাইজোবিয়াম পরামর্শ: বীজ বপনের পূর্বে বিঘাপ্রতি ১০০ গ্রাম রাইজোবিয়াম ব্যাকটেরিয়া কালচার বীজের সাথে মিশিয়ে ছায়ায় শুকিয়ে বপন করুন, এতে ইউরিয়া ছাড়াই ফলন ৩০% বৃদ্ধি পাবে।`
+      ];
+    } else if (crop.id === '30' || crop.name_bn.includes('সরিষা') || crop.name_bn.includes('তিল') || crop.name_bn.includes('সূর্যমুখী')) {
+      // OILSEEDS (সরিষা, তিল, সূর্যমুখী) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ২টি কিস্তিতে প্রয়োগ করুন: অর্ধেক শেষ চাষে এবং বাকি অর্ধেক প্রথম সেচ বা ফুল আসার সময় (বপনের ২০-২৫ দিন পর)।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), এমওপি (${formatWeight(mopTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং বোরন সার শেষ চাষে প্রয়োগ করুন।`,
+        `৩. বিশেষ তেল ঘনত্ব পরামর্শ: তৈলবীজে সালফারের কাজ করে জিপসাম সার, যা তেলের পরিমাণ ও গন্ধ বাড়ায়। ফুল আসার সময় জাবপোকার আক্রমণ রোধে সরিষা ঘন করে বপন করা যাবে না (১-১.২ কেজি/বিঘা বীজ হারের মধ্যে রাখুন)।`
+      ];
+    } else if (crop.category === 'spice' && (crop.id === '24' || crop.id === '25' || crop.id === '51' || crop.name_bn.includes('পেঁয়াজ') || crop.name_bn.includes('রসুন'))) {
+      // ONION & GARLIC (পেঁয়াজ, রসুন) specific guidelines
+      guidelines = [
+        `১. ইউরিয়া (${formatWeight(ureaTotal)}) ও এমওপি (${formatWeight(mopTotal)}) সার ২টি সমান কিস্তিতে প্রয়োগ করুন: অর্ধেক জমি তৈরির শেষ চাষের সময় এবং বাকি অর্ধেক চারা/কোয়া রোপণের ২৫-৩০ দিন পর এবং ৫০-৫৫ দিন পর সমান ভাগে দুই দফায়।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}) এবং জিপসাম (${formatWeight(gypsumTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. বিশেষ সংরক্ষণ পরামর্শ: পেঁয়াজ ও রসুনের ঝাঁঝালো স্বাদ ও দীর্ঘ দিন পচন ছাড়া ঘরে রাখার জন্য সালফার সারের ব্যবহার অত্যন্ত গুরুত্বপূর্ণ।`
       ];
     } else {
+      // VEGETABLES & SPICES & OTHERS general guidelines
       guidelines = [
-        `১. ইউরিয়া সার (${formatWeight(ureaTotal)}) ৩টি কিস্তিতে সমানভাগে প্রয়োগ করুন। ১ম কিস্তি চারা রোপণের ১৫ দিন পর, ২য় কিস্তি ৩০ দিন পর এবং ৩য় কিস্তি কাইচ থোড় আসার ৫-৭ দিন আগে দিতে হবে।`,
-        `২. জমি শেষ চাষের সময় সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
-        `৩. এমওপি সার (${formatWeight(mopTotal)}) ২ কিস্তিতে প্রয়োগ করতে হবে: অর্ধেক জমি শেষ চাষের সময় এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর (২য় বার ইউরিয়া দেওয়ার সময়)।`
+        `১. ইউরিয়া (${formatWeight(ureaTotal)}) ও এমওপি (${formatWeight(mopTotal)}) সার ৩টি সমান কিস্তিতে উপরি-প্রয়োগ করুন: চারা রোপণের ১০-১৫ দিন পর, ৩০-৩৫ দিন পর (ফুল আসার পূর্বে) এবং ফল সংগ্রহের শুরুতে।`,
+        `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) এবং দস্তা (${formatWeight(zincTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
+        `৩. ক্যালসিয়াম ও পচন রোগ প্রতিরোধ: বেগুন ও টমেটোর ক্ষেত্রে ফলের নিচে কালো দাগ হওয়া ঠেকাতে জিপসাম এবং শেষ চাষে ডলোমাইট চুন (শতক প্রতি ১.৫ কেজি) প্রয়োগ করুন।`
       ];
+    }
+
+    if (organicManure && crop.category !== 'fruit') {
+      guidelines.unshift(organicManure);
     }
 
     setResult({
