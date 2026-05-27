@@ -446,36 +446,6 @@ function ChatContent() {
           </div>
         </div>
 
-        {/* District and Season selection for localized context */}
-        <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
-          <div className="flex items-center gap-1.5 bg-green-primary/5 px-3 py-1.5 rounded-full border border-green-primary/10">
-            <span className="text-text-secondary font-medium">জেলা:</span>
-            <select
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              className="bg-transparent border-none text-green-primary font-bold focus:outline-none cursor-pointer"
-            >
-              {districts.map((d, idx) => (
-                <option key={idx} value={d.name_bn} className="text-text-primary">{d.name_bn}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-1.5 bg-green-primary/5 px-3 py-1.5 rounded-full border border-green-primary/10">
-            <span className="text-text-secondary font-medium">ঋতু:</span>
-            <select
-              value={season}
-              onChange={(e) => setSeason(e.target.value)}
-              className="bg-transparent border-none text-green-primary font-bold focus:outline-none cursor-pointer"
-            >
-              <option value="বোরো" className="text-text-primary">বোরো</option>
-              <option value="আমন" className="text-text-primary">আমন</option>
-              <option value="আউশ" className="text-text-primary">আউশ</option>
-              <option value="রবি" className="text-text-primary">রবি</option>
-              <option value="খরিপ" className="text-text-primary">খরিপ</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* CHAT MESSAGES WINDOW */}
