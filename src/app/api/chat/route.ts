@@ -412,7 +412,9 @@ ${context || 'No specific crop matching the query.'}
       sources: dbSources.length > 0 ? dbSources : ["গাছের ডাক্তার তথ্যশালা"],
       confidence: 0.7,
       follow_up_questions: ["কীভাবে সারের সঠিক ব্যবহার নিশ্চিত করব?", "নিকটস্থ উপজেলা কৃষি অফিস কোথায় পাবো?"],
-      action_suggestions: [],
+      action_suggestions: [
+        { "label": "সারের পরিমাপ হিসাব", "action": "open_fertilizer_calc", "params": { "crop": "ধান" } }
+      ],
       debug: {
         hasGeminiKeys: geminiKeys.length > 0,
         keysCount: geminiKeys.length,
