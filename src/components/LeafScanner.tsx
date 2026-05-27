@@ -840,9 +840,9 @@ export default function LeafScanner() {
                 style={{ width: '55px', height: '55px', objectFit: 'contain' }}
               />
               <div>
-                <h1 style={{ color: '#1B4332', margin: '0 0 3px 0', fontSize: '24px', fontWeight: 'bold' }}>
+                <div style={{ color: '#1B4332', margin: '0 0 3px 0', fontSize: '24px', fontWeight: 'bold' }}>
                   গাছের ডাক্তার (Gacher Doctor)
-                </h1>
+                </div>
                 <p style={{ margin: 0, fontSize: '11px', color: '#40916C', fontWeight: '600' }}>
                   ডিজিটাল শস্য রোগবালাই সনাক্তকরণ ও সমাধান প্রেসক্রিপশন
                 </p>
