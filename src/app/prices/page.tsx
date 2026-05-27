@@ -80,7 +80,8 @@ export default function MarketPricesPage() {
   // Background auto-sync if DB is empty
   const handleAutoSync = async () => {
     try {
-      const res = await fetch('/api/sync/prices');
+      const syncSecret = process.env.NEXT_PUBLIC_SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
+      const res = await fetch(`/api/sync/prices?secret=${syncSecret}`);
       const data = await res.json();
       if (data.success) {
         const today = new Date().toISOString().split('T')[0];
@@ -100,7 +101,8 @@ export default function MarketPricesPage() {
     setSyncing(true);
     setSyncMessage('');
     try {
-      const res = await fetch('/api/sync/prices');
+      const syncSecret = process.env.NEXT_PUBLIC_SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
+      const res = await fetch(`/api/sync/prices?secret=${syncSecret}`);
       const data = await res.json();
       if (data.success) {
         setSyncMessage('বাজার দর সফলভাবে আপডেট করা হয়েছে।');

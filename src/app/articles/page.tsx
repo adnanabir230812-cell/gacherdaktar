@@ -97,7 +97,8 @@ export default function ArticlesPage() {
   // Background auto-sync if DB is empty
   const handleAutoSync = async () => {
     try {
-      const res = await fetch('/api/sync/articles');
+      const syncSecret = process.env.NEXT_PUBLIC_SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
+      const res = await fetch(`/api/sync/articles?secret=${syncSecret}`);
       const data = await res.json();
       if (data.success) {
         const dbQuery = supabase.from('articles').select('*').order('publish_date', { ascending: false });
@@ -118,7 +119,8 @@ export default function ArticlesPage() {
     setSyncing(true);
     setSyncMessage('');
     try {
-      const res = await fetch('/api/sync/articles');
+      const syncSecret = process.env.NEXT_PUBLIC_SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
+      const res = await fetch(`/api/sync/articles?secret=${syncSecret}`);
       const data = await res.json();
       if (data.success) {
         setSyncMessage('তথ্য ভান্ডারের খবর সফলভাবে আপডেট করা হয়েছে।');
