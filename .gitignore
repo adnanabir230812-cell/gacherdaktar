@@ -1,8 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -11,33 +9,51 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage/
 
-# next.js
-/.next/
-/out/
+# next.js & expo & build outputs
+.next/
+out/
+build/
+dist/
+web-build/
+expo-env.d.ts
+tsconfig.tsbuildinfo
+next-env.d.ts
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.metro-health-check*
 
-# env files (can opt-in for committing if needed)
-.env*
+# system files
+.DS_Store
+*.pem
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
-# vercel
-.vercel
+# env files (NEVER commit these!)
+.env
+.env.local
+.env*.local
+.env.production
+.env.development
+.env.vercel.production
+.env.vercel.production.local
+.env.production.local
+.env.development.local
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-.vercel
+# vercel & expo native
+.vercel/
+.expo/
+ios/
+android/
+.kotlin/
+.vscode/
+.claude/
