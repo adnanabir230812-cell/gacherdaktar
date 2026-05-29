@@ -183,7 +183,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { image, type = 'leaf', location = 'ঢাকা', answers, crop } = await request.json();
+    const { image, type = 'leaf', location = 'ঢাকা', answers, crop, landSize, landUnit, plantCount } = await request.json();
 
     if (!image) {
       return NextResponse.json({ error: 'Image data is required' }, { status: 400 });
@@ -317,6 +317,20 @@ JSON Schema:
 
     if (crop && type !== 'soil') {
       activePrompt += `\n\nFarmer's Specified Crop: The farmer has explicitly selected that this crop is "${crop}". Focus your diagnosis ONLY on diseases that affect "${crop}" crops. If the leaf in the image does not match "${crop}" at all, you can flag it as invalid or need clarification, but if it is valid, diagnose it under the context of "${crop}".`;
+    }
+
+    if (landSize && landUnit && type !== 'soil') {
+      activePrompt += `\n\nCRITICAL DEDICATED PLOT-SIZE CALCULATION INSTRUCTION:
+The farmer has specified that their cultivated land size for this crop is exactly "${landSize} ${landUnit}".
+You MUST calculate the EXACT total dosage/quantity of chemical pesticides, organic treatments, or fertilizers needed for their ENTIRE plot of "${landSize} ${landUnit}"!
+In the "treatment_organic", "treatment_chemical", and "preventive_measures" fields, do NOT only give general rates (e.g. "2g per liter"). You MUST explicitly state the total required dosage/quantity for their specific plot size, e.g.: "আপনার মোট ${landSize} ${landUnit} জমির জন্য মোট X গ্রাম ওষুধ Y লিটার পানিতে মিশিয়ে স্প্রে করুন।"
+Make this calculation 100% accurate and customized for their specific plot size!`;
+    } else if (plantCount && type !== 'soil') {
+      activePrompt += `\n\nCRITICAL DEDICATED PLANT-COUNT CALCULATION INSTRUCTION:
+The farmer has specified that the number of affected plants/trees is exactly "${plantCount}টি".
+You MUST calculate the EXACT total dosage/quantity of chemical pesticides or organic treatments needed for exactly "${plantCount}টি" plants/trees!
+In the "treatment_organic", "treatment_chemical", and "preventive_measures" fields, do NOT only give general rates. You MUST explicitly state the total required dosage/quantity for their specific plant count, e.g.: "আপনার ${plantCount}টি আক্রান্ত গাছের জন্য মোট X গ্রাম/মিলি ওষুধ Y লিটার পানিতে মিশিয়ে গোড়ায় সেচন বা স্প্রে করুন।"
+Make this calculation 100% accurate and customized for their specific plant count!`;
     }
 
     if (answers && Object.keys(answers).length > 0) {

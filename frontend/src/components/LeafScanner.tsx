@@ -262,6 +262,18 @@ export default function LeafScanner() {
   const [selectedCrop, setSelectedCrop] = useState('');
   const [cropSearchQuery, setCropSearchQuery] = useState('');
   const [isCropDropdownOpen, setIsCropDropdownOpen] = useState(false);
+  const [landSize, setLandSize] = useState('');
+  const [landUnit, setLandUnit] = useState('শতক');
+  const [plantCount, setPlantCount] = useState('');
+
+  const isFieldCrop = (cropName: string): boolean => {
+    const fieldCrops = [
+      "ধান", "গম", "আলু", "পেঁয়াজ", "বেগুন", "মরিচ", "টমেটো", "পাট", "সরিষা", "রসুন",
+      "মসুর ডাল", "মুগ ডাল", "খেসারি ডাল", "ছোলা", "চিনাবাদাম", "তিল", "সূর্যমুখী",
+      "আদা", "হলুদ", "ধনে", "তেজপাতা", "আখ", "ভুট্টা", "বার্লি", "ওটস", "সয়াবিন", "তুলা", "মিলেট", "সোরঘাম"
+    ];
+    return fieldCrops.includes(cropName);
+  };
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -432,7 +444,10 @@ export default function LeafScanner() {
         body: JSON.stringify({ 
           image: imgUrl,
           answers: userAnswers,
-          crop: selectedCrop
+          crop: selectedCrop,
+          landSize: isFieldCrop(selectedCrop) ? landSize : undefined,
+          landUnit: isFieldCrop(selectedCrop) ? landUnit : undefined,
+          plantCount: !isFieldCrop(selectedCrop) ? plantCount : undefined
         })
       });
       const data = await response.json();
@@ -562,6 +577,59 @@ export default function LeafScanner() {
               </div>
             )}
           </div>
+
+          {/* Dynamic Land Size or Plant Count Inputs based on Crop Type */}
+          {selectedCrop && (
+            <div className="p-4 bg-green-primary/5 border border-green-primary/10 rounded-2xl space-y-3 shadow-sm my-3">
+              {isFieldCrop(selectedCrop) ? (
+                <div className="space-y-2">
+                  <label className="block text-xs md:text-sm font-black text-text-primary flex items-center gap-1.5">
+                    🌾 আপনার চাষকৃত মোট জমির পরিমাণ লিখুন (শতক/বিঘা/একর):
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={landSize}
+                      onChange={(e) => setLandSize(e.target.value)}
+                      placeholder="যেমন: ৫"
+                      min="0"
+                      step="any"
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
+                    />
+                    <select
+                      value={landUnit}
+                      onChange={(e) => setLandUnit(e.target.value)}
+                      className="px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm cursor-pointer"
+                    >
+                      <option value="শতক">শতক (Decimal)</option>
+                      <option value="বিঘা">বিঘা (Bigha)</option>
+                      <option value="একর">একর (Acre)</option>
+                    </select>
+                  </div>
+                  <p className="text-[10px] text-text-secondary/70 font-semibold">
+                    * আপনার জমির সঠিক মাপ দিলে গাছের ডাক্তার শতভাগ নির্ভুলভাবে ওষুধের মোট ডোজ হিসাব করে দেবে।
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="block text-xs md:text-sm font-black text-text-primary flex items-center gap-1.5">
+                    🌳 আপনার আক্রান্ত মোট গাছের/চারার সংখ্যা কতটি?
+                  </label>
+                  <input
+                    type="number"
+                    value={plantCount}
+                    onChange={(e) => setPlantCount(e.target.value)}
+                    placeholder="যেমন: ১০"
+                    min="0"
+                    className="w-full px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
+                  />
+                  <p className="text-[10px] text-text-secondary/70 font-semibold">
+                    * আক্রান্ত গাছের সঠিক সংখ্যা দিলে গাছের ডাক্তার প্রতিটি গাছের সঠিক অনুপাত হিসাব করে মোট ওষুধ ও পানির ডোজ বাতলে দেবে।
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Warning Banner if crop is not selected */}
           {imgUrl && !selectedCrop && (
