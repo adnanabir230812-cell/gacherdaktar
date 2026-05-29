@@ -467,12 +467,38 @@ function ChatContent() {
   };
 
   return (
-    <div className="chat-page-wrapper relative h-[calc(100dvh-130px)] md:h-[calc(100vh-180px)] flex flex-col z-10 max-w-5xl mx-auto overflow-hidden">
+    <div className="chat-page-wrapper relative h-[calc(100dvh-64px)] md:h-[calc(100vh-160px)] flex flex-col z-10 max-w-5xl mx-auto overflow-hidden px-2 md:px-4 py-2">
+      {/* Mobile viewport alignment style overrides */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 767px) {
+          #developer-attribution-banner {
+            display: none !important;
+          }
+          header {
+            display: none !important;
+          }
+          main {
+            padding: 0px !important;
+            margin: 0px !important;
+            max-width: 100% !important;
+            width: 100% !important;
+          }
+          body {
+            padding-bottom: 56px !important;
+            overflow: hidden !important;
+            height: 100dvh !important;
+          }
+          .chat-page-wrapper {
+            height: calc(100dvh - 56px) !important;
+          }
+        }
+      `}} />
+
       {/* Cinematic Golden Glow Sunlight Background */}
       <div className="absolute top-[10%] left-[30%] w-[500px] h-[500px] rounded-full sunlight-glow pointer-events-none z-0" />
 
       {/* TOP HEADER CONTROLS */}
-      <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-soft-white/70 backdrop-blur-md p-4 rounded-2xl border border-green-primary/10 mb-4 shadow-sm shrink-0">
+      <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 md:gap-4 bg-soft-white/70 backdrop-blur-md p-3 md:p-4 rounded-2xl border border-green-primary/10 mb-2 md:mb-4 shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => router.push('/')}
@@ -482,18 +508,18 @@ function ChatContent() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="font-bold text-text-primary text-lg flex items-center gap-2">
+            <h1 className="font-bold text-text-primary text-base md:text-lg flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-green-primary animate-pulse" />
               গাছের ডাক্তার 🩺
             </h1>
-            <p className="text-xs text-text-secondary">ফসল ও গাছের নির্ভরযোগ্য চিকিৎসা ও পরামর্শ কেন্দ্র</p>
+            <p className="text-[10px] md:text-xs text-text-secondary">ফসল ও গাছের নির্ভরযোগ্য চিকিৎসা ও পরামর্শ কেন্দ্র</p>
           </div>
         </div>
 
       </div>
 
       {/* CHAT MESSAGES WINDOW */}
-      <div className="relative z-10 flex-1 overflow-y-auto bg-soft-white/60 border border-green-primary/10 rounded-2xl p-4 md:p-6 mb-4 shadow-inner flex flex-col gap-4">
+      <div className="relative z-10 flex-1 overflow-y-auto bg-soft-white/60 border border-green-primary/10 rounded-2xl p-3 md:p-6 mb-2 md:mb-4 shadow-inner flex flex-col gap-3 md:gap-4">
         {messages.map((msg) => (
           <div 
             key={msg.id}
@@ -618,9 +644,9 @@ function ChatContent() {
 
       {/* QUICK CHIPS SUGGESTIONS (only shown initially or when there's only welcome message) */}
       {messages.length === 1 && (
-        <div className="relative z-10 px-4 mb-4 shrink-0">
-          <p className="text-xs font-bold text-text-secondary mb-2">সহজে শুরু করতে ক্লিক করুন:</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="relative z-10 px-2 md:px-4 mb-2 md:mb-4 shrink-0">
+          <p className="text-[11px] md:text-xs font-bold text-text-secondary mb-1.5 md:mb-2">সহজে শুরু করতে ক্লিক করুন:</p>
+          <div className="flex flex-wrap gap-1.5 md:gap-2">
             {welcomeSuggestions.map((item, idx) => (
               <button
                 key={idx}
@@ -637,7 +663,7 @@ function ChatContent() {
       )}
 
       {/* INPUT FORM AND VOICE CONTROL */}
-      <form onSubmit={handleSend} className="relative z-10 bg-soft-white border border-green-primary/10 p-3 rounded-2xl shadow-md flex items-center gap-2 shrink-0">
+      <form onSubmit={handleSend} className="relative z-10 bg-soft-white border border-green-primary/10 p-2 md:p-3 rounded-2xl shadow-md flex items-center gap-2 shrink-0">
         {speechSupported ? (
           <button
             type="button"
@@ -684,7 +710,7 @@ function ChatContent() {
       </form>
 
       {/* Info Footnote */}
-      <p className="text-[10px] text-center text-text-secondary/70 mt-2">
+      <p className="text-[9px] md:text-[10px] text-center text-text-secondary/70 mt-1 md:mt-2">
         গাছের ডাক্তার বাংলাদেশ ধান গবেষণা ইনস্টিটিউট (BRRI) ও বাংলাদেশ কৃষি গবেষণা ইনস্টিটিউট (BARI) নির্দেশিকা অনুযায়ী পরামর্শ দিয়ে থাকেন।
       </p>
     </div>

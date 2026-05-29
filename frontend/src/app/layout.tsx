@@ -64,7 +64,7 @@ export default function RootLayout({
       <body className="antialiased min-h-screen flex flex-col pb-16 md:pb-0">
         <ScrollObserver />
         {/* 🌾 Top Developer Attribution Banner */}
-        <div className="w-full bg-gradient-to-r from-green-primary via-emerald-800 to-amber-600 text-soft-white text-center py-2 text-xs md:text-sm font-extrabold tracking-wider shadow-md border-b border-amber-400/20 flex items-center justify-center gap-1.5">
+        <div id="developer-attribution-banner" className="w-full bg-gradient-to-r from-green-primary via-emerald-800 to-amber-600 text-soft-white text-center py-2 text-xs md:text-sm font-extrabold tracking-wider shadow-md border-b border-amber-400/20 flex items-center justify-center gap-1.5">
           <span>✨</span>
           <span>Developed by <strong className="text-sunlight font-black drop-shadow-sm">Adnan Shah Abir</strong></span>
           <span>✨</span>
