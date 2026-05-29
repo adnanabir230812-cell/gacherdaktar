@@ -265,7 +265,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { query, history = [], district = "ঢাকা", season = "বোরো" } = await request.json();
+    const { query, history = [], district, season = "বোরো", image } = await request.json();
 
     if (!query || !query.trim()) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -322,7 +322,7 @@ JSON Schema:
 
     const userPrompt = `
 চাষীর প্রশ্ন: "${query}"
-বর্তমান জেলা: ${district}
+${district ? `বর্তমান জেলা: ${district}` : 'বর্তমান জেলা: অনির্দিষ্ট (কৃষক তার জেলা উল্লেখ করেননি, সাধারণ সমাধান দিন। কিন্তু যদি মাটি বা জেলা-নির্দিষ্ট আবহাওয়া ও ফসল নির্বাচনের মতো কোনো লোকেশন-নির্ভর সমস্যা হয়, তবে উত্তর লেখার শেষভাগে সুন্দর করে কৃষকের কাছে তার জেলা জানতে চেয়ে প্রশ্ন করবেন)'}
 ঋতু: ${season}
 
 কৃষি সম্পর্কিত তথ্য (Context):
@@ -339,10 +339,33 @@ ${context || 'No specific crop matching the query.'}
         });
       });
     }
-    // Append the latest user query
+    // Append the latest user query with optional attached image
+    const latestParts: any[] = [{ text: userPrompt }];
+    if (image) {
+      let mimeType = "image/jpeg";
+      let base64Data = image;
+
+      if (image.startsWith('data:')) {
+        const semiIndex = image.indexOf(';');
+        if (semiIndex !== -1) {
+          mimeType = image.substring(5, semiIndex);
+        }
+        const base64Index = image.indexOf(';base64,');
+        if (base64Index !== -1) {
+          base64Data = image.substring(base64Index + 8);
+        }
+      }
+      latestParts.push({
+        inlineData: {
+          mimeType: mimeType,
+          data: base64Data
+        }
+      });
+    }
+
     contents.push({
       role: 'user',
-      parts: [{ text: userPrompt }]
+      parts: latestParts
     });
 
     const geminiKeys = getGeminiApiKeys();

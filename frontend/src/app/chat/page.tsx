@@ -16,7 +16,9 @@ import {
   User,
   HelpCircle,
   CornerDownRight,
-  Info
+  Info,
+  Image as ImageIcon,
+  X
 } from 'lucide-react';
 import { detectUserDistrict } from '@/lib/location';
 
@@ -24,6 +26,7 @@ interface Message {
   id: string;
   sender: 'user' | 'bot';
   text: string;
+  image?: string;
   sources?: string[];
   confidence?: number;
   followUpQuestions?: string[];
@@ -40,10 +43,65 @@ function ChatContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
 
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const chatFileInputRef = useRef<HTMLInputElement>(null);
+
+  const compressImage = (dataUrl: string, maxWidth: number = 600, maxHeight: number = 600, quality: number = 0.7): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(dataUrl);
+    });
+  };
+
+  const handleChatImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('অনুগ্রহ করে শুধুমাত্র ছবি ফাইল নির্বাচন করুন।');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const compressed = await compressImage(reader.result as string);
+          setAttachedImage(compressed);
+        } catch (err) {
+          setAttachedImage(reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [district, setDistrict] = useState('ঢাকা');
+  const [district, setDistrict] = useState('');
   const [season, setSeason] = useState('বোরো');
   const [districts, setDistricts] = useState<any[]>([]);
   
@@ -74,10 +132,6 @@ function ChatContent() {
         setDistricts(data);
       })
       .catch(err => console.error(err));
-
-    detectUserDistrict('ঢাকা').then(detected => {
-      setDistrict(detected);
-    });
   }, []);
 
   // Lock body scroll, hide footer, and optimize main padding while the chat page is active
@@ -384,10 +438,13 @@ function ChatContent() {
     const userMsgId = 'user-' + Date.now();
     const botMsgId = 'bot-' + Date.now();
 
+    const imageToSend = attachedImage;
+    setAttachedImage(null);
+
     // Prepare message history
     const updatedMessages = [
       ...currentHistory,
-      { id: userMsgId, sender: 'user' as const, text: textToSend },
+      { id: userMsgId, sender: 'user' as const, text: textToSend, image: imageToSend || undefined },
       { id: botMsgId, sender: 'bot' as const, text: '', loading: true }
     ];
     setMessages(updatedMessages);
@@ -409,8 +466,9 @@ function ChatContent() {
         body: JSON.stringify({
           query: textToSend,
           history: chatHistory,
-          district: district,
-          season: season
+          district: district || undefined,
+          season: season,
+          image: imageToSend || undefined
         })
       });
 
@@ -609,6 +667,11 @@ function ChatContent() {
                   </div>
                 ) : (
                   <div className="space-y-2">
+                    {msg.image && (
+                      <div className="mb-2 max-w-xs overflow-hidden rounded-xl border border-green-primary/10 bg-black/5 shadow-sm">
+                        <img src={msg.image} alt="সংযুক্ত ছবি" className="max-h-48 object-contain w-full" />
+                      </div>
+                    )}
                     {formatMessageText(msg.text)}
 
                     {/* Text To Speech Control */}
@@ -721,13 +784,51 @@ function ChatContent() {
         </div>
       )}
 
+      {/* Image Attachment Preview */}
+      {attachedImage && (
+        <div className="relative z-10 mx-2 mb-2 p-2 bg-soft-white border border-green-primary/10 rounded-xl flex items-center gap-3 w-max max-w-xs shadow-sm animate-fade-in shrink-0">
+          <img src={attachedImage} alt="সংযুক্ত ছবি প্রিভিউ" className="w-12 h-12 rounded-lg object-cover border border-green-primary/10" />
+          <div className="flex-1 min-w-0 pr-6">
+            <p className="text-[10px] font-bold text-green-primary truncate">ছবি সংযুক্ত করা হয়েছে</p>
+            <p className="text-[9px] text-text-secondary truncate">পোস্টের সাথে ডাক্তার যাচাই করবে</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAttachedImage(null)}
+            className="absolute top-1 right-1 p-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-full transition-colors cursor-pointer"
+            title="ছবি বাদ দিন"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
       {/* INPUT FORM AND VOICE CONTROL */}
       <form onSubmit={handleSend} className="relative z-10 bg-soft-white border border-green-primary/10 p-2 md:p-3 rounded-2xl shadow-md flex items-center gap-2 shrink-0">
+        {/* Hidden Image Input */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={chatFileInputRef}
+          onChange={handleChatImageUpload}
+          className="hidden"
+        />
+
+        {/* Image Upload Trigger Button */}
+        <button
+          type="button"
+          onClick={() => chatFileInputRef.current?.click()}
+          className="p-3 rounded-full bg-green-primary/10 text-green-primary hover:bg-green-primary/20 transition-all cursor-pointer shrink-0"
+          title="ছবি যুক্ত করুন"
+        >
+          <ImageIcon className="w-5 h-5" />
+        </button>
+
         {speechSupported ? (
           <button
             type="button"
             onClick={toggleListening}
-            className={`p-3 rounded-full transition-all cursor-pointer ${
+            className={`p-3 rounded-full transition-all cursor-pointer shrink-0 ${
               isListening 
                 ? 'bg-red-500 text-soft-white animate-pulse' 
                 : 'bg-green-primary/10 text-green-primary hover:bg-green-primary/20'
@@ -740,7 +841,7 @@ function ChatContent() {
           <button
             type="button"
             onClick={() => alert('ভয়েস ইনপুট আপনার বর্তমান ব্রাউজারে সমর্থিত নয় অথবা আপনি সাইটটিতে সুরক্ষিত সংযোগ (HTTPS) ছাড়া প্রবেশ করেছেন। দয়া করে গুগল ক্রোম (Google Chrome) বা সাফারি (Safari) ব্রাউজার ব্যবহার করুন এবং মাইক্রোফোন পারমিশন দিন।')}
-            className="p-3 rounded-full bg-green-primary/5 text-text-secondary/40 cursor-pointer"
+            className="p-3 rounded-full bg-green-primary/5 text-text-secondary/40 cursor-pointer shrink-0"
             title="ভয়েস ইনপুট সমর্থিত নয় (সহায়তার জন্য এখানে ক্লিক করুন)"
           >
             <MicOff className="w-5 h-5" />
