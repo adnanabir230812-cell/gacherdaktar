@@ -438,18 +438,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-green-primary/95 via-green-primary/80 to-amber-950/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#FAF8F2] via-transparent to-transparent" />
         
-        {/* Decorative swaying rice/wheat icons in the corners */}
-        <div className="absolute left-6 bottom-16 opacity-10 pointer-events-none sway-animation hidden md:block">
-          <Sprout className="w-48 h-48 text-sunlight" />
-        </div>
-        <div className="absolute right-12 top-10 opacity-15 pointer-events-none sway-animation hidden md:block" style={{ animationDelay: '1.5s' }}>
-          <Sprout className="w-36 h-36 text-green-light" />
-        </div>
-
         {/* Hero Content */}
         <div className="relative z-10 p-8 md:p-14 max-w-4xl space-y-6 text-soft-white">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sunlight/25 border-2 border-sunlight/50 text-sunlight text-xs md:text-sm font-bold backdrop-blur-md shadow-md animate-pulse">
-            🌾 প্রযুক্তি ও উর্বর মাটির মহামিলন
+          <div className="inline-flex items-center gap-2 px-4.5 py-2 rounded-full bg-white/10 border border-white/20 text-sunlight text-xs md:text-sm font-bold backdrop-blur-md shadow-sm">
+            <Sprout className="w-3.5 h-3.5 text-sunlight shrink-0" />
+            <span>প্রযুক্তি ও উর্বর মাটির মহামিলন</span>
           </div>
           
           <h1 className="text-4xl md:text-6xl font-black leading-tight drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] text-soft-white">
@@ -469,12 +462,12 @@ export default function Home() {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="ফসলের বা চাষের যেকোনো সমস্যা বাংলায় লিখুন (যেমন: ধানের ব্লাস্ট রোগ)..."
-                className="w-full px-6 py-4 rounded-2xl border-2 border-sunlight/30 bg-soft-white text-text-primary focus:outline-none focus:ring-4 focus:ring-sunlight focus:border-transparent shadow-2xl placeholder-text-secondary/70 font-bold"
+                className="w-full px-6 py-4 rounded-2xl border-2 border-sunlight/20 bg-white/95 text-text-primary focus:outline-none focus:ring-4 focus:ring-green-primary/30 focus:border-transparent shadow-xl placeholder-text-secondary/70 font-bold"
               />
             </div>
             <button
               type="submit"
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-sunlight to-amber-500 hover:from-yellow-400 hover:to-amber-600 text-foreground font-black flex items-center justify-center gap-2 shadow-xl hover:shadow-[0_0_20px_rgba(255,213,79,0.4)] transition-all transform hover:scale-[1.03] cursor-pointer border border-amber-600/30"
+              className="px-8 py-4 rounded-2xl bg-[#1B4332] hover:bg-[#123024] text-white font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 border border-green-primary/10 cursor-pointer"
             >
               জিজ্ঞেস করুন <MessageSquare className="w-5 h-5" />
             </button>
@@ -702,8 +695,8 @@ export default function Home() {
                         <p className="text-xs font-black text-text-secondary uppercase">করোনার চাষাবাদ পদক্ষেপ:</p>
                         <ul className="space-y-2">
                           {weather.advice.rain.actions.map((act, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-text-primary font-medium">
-                              <CheckCircle className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+                            <li key={i} className="flex gap-2.5 text-sm text-text-primary font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0 mt-2" />
                               <span>{act}</span>
                             </li>
                           ))}
@@ -733,8 +726,8 @@ export default function Home() {
                         <p className="text-xs font-black text-text-secondary uppercase">বালাই দমন আগাম পদক্ষেপ:</p>
                         <ul className="space-y-2">
                           {weather.advice.disease_risk.actions.map((act, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-text-primary font-medium">
-                              <CheckCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                            <li key={i} className="flex gap-2.5 text-sm text-text-primary font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 mt-2" />
                               <span>{act}</span>
                             </li>
                           ))}
@@ -764,8 +757,8 @@ export default function Home() {
                         <p className="text-xs font-black text-text-secondary uppercase">স্প্রে করার জন্য নির্দেশনা:</p>
                         <ul className="space-y-2">
                           {weather.advice.spray_window.actions.map((act, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-text-primary font-medium">
-                              <CheckCircle className="w-4 h-4 text-green-700 shrink-0 mt-0.5" />
+                            <li key={i} className="flex gap-2.5 text-sm text-text-primary font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-600 shrink-0 mt-2" />
                               <span>{act}</span>
                             </li>
                           ))}
@@ -795,8 +788,8 @@ export default function Home() {
                         <p className="text-xs font-black text-text-secondary uppercase">মাটি পরিচর্যার পদক্ষেপ:</p>
                         <ul className="space-y-2">
                           {weather.advice.soil.actions.map((act, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-text-primary font-medium">
-                              <CheckCircle className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
+                            <li key={i} className="flex gap-2.5 text-sm text-text-primary font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0 mt-2" />
                               <span>{act}</span>
                             </li>
                           ))}
@@ -826,8 +819,8 @@ export default function Home() {
                         <p className="text-xs font-black text-text-secondary uppercase">সংগ্রহ ও প্রক্রিয়াকরণ নির্দেশনা:</p>
                         <ul className="space-y-2">
                           {weather.advice.harvest.actions.map((act, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-text-primary font-medium">
-                              <CheckCircle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
+                            <li key={i} className="flex gap-2.5 text-sm text-text-primary font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-yellow-600 shrink-0 mt-2" />
                               <span>{act}</span>
                             </li>
                           ))}
@@ -851,12 +844,8 @@ export default function Home() {
         
         {/* Portlet 1: Bangla Crop Calendar */}
         <div className="gold-card p-8 space-y-6 shadow-xl relative overflow-hidden">
-          <div className="absolute right-[-20px] bottom-[-20px] text-amber-500/5 pointer-events-none sway-animation">
-            <Calendar className="w-48 h-48" />
-          </div>
-          
           <div className="border-b-2 border-amber-500/20 pb-4">
-            <div className="inline-flex items-center gap-1 text-amber-700 font-black text-xs mb-1 uppercase tracking-wider bg-amber-500/10 px-2.5 py-1 rounded-md">
+            <div className="inline-flex items-center gap-1.5 text-amber-700 font-black text-xs mb-1 uppercase tracking-wider bg-amber-500/10 px-2.5 py-1 rounded-md">
               <Sunrise className="w-4 h-4 text-amber-600" /> মৌসুমি কৃষি দিনপঞ্জি
             </div>
             <h3 className="text-2xl font-black text-text-primary flex items-center justify-between mt-1">
@@ -873,9 +862,9 @@ export default function Home() {
             <div className="space-y-3">
               {AGRI_CALENDAR.tips.map((tip, idx) => (
                 <div key={idx} className="flex gap-3 text-sm text-text-primary bg-white/60 p-4 rounded-2xl border border-amber-500/15">
-                  <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-800 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
-                    {idx + 1}
-                  </div>
+                  <span className="text-amber-700 font-extrabold text-sm shrink-0 mt-0.5">
+                    {translateNumberToBangla(idx + 1)}.
+                  </span>
                   <p className="font-bold leading-relaxed">{tip}</p>
                 </div>
               ))}
@@ -885,12 +874,8 @@ export default function Home() {
 
         {/* Portlet 2: Live Wholesale Market Prices */}
         <div className="agri-glass p-8 space-y-6 shadow-xl relative overflow-hidden">
-          <div className="absolute right-[-20px] bottom-[-20px] text-green-primary/5 pointer-events-none">
-            <Coins className="w-48 h-48" />
-          </div>
-
           <div className="border-b-2 border-green-primary/20 pb-4">
-            <div className="inline-flex items-center gap-1 text-green-700 font-black text-xs mb-1 uppercase tracking-wider bg-green-500/10 px-2.5 py-1 rounded-md">
+            <div className="inline-flex items-center gap-1.5 text-green-700 font-black text-xs mb-1 uppercase tracking-wider bg-green-500/10 px-2.5 py-1 rounded-md">
               <Coins className="w-4 h-4 text-green-600" /> বাজার মূল্য মনিটর
             </div>
             <h3 className="text-2xl font-black text-text-primary mt-1">আজকের দেশীয় কৃষি পাইকারি বাজার দর</h3>
@@ -950,17 +935,15 @@ export default function Home() {
           {/* Feature 1: Gacher Doctor */}
           <div 
             onClick={() => router.push('/chat')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <MessageSquare className="w-5 h-5" />
-              </div>
+              <MessageSquare className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  গাছের ডাক্তার <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  গাছের ডাক্তার
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   ফসলের রোগবালাই, ছত্রাক সংক্রমণ ও প্রতিকারের জন্য গাছের ডাক্তারের কাছে সরাসরি চ্যাট ও ভয়েস আলোচনা।
                 </p>
               </div>
@@ -973,17 +956,15 @@ export default function Home() {
           {/* Feature 2: Crop Library */}
           <div 
             onClick={() => router.push('/crops')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <BookOpen className="w-5 h-5" />
-              </div>
+              <BookOpen className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  ফসলের বই <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  ফসলের বই
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   ৫২+ টি দেশীয় ফসলের রোপণকাল, জাত ও বালাই ব্যবস্থাপনার পূর্ণাঙ্গ নির্দেশিকা। BARI ও BRRI অনুমোদিত।
                 </p>
               </div>
@@ -996,17 +977,15 @@ export default function Home() {
           {/* Feature 3: Fertilizer Calc */}
           <div 
             onClick={() => router.push('/calculator')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Calculator className="w-5 h-5" />
-              </div>
+              <Calculator className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  সারের হিসাব-নিকাশ <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  সারের হিসাব-নিকাশ
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   জমির পরিমাপ ও মৌসুম নির্ধারণ করে প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ এর সঠিক কেজি ও বস্তার হিসাব।
                 </p>
               </div>
@@ -1019,17 +998,15 @@ export default function Home() {
           {/* Feature 4: Market Prices */}
           <div 
             onClick={() => router.push('/prices')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Coins className="w-5 h-5" />
-              </div>
+              <Coins className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  পাইকারি বাজার দর <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  পাইকারি বাজার দর
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   কৃষি বিপণন অধিদপ্তর (DAM) থেকে সরাসরি প্রাপ্ত প্রতিদিনের পাইকারি ফসলের দরদাম এবং চার্ট বিশ্লেষণ।
                 </p>
               </div>
@@ -1042,17 +1019,15 @@ export default function Home() {
           {/* Feature 5: Information Hub */}
           <div 
             onClick={() => router.push('/articles')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <BookOpen className="w-5 h-5" />
-              </div>
+              <BookOpen className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  কৃষি তথ্য ভান্ডার <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  কৃষি তথ্য ভান্ডার
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   DAE এবং BINA নোটিশ বোর্ড থেকে স্বয়ংক্রিয়ভাবে সিঙ্ক হওয়া নতুন নোটিশ, জাত ও বৈজ্ঞানিক নির্দেশিকা।
                 </p>
               </div>
@@ -1065,17 +1040,15 @@ export default function Home() {
           {/* Feature 6: Diagnostic Symptom Checker */}
           <div 
             onClick={() => router.push('/crops/diagnostics')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
+              <AlertTriangle className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  রোগ নির্ণয় নির্দেশিকা <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  রোগ নির্ণয় নির্দেশিকা
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   গাছের আক্রান্ত অঙ্গ ও লক্ষণ ক্লিক করে রোগ শনাক্ত করুন এবং BARI/BRRI অনুমোদিত সঠিক ডোজ জানুন।
                 </p>
               </div>
@@ -1088,17 +1061,15 @@ export default function Home() {
           {/* Feature 7: Pesticide Calculator */}
           <div 
             onClick={() => router.push('/calculator/pesticide')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Calculator className="w-5 h-5" />
-              </div>
+              <Calculator className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  কীটনাশক প্রয়োগের হিসাব <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  কীটনাশক প্রয়োগের হিসাব
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   স্প্রে ড্রামের সাইজ এবং বোতলের নির্দেশিকা অনুযায়ী সঠিক পরিমাণ বালাইনাশক ও পানির অনুপাত গণনা।
                 </p>
               </div>
@@ -1111,17 +1082,15 @@ export default function Home() {
           {/* Feature 8: Irrigation Advisor */}
           <div 
             onClick={() => router.push('/weather/irrigation')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Droplets className="w-5 h-5" />
-              </div>
+              <Droplets className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  সেচ দেওয়ার সঠিক নিয়ম <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  সেচ দেওয়ার সঠিক নিয়ম
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   বৃষ্টির পূর্বাভাস ও মাটির আর্দ্রতার উপর ভিত্তি করে জমিতে সেচ প্রদান বা নিষ্কাশনের সতর্কবার্তা।
                 </p>
               </div>
@@ -1134,17 +1103,15 @@ export default function Home() {
           {/* Feature 9: Soil pH Advisor */}
           <div 
             onClick={() => router.push('/calculator/soil-ph')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Thermometer className="w-5 h-5" />
-              </div>
+              <Thermometer className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  মাটি পরীক্ষা ও চিকিৎসা <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  মাটি পরীক্ষা ও চিকিৎসা
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   মাটির pH লেভেল অনুযায়ী অম্লত্ব বা ক্ষারত্ব দূর করতে বিঘাপ্রতি ডলোচুন বা জিপসামের পরিমাণ হিসাব।
                 </p>
               </div>
@@ -1157,17 +1124,15 @@ export default function Home() {
           {/* Feature 10: Seed Rate Calculator */}
           <div 
             onClick={() => router.push('/calculator/seeds')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Sprout className="w-5 h-5" />
-              </div>
+              <Sprout className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  বীজ ও চারার পরিমাণ <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  বীজ ও চারার পরিমাণ
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   জমির পরিমাপ অনুযায়ী প্রয়োজনীয় বীজের সঠিক ওজন এবং আদর্শ বপন দূরত্ব ও গভীরতার গাইডলাইন।
                 </p>
               </div>
@@ -1180,17 +1145,15 @@ export default function Home() {
           {/* Feature 11: Loans & Subsidies */}
           <div 
             onClick={() => router.push('/directory/loans')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Coins className="w-5 h-5" />
-              </div>
+              <Coins className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  কৃষি ঋণ ও অনুদান <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  কৃষি ঋণ ও অনুদান
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   বাংলাদেশ কৃষি ব্যাংকের লোন স্কিম এবং সরকারি বীজ, সার ও যন্ত্রপাতি ক্রয়ে ভর্তুকির আবেদন গাইড।
                 </p>
               </div>
@@ -1203,17 +1166,15 @@ export default function Home() {
           {/* Feature 12: Crop Rotation */}
           <div 
             onClick={() => router.push('/crops/rotation')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px]"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <RefreshCw className="w-5 h-5" />
-              </div>
+              <RefreshCw className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  পর্যায়ক্রমে ফসল চাষ <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  পর্যায়ক্রমে ফসল চাষ
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   মাটির নাইট্রোজেন ও উর্বরতা বজায় রাখতে ধানের পর কোন ফসল চাষ করা উচিত তার ফসল চক্র নকশা।
                 </p>
               </div>
@@ -1226,17 +1187,15 @@ export default function Home() {
           {/* Feature 13: Soil-Crop Matchmaker */}
           <div 
             onClick={() => router.push('/crops/matchmaker')}
-            className="agri-glass p-6 cursor-pointer group relative overflow-hidden shadow-sm flex flex-col justify-between min-h-[220px] col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-4"
+            className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-white/70 hover:bg-white hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[200px] group col-span-1"
           >
             <div className="space-y-4">
-              <div className="w-10 h-10 bg-green-primary/10 text-green-primary rounded-xl flex items-center justify-center group-hover:bg-green-primary group-hover:text-soft-white transition-all duration-300">
-                <Compass className="w-5 h-5" />
-              </div>
+              <Compass className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
-                <h3 className="text-lg font-black text-text-primary flex items-center gap-1.5 group-hover:text-green-primary transition-colors">
-                  লাভজনক ফসল নির্বাচন <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
+                  লাভজনক ফসল নির্বাচন
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed font-bold">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   আপনার জেলা, মাটির গঠন ও চলতি আবহাওয়া বিশ্লেষণ করে সর্বোচ্চ লাভজনক ফসল নির্বাচনের গাইড।
                 </p>
               </div>
