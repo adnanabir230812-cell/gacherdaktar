@@ -440,10 +440,7 @@ export default function Home() {
         
         {/* Hero Content */}
         <div className="relative z-10 p-8 md:p-14 max-w-4xl space-y-6 text-soft-white">
-          <div className="inline-flex items-center gap-2 px-4.5 py-2 rounded-full bg-white/10 border border-white/20 text-sunlight text-xs md:text-sm font-bold backdrop-blur-md shadow-sm">
-            <Sprout className="w-3.5 h-3.5 text-sunlight shrink-0" />
-            <span>প্রযুক্তি ও উর্বর মাটির মহামিলন</span>
-          </div>
+
           
           <h1 className="text-4xl md:text-6xl font-black leading-tight drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] text-soft-white">
             বাংলাদেশের সর্বপ্রথম <br />

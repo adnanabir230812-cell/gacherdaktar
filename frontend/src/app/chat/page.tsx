@@ -734,28 +734,7 @@ function ChatContent() {
                     </div>
                   )}
 
-                  {/* Follow-up Questions */}
-                  {msg.followUpQuestions && msg.followUpQuestions.length > 0 && (
-                    <div className="space-y-1 pt-1">
-                      <p className="text-[11px] font-bold text-text-secondary flex items-center gap-1">
-                        <CornerDownRight className="w-3 h-3 text-green-primary" />
-                        আপনি চাইলে জিজ্ঞেস করতে পারেন:
-                      </p>
-                      <div className="flex flex-col gap-1 items-start">
-                        {msg.followUpQuestions.map((q, i) => (
-                          <button
-                            key={i}
-                            onClick={() => {
-                              sendMessageToAPI(q, messages);
-                            }}
-                            className="text-xs text-green-primary hover:underline font-medium text-left cursor-pointer"
-                          >
-                            • {q}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+
                 </div>
               )}
             </div>
