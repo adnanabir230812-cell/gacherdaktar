@@ -80,6 +80,50 @@ function ChatContent() {
     });
   }, []);
 
+  // Lock body scroll, hide footer, and optimize main padding while the chat page is active
+  useEffect(() => {
+    // Lock body scrolling
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.body.style.height = '100dvh';
+
+    // Hide footer
+    const footer = document.querySelector('footer');
+    let originalFooterDisplay = '';
+    if (footer) {
+      originalFooterDisplay = footer.style.display;
+      footer.style.display = 'none';
+    }
+
+    // Shrink main padding to maximize vertical chat space
+    const main = document.querySelector('main');
+    let originalMainPaddingTop = '';
+    let originalMainPaddingBottom = '';
+    let originalMainMarginBottom = '';
+    if (main) {
+      originalMainPaddingTop = main.style.paddingTop;
+      originalMainPaddingBottom = main.style.paddingBottom;
+      originalMainMarginBottom = main.style.marginBottom;
+      main.style.paddingTop = '0.5rem';
+      main.style.paddingBottom = '0.5rem';
+      main.style.marginBottom = '0px';
+    }
+
+    return () => {
+      // Restore styles when unmounting chat
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      if (footer) {
+        footer.style.display = originalFooterDisplay;
+      }
+      if (main) {
+        main.style.paddingTop = originalMainPaddingTop;
+        main.style.paddingBottom = originalMainPaddingBottom;
+        main.style.marginBottom = originalMainMarginBottom;
+      }
+    };
+  }, []);
+
   // Initialize Speech Recognition Support Check
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -423,12 +467,12 @@ function ChatContent() {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-140px)] flex flex-col z-10 max-w-5xl mx-auto">
+    <div className="chat-page-wrapper relative h-[calc(100dvh-130px)] md:h-[calc(100vh-180px)] flex flex-col z-10 max-w-5xl mx-auto overflow-hidden">
       {/* Cinematic Golden Glow Sunlight Background */}
       <div className="absolute top-[10%] left-[30%] w-[500px] h-[500px] rounded-full sunlight-glow pointer-events-none z-0" />
 
       {/* TOP HEADER CONTROLS */}
-      <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-soft-white/70 backdrop-blur-md p-4 rounded-2xl border border-green-primary/10 mb-4 shadow-sm">
+      <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-soft-white/70 backdrop-blur-md p-4 rounded-2xl border border-green-primary/10 mb-4 shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => router.push('/')}
@@ -449,7 +493,7 @@ function ChatContent() {
       </div>
 
       {/* CHAT MESSAGES WINDOW */}
-      <div className="relative z-10 flex-1 min-h-[400px] max-h-[55vh] overflow-y-auto bg-soft-white/60 border border-green-primary/10 rounded-2xl p-4 md:p-6 mb-4 shadow-inner flex flex-col gap-4">
+      <div className="relative z-10 flex-1 overflow-y-auto bg-soft-white/60 border border-green-primary/10 rounded-2xl p-4 md:p-6 mb-4 shadow-inner flex flex-col gap-4">
         {messages.map((msg) => (
           <div 
             key={msg.id}
@@ -574,7 +618,7 @@ function ChatContent() {
 
       {/* QUICK CHIPS SUGGESTIONS (only shown initially or when there's only welcome message) */}
       {messages.length === 1 && (
-        <div className="relative z-10 px-4 mb-4">
+        <div className="relative z-10 px-4 mb-4 shrink-0">
           <p className="text-xs font-bold text-text-secondary mb-2">সহজে শুরু করতে ক্লিক করুন:</p>
           <div className="flex flex-wrap gap-2">
             {welcomeSuggestions.map((item, idx) => (
@@ -593,7 +637,7 @@ function ChatContent() {
       )}
 
       {/* INPUT FORM AND VOICE CONTROL */}
-      <form onSubmit={handleSend} className="relative z-10 bg-soft-white border border-green-primary/10 p-3 rounded-2xl shadow-md flex items-center gap-2">
+      <form onSubmit={handleSend} className="relative z-10 bg-soft-white border border-green-primary/10 p-3 rounded-2xl shadow-md flex items-center gap-2 shrink-0">
         {speechSupported ? (
           <button
             type="button"

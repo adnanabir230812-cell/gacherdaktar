@@ -150,6 +150,19 @@ export default function LeafScanner() {
   const [selectedCrop, setSelectedCrop] = useState('');
   const [cropSearchQuery, setCropSearchQuery] = useState('');
   const [isCropDropdownOpen, setIsCropDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCropDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const toggleTab = (tab: string) => {
     setActiveTab(activeTab === tab ? null : tab);
@@ -366,7 +379,7 @@ export default function LeafScanner() {
         <div className={scannerResult || clarifyingQuestions ? "lg:col-span-2 space-y-4 flex flex-col justify-start" : "w-full space-y-4 flex flex-col justify-start"}>
           
           {/* Custom Searchable Crop Dropdown */}
-          <div className="relative space-y-2">
+          <div ref={dropdownRef} className="relative space-y-2">
             <label className="block text-xs md:text-sm font-black text-text-primary flex items-center gap-1.5">
               🌾 ফসল নির্বাচন করুন (বাধ্যতামূলক):
             </label>
@@ -375,11 +388,6 @@ export default function LeafScanner() {
                 type="text"
                 value={cropSearchQuery}
                 onFocus={() => setIsCropDropdownOpen(true)}
-                onBlur={() => {
-                  setTimeout(() => {
-                    setIsCropDropdownOpen(false);
-                  }, 200);
-                }}
                 onChange={(e) => {
                   setCropSearchQuery(e.target.value);
                   setSelectedCrop(''); // Reset selected crop until clicked
