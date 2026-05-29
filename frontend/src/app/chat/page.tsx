@@ -82,10 +82,18 @@ function ChatContent() {
 
   // Lock body scroll, hide footer, and optimize main padding while the chat page is active
   useEffect(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     // Lock body scrolling
     document.body.style.overflow = 'hidden';
     document.body.style.height = '100vh';
     document.body.style.height = '100dvh';
+    
+    let originalBodyPaddingBottom = '';
+    if (isMobile) {
+      originalBodyPaddingBottom = document.body.style.paddingBottom;
+      document.body.style.setProperty('padding-bottom', '56px', 'important');
+    }
 
     // Hide footer
     const footer = document.querySelector('footer');
@@ -95,31 +103,82 @@ function ChatContent() {
       footer.style.display = 'none';
     }
 
+    // Forcefully hide top developer banner and sticky header on mobile
+    const banner = document.getElementById('developer-attribution-banner');
+    const header = document.querySelector('header');
+    let originalBannerDisplay = '';
+    let originalHeaderDisplay = '';
+
+    if (isMobile) {
+      if (banner) {
+        originalBannerDisplay = banner.style.display;
+        banner.style.setProperty('display', 'none', 'important');
+      }
+      if (header) {
+        originalHeaderDisplay = header.style.display;
+        header.style.setProperty('display', 'none', 'important');
+      }
+    }
+
     // Shrink main padding to maximize vertical chat space
     const main = document.querySelector('main');
+    let originalMainPadding = '';
+    let originalMainMargin = '';
+    let originalMainMaxWidth = '';
+    let originalMainWidth = '';
     let originalMainPaddingTop = '';
     let originalMainPaddingBottom = '';
     let originalMainMarginBottom = '';
+    
     if (main) {
-      originalMainPaddingTop = main.style.paddingTop;
-      originalMainPaddingBottom = main.style.paddingBottom;
-      originalMainMarginBottom = main.style.marginBottom;
-      main.style.paddingTop = '0.5rem';
-      main.style.paddingBottom = '0.5rem';
-      main.style.marginBottom = '0px';
+      if (isMobile) {
+        originalMainPadding = main.style.padding;
+        originalMainMargin = main.style.margin;
+        originalMainMaxWidth = main.style.maxWidth;
+        originalMainWidth = main.style.width;
+
+        main.style.setProperty('padding', '0px', 'important');
+        main.style.setProperty('margin', '0px', 'important');
+        main.style.setProperty('max-width', '100%', 'important');
+        main.style.setProperty('width', '100%', 'important');
+      } else {
+        originalMainPaddingTop = main.style.paddingTop;
+        originalMainPaddingBottom = main.style.paddingBottom;
+        originalMainMarginBottom = main.style.marginBottom;
+
+        main.style.paddingTop = '0.5rem';
+        main.style.paddingBottom = '0.5rem';
+        main.style.marginBottom = '0px';
+      }
     }
 
     return () => {
       // Restore styles when unmounting chat
       document.body.style.overflow = '';
       document.body.style.height = '';
+      if (isMobile) {
+        document.body.style.paddingBottom = originalBodyPaddingBottom;
+      }
       if (footer) {
         footer.style.display = originalFooterDisplay;
       }
+      if (banner && isMobile) {
+        banner.style.display = originalBannerDisplay;
+      }
+      if (header && isMobile) {
+        header.style.display = originalHeaderDisplay;
+      }
       if (main) {
-        main.style.paddingTop = originalMainPaddingTop;
-        main.style.paddingBottom = originalMainPaddingBottom;
-        main.style.marginBottom = originalMainMarginBottom;
+        if (isMobile) {
+          main.style.padding = originalMainPadding;
+          main.style.margin = originalMainMargin;
+          main.style.maxWidth = originalMainMaxWidth;
+          main.style.width = originalMainWidth;
+        } else {
+          main.style.paddingTop = originalMainPaddingTop;
+          main.style.paddingBottom = originalMainPaddingBottom;
+          main.style.marginBottom = originalMainMarginBottom;
+        }
       }
     };
   }, []);

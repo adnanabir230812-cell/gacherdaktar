@@ -18,24 +18,136 @@ import {
   ChevronDown
 } from 'lucide-react';
 
-const CROPS_LIST = [
-  // Commonly Cultivated Crops (Top)
-  "ধান", "গম", "আলু", "পেঁয়াজ", "বেগুন", "মরিচ", "টমেটো", "পাট", "সরিষা", "রসুন",
-  
+interface CropItem {
+  bn: string;
+  en: string;
+}
+
+const CROPS_LIST: CropItem[] = [
+  // Commonly Cultivated Crops in Bangladesh (Keep current exact sequence at top)
+  { bn: "ধান", en: "Rice" },
+  { bn: "গম", en: "Wheat" },
+  { bn: "আলু", en: "Potato" },
+  { bn: "পেঁয়াজ", en: "Onion" },
+  { bn: "বেগুন", en: "Eggplant" },
+  { bn: "মরিচ", en: "Chilli" },
+  { bn: "টমেটো", en: "Tomato" },
+  { bn: "পাট", en: "Jute" },
+  { bn: "সরিষা", en: "Mustard" },
+  { bn: "রসুন", en: "Garlic" },
+
   // Vegetables
-  "ফুলকপি", "বাঁধাকপি", "গাজর", "মুলা", "পটল", "করলা", "ঝিঙা", "চিচিঙ্গা", "চালকুমড়া", 
-  "মিষ্টি কুমড়া", "লাউ", "ঢেঁড়স", "বরবটি", "সীম", "লালশাক", "পালংশাক", "পুঁইশাক", 
-  "শসা", "কাঁকরোল", "ধন্দুল", "ডুমুর", "ওলকচু", "মানকচু",
-  
+  { bn: "ফুলকপি", en: "Cauliflower" },
+  { bn: "বাঁধাকপি", en: "Cabbage" },
+  { bn: "গাজর", en: "Carrot" },
+  { bn: "মুলা", en: "Radish" },
+  { bn: "পটল", en: "Pointed Gourd" },
+  { bn: "করলা", en: "Bitter Gourd" },
+  { bn: "ঝিঙা", en: "Ridge Gourd" },
+  { bn: "চিচিঙ্গা", en: "Snake Gourd" },
+  { bn: "চালকুমড়া", en: "Ash Gourd" },
+  { bn: "মিষ্টি কুমড়া", en: "Sweet Pumpkin" },
+  { bn: "লাউ", en: "Bottle Gourd" },
+  { bn: "ঢেঁড়স", en: "Okra" },
+  { bn: "বরবটি", en: "Yardlong Bean" },
+  { bn: "সীম", en: "Flat Bean" },
+  { bn: "লালশাক", en: "Red Amaranth" },
+  { bn: "পালংশাক", en: "Spinach" },
+  { bn: "পুঁইশাক", en: "Malabar Spinach" },
+  { bn: "শসা", en: "Cucumber" },
+  { bn: "কাঁকরোল", en: "Teasel Gourd" },
+  { bn: "ধন্দুল", en: "Sponge Gourd" },
+  { bn: "ওলকচু", en: "Elephant Foot Yam" },
+  { bn: "মানকচু", en: "Taro" },
+
   // Fruits
-  "আম", "কাঁঠাল", "লিচু", "কলা", "পেঁপে", "পেয়ারা", "নারিকেল", "লেবু", "তরমুজ", 
-  "কুল (বরই)", "আনারস", "কামরাঙ্গা", "সফেদা", "জাম্বুরা", "ডালিম", "বেল", "কদবেল",
-  
+  { bn: "আম", en: "Mango" },
+  { bn: "কাঁঠাল", en: "Jackfruit" },
+  { bn: "লিচু", en: "Litchi" },
+  { bn: "কলা", en: "Banana" },
+  { bn: "পেঁপে", en: "Papaya" },
+  { bn: "পেয়ারা", en: "Guava" },
+  { bn: "নারিকেল", en: "Coconut" },
+  { bn: "লেবু", en: "Lemon" },
+  { bn: "তরমুজ", en: "Watermelon" },
+  { bn: "কুল (বরই)", en: "Jujube" },
+  { bn: "আনারস", en: "Pineapple" },
+  { bn: "কামরাঙ্গা", en: "Star Fruit" },
+  { bn: "সফেদা", en: "Sapodilla" },
+  { bn: "জাম্বুরা", en: "Pomelo" },
+  { bn: "ডালিম", en: "Pomegranate" },
+  { bn: "বেল", en: "Wood Apple" },
+  { bn: "কদবেল", en: "Elephant Apple" },
+
   // Pulses & Oilseeds
-  "মসুর ডাল", "মুগ ডাল", "খেসারি ডাল", "ছোলা", "চিনাবাদাম", "তিল", "সূর্যমুখী",
-  
+  { bn: "মসুর ডাল", en: "Red Lentil" },
+  { bn: "মুগ ডাল", en: "Mung Bean" },
+  { bn: "খেসারি ডাল", en: "Grass Pea" },
+  { bn: "ছোলা", en: "Chickpea" },
+  { bn: "চিনাবাদাম", en: "Peanut" },
+  { bn: "তিল", en: "Sesame" },
+  { bn: "সূর্যমুখী", en: "Sunflower" },
+
   // Spices & Others
-  "আদা", "হলুদ", "ধনে", "তেজপাতা", "পান পাতা", "সুপারি", "আখ"
+  { bn: "আদা", en: "Ginger" },
+  { bn: "হলুদ", en: "Turmeric" },
+  { bn: "ধনে", en: "Coriander" },
+  { bn: "তেজপাতা", en: "Bay Leaf" },
+  { bn: "পান পাতা", en: "Betel Leaf" },
+  { bn: "সুপারি", en: "Betel Nut" },
+  { bn: "আখ", en: "Sugarcane" },
+
+  // 🌍 Global / World Cultivated Crops (Added at the bottom)
+  { bn: "ভুট্টা", en: "Maize" },
+  { bn: "কফি", en: "Coffee" },
+  { bn: "চা", en: "Tea" },
+  { bn: "বার্লি", en: "Barley" },
+  { bn: "ওটস", en: "Oats" },
+  { bn: "সয়াবিন", en: "Soybean" },
+  { bn: "তুলা", en: "Cotton" },
+  { bn: "জলপাই", en: "Olive" },
+  { bn: "আপেল", en: "Apple" },
+  { bn: "কমলা", en: "Orange" },
+  { bn: "আঙ্গুর", en: "Grapes" },
+  { bn: "স্ট্রবেরি", en: "Strawberry" },
+  { bn: "নাশপাতি", en: "Pear" },
+  { bn: "প্লাম", en: "Plum" },
+  { bn: "চেরি", en: "Cherry" },
+  { bn: "অ্যাভোকাডো", en: "Avocado" },
+  { bn: "কিউই", en: "Kiwi" },
+  { bn: "কাঠবাদাম", en: "Almond" },
+  { bn: "আখরোট", en: "Walnut" },
+  { bn: "কাজুবাদাম", en: "Cashew" },
+  { bn: "পেস্তা বাদাম", en: "Pistachio" },
+  { bn: "ব্রকলি", en: "Broccoli" },
+  { bn: "লেটুস", en: "Lettuce" },
+  { bn: "শালগম", en: "Turnip" },
+  { bn: "বিটমূল", en: "Beetroot" },
+  { bn: "কাসাভা", en: "Cassava" },
+  { bn: "মেটে আলু", en: "Yam" },
+  { bn: "মিষ্টি আলু", en: "Sweet Potato" },
+  { bn: "অ্যাসপ্যারাগাস", en: "Asparagus" },
+  { bn: "সেলারি", en: "Celery" },
+  { bn: "কোকো", en: "Cocoa" },
+  { bn: "তামাক", en: "Tobacco" },
+  { bn: "রাবার", en: "Rubber" },
+  { bn: "রাই", en: "Rye" },
+  { bn: "মিলেট", en: "Millet" },
+  { bn: "সোরঘাম", en: "Sorghum" },
+  { bn: "এলাচ", en: "Cardamom" },
+  { bn: "দারুচিনি", en: "Cinnamon" },
+  { bn: "লবঙ্গ", en: "Clove" },
+  { bn: "গোলমরিচ", en: "Black Pepper" },
+  { bn: "জিরা", en: "Cumin" },
+  { bn: "ভ্যানিলা", en: "Vanilla" },
+  { bn: "তিসি", en: "Flax" },
+  { bn: "কিনোয়া", en: "Quinoa" },
+  { bn: "চিয়া বীজ", en: "Chia Seeds" },
+  { bn: "ব্লুবেরি", en: "Blueberry" },
+  { bn: "পিচ", en: "Peach" },
+  { bn: "রাস্পবেরি", en: "Raspberry" },
+  { bn: "মালবেরি", en: "Mulberry" },
+  { bn: "কুসুম ফুল", en: "Safflower" }
 ];
 
 const compressImage = (dataUrl: string, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.75): Promise<string> => {
@@ -405,13 +517,19 @@ export default function LeafScanner() {
               </button>
             </div>
 
-            {/* Dropdown List Overlay */}
+                        {/* Dropdown List Overlay */}
             {isCropDropdownOpen && (
               <div className="absolute z-20 w-full mt-1 bg-white border border-green-primary/15 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-green-primary/5">
                 {(() => {
-                  const filtered = CROPS_LIST.filter(c => 
-                    c.toLowerCase().includes(cropSearchQuery.toLowerCase())
-                  );
+                  const filtered = CROPS_LIST.filter(c => {
+                    const displayStr = `${c.bn} (${c.en})`;
+                    // If no search query, or search query matches selected crop, show all
+                    if (!cropSearchQuery || cropSearchQuery === displayStr || cropSearchQuery === selectedCrop) {
+                      return true;
+                    }
+                    const query = cropSearchQuery.toLowerCase().trim();
+                    return c.bn.toLowerCase().includes(query) || c.en.toLowerCase().includes(query);
+                  });
                   if (filtered.length === 0) {
                     return (
                       <div className="px-4 py-3 text-xs text-text-secondary font-medium">
@@ -420,22 +538,22 @@ export default function LeafScanner() {
                     );
                   }
                   return filtered.map((crop) => {
-                    const isSelected = selectedCrop === crop;
-                    const isCommon = ["ধান", "গম", "আলু", "পেঁয়াজ", "বেগুন", "مরিচ", "টমেটো", "পাট", "সরিষা", "রসুন"].includes(crop);
+                    const isSelected = selectedCrop === crop.bn;
+                    const displayVal = `${crop.bn} (${crop.en})`;
                     return (
                       <button
-                        key={crop}
+                        key={crop.bn}
                         type="button"
                         onClick={() => {
-                          setSelectedCrop(crop);
-                          setCropSearchQuery(crop);
+                          setSelectedCrop(crop.bn);
+                          setCropSearchQuery(displayVal);
                           setIsCropDropdownOpen(false);
                         }}
                         className={`w-full px-4 py-2.5 text-left text-xs md:text-sm font-bold transition-colors hover:bg-green-primary/5 flex items-center justify-between cursor-pointer ${
                           isSelected ? 'bg-green-primary/10 text-green-primary' : 'text-text-primary'
                         }`}
                       >
-                        <span>{crop} {isCommon && <span className="ml-1.5 text-[9px] bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded-md border border-amber-500/10 font-bold">জনপ্রিয়</span>}</span>
+                        <span>{displayVal}</span>
                         {isSelected && <span className="text-green-primary font-bold">✓</span>}
                       </button>
                     );
