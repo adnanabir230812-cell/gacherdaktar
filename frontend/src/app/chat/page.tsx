@@ -146,7 +146,7 @@ function ChatContent() {
     let originalBodyPaddingBottom = '';
     if (isMobile) {
       originalBodyPaddingBottom = document.body.style.paddingBottom;
-      document.body.style.setProperty('padding-bottom', '56px', 'important');
+      document.body.style.setProperty('padding-bottom', '0px', 'important');
     }
 
     // Hide footer
@@ -324,7 +324,7 @@ function ChatContent() {
     const welcomeMsg: Message = {
       id: 'welcome',
       sender: 'bot',
-      text: 'আসসালামু আলাইকুম! আমি **গাছের ডাক্তার**।\n\nআমি আপনাকে ফসল চাষাবাদে সারের সঠিক অনুপাত প্রয়োগ, মাটি উর্বর রাখার কৌশল, এবং ফসলের বিভিন্ন রোগবালাই প্রতিকার ও প্রতিরোধের উপায় সম্পর্কে বিস্তারিত বইয়ের মতো করে পরামর্শ দিতে পারি।\n\nআপনার ফসলের যেকোনো সমস্যা নিচে বাংলায় বিস্তারিত লিখুন অথবা কথা বলতে মাইক্রোফোন বাটন ব্যবহার করুন।'
+      text: 'আসসালামু আলাইকুম! আমি **গাছের ডাক্তার**।\n\nআমি আপনাকে ফসল চাষাবাদে সারের সঠিক অনুপাত প্রয়োগ, মাটি উর্বর রাখার কৌশল, এবং ফসলের বিভিন্ন রোগবালাই প্রতিকার ও প্রতিরোধের উপায় সম্পর্কে বিস্তারিত বইয়ের মতো করে পরামর্শ দিতে পারি।\n\nআপনার ফসলের যেকোনো সমস্যা নিচে বাংলায় বিস্তারিত লিখুন।'
     };
     
     if (initialQuery) {
@@ -601,12 +601,12 @@ function ChatContent() {
             width: 100% !important;
           }
           body {
-            padding-bottom: 56px !important;
+            padding-bottom: 0px !important;
             overflow: hidden !important;
             height: 100dvh !important;
           }
           .chat-page-wrapper {
-            height: calc(100dvh - 56px) !important;
+            height: 100dvh !important;
           }
         }
       `}} />
@@ -803,35 +803,11 @@ function ChatContent() {
           <ImageIcon className="w-5 h-5" />
         </button>
 
-        {speechSupported ? (
-          <button
-            type="button"
-            onClick={toggleListening}
-            className={`p-3 rounded-full transition-all cursor-pointer shrink-0 ${
-              isListening 
-                ? 'bg-red-500 text-soft-white animate-pulse' 
-                : 'bg-green-primary/10 text-green-primary hover:bg-green-primary/20'
-            }`}
-            title={isListening ? 'শোনা বন্ধ করুন' : 'কথা বলুন (বাংলা)'}
-          >
-            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => alert('ভয়েস ইনপুট আপনার বর্তমান ব্রাউজারে সমর্থিত নয় অথবা আপনি সাইটটিতে সুরক্ষিত সংযোগ (HTTPS) ছাড়া প্রবেশ করেছেন। দয়া করে গুগল ক্রোম (Google Chrome) বা সাফারি (Safari) ব্রাউজার ব্যবহার করুন এবং মাইক্রোফোন পারমিশন দিন।')}
-            className="p-3 rounded-full bg-green-primary/5 text-text-secondary/40 cursor-pointer shrink-0"
-            title="ভয়েস ইনপুট সমর্থিত নয় (সহায়তার জন্য এখানে ক্লিক করুন)"
-          >
-            <MicOff className="w-5 h-5" />
-          </button>
-        )}
-
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isListening ? 'শুনছি... বলুন' : 'ফসলের রোগ বা চাষ পদ্ধতি নিয়ে লিখুন...'}
+          placeholder="ফসলের রোগ বা চাষ পদ্ধতি নিয়ে লিখুন..."
           className="flex-1 px-4 py-3 rounded-xl border border-green-primary/10 bg-warm-bg/20 focus:outline-none focus:ring-1 focus:ring-green-primary text-sm md:text-base text-text-primary placeholder-text-secondary/60"
         />
 

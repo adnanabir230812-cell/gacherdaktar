@@ -306,72 +306,74 @@ export default function Header() {
       </header>
 
       {/* 📱 Sticky Bottom Navigation Bar for Mobile Screens */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-soft-white/80 backdrop-blur-lg border-t border-green-primary/10 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] px-2 py-1.5 flex items-center justify-around">
-        {/* Home */}
-        <Link 
-          href="/" 
-          className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
-            pathname === '/' 
-              ? 'text-green-primary font-black scale-105' 
-              : 'text-text-secondary'
-          }`}
-        >
-          <Home className="w-5 h-5" />
-          <span className="text-[10px] font-bold">হোম</span>
-        </Link>
+      {pathname !== '/chat' && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-soft-white/80 backdrop-blur-lg border-t border-green-primary/10 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] px-2 py-1.5 flex items-center justify-around">
+          {/* Home */}
+          <Link 
+            href="/" 
+            className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
+              pathname === '/' 
+                ? 'text-green-primary font-black scale-105' 
+                : 'text-text-secondary'
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] font-bold">হোম</span>
+          </Link>
 
-        {/* Crops */}
-        <Link 
-          href="/crops" 
-          className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
-            pathname.startsWith('/crops') 
-              ? 'text-green-primary font-black scale-105' 
-              : 'text-text-secondary'
-          }`}
-        >
-          <BookOpen className="w-5 h-5" />
-          <span className="text-[10px] font-bold">ফসলের বই</span>
-        </Link>
+          {/* Crops */}
+          <Link 
+            href="/crops" 
+            className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
+              pathname.startsWith('/crops') 
+                ? 'text-green-primary font-black scale-105' 
+                : 'text-text-secondary'
+            }`}
+          >
+            <BookOpen className="w-5 h-5" />
+            <span className="text-[10px] font-bold">ফসলের বই</span>
+          </Link>
 
-        {/* Calculator */}
-        <Link 
-          href="/calculator" 
-          className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
-            pathname.startsWith('/calculator') 
-              ? 'text-green-primary font-black scale-105' 
-              : 'text-text-secondary'
-          }`}
-        >
-          <Calculator className="w-5 h-5" />
-          <span className="text-[10px] font-bold">ক্যালকুলেটর</span>
-        </Link>
+          {/* Calculator */}
+          <Link 
+            href="/calculator" 
+            className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
+              pathname.startsWith('/calculator') 
+                ? 'text-green-primary font-black scale-105' 
+                : 'text-text-secondary'
+            }`}
+          >
+            <Calculator className="w-5 h-5" />
+            <span className="text-[10px] font-bold">ক্যালকুলেটর</span>
+          </Link>
 
-        {/* Prices */}
-        <Link 
-          href="/prices" 
-          className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
-            pathname.startsWith('/prices') 
-              ? 'text-green-primary font-black scale-105' 
-              : 'text-text-secondary'
-          }`}
-        >
-          <TrendingUp className="w-5 h-5" />
-          <span className="text-[10px] font-bold">বাজার দর</span>
-        </Link>
+          {/* Prices */}
+          <Link 
+            href="/prices" 
+            className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
+              pathname.startsWith('/prices') 
+                ? 'text-green-primary font-black scale-105' 
+                : 'text-text-secondary'
+            }`}
+          >
+            <TrendingUp className="w-5 h-5" />
+            <span className="text-[10px] font-bold">বাজার দর</span>
+          </Link>
 
-        {/* Chat */}
-        <Link 
-          href="/chat" 
-          className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
-            pathname === '/chat' 
-              ? 'text-green-primary font-black scale-105' 
-              : 'text-text-secondary'
-          }`}
-        >
-          <MessageSquare className="w-5 h-5" />
-          <span className="text-[10px] font-bold">জিজ্ঞেস করুন</span>
-        </Link>
-      </nav>
+          {/* Chat */}
+          <Link 
+            href="/chat" 
+            className={`flex flex-col items-center gap-0.5 py-1 px-3.5 rounded-2xl transition-all ${
+              pathname === '/chat' 
+                ? 'text-green-primary font-black scale-105' 
+                : 'text-text-secondary'
+            }`}
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-[10px] font-bold">জিজ্ঞেস করুন</span>
+          </Link>
+        </nav>
+      )}
 
     </>
   );
