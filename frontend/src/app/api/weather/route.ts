@@ -135,7 +135,7 @@ export async function GET(request: Request) {
     const advice = {
       rain: {
         status: dailyPrecip > 5.0 ? "high_rain" : "dry",
-        title: "🌧️ সেচ ও নিষ্কাশন গাইড",
+        title: "সেচ ও নিষ্কাশন গাইড",
         msg: dailyPrecip > 5.0 
           ? `আগামী ২৪ ঘণ্টায় ${dailyPrecip.toFixed(1)} মিমি বৃষ্টির সম্ভাবনা রয়েছে।`
           : "আগামী ২৪ ঘণ্টায় ভারী বৃষ্টির কোনো সম্ভাবনা নেই।",
@@ -153,7 +153,7 @@ export async function GET(request: Request) {
       },
       disease_risk: {
         status: avgHumidity > 85 ? "danger" : "normal",
-        title: "🦠 বালাই ও ছত্রাক সংক্রমণ ঝুঁকি",
+        title: "বালাই ও ছত্রাক সংক্রমণ ঝুঁকি",
         msg: avgHumidity > 85 
           ? `বাতাসের গড় আপেক্ষিক আর্দ্রতা অতি উচ্চ (${Math.round(avgHumidity)}%) যা রোগ ছড়ানোর জন্য অনুকূল।`
           : `বাতাসের আর্দ্রতা স্বাভাবিক (${Math.round(avgHumidity)}%) রয়েছে। রোগবালাইয়ের ঝুঁকি বর্তমানে কম।`,
@@ -171,7 +171,7 @@ export async function GET(request: Request) {
       },
       spray_window: {
         status: wind > 15.0 ? "unsuitable" : "suitable",
-        title: "💨 স্প্রে করার সূচি ও ঝোড়ো হাওয়া",
+        title: "স্প্রে করার সূচি ও ঝোড়ো হাওয়া",
         msg: wind > 15.0 
           ? `বাতাসের গতিবেগ বেশি (${wind.toFixed(1)} কিমি/ঘণ্টা), যা স্প্রে করার জন্য অনুপযুক্ত।`
           : `বাতাস শান্ত (${wind.toFixed(1)} কিমি/ঘণ্টা), যা বালাইনাশক ছিটানোর জন্য আদর্শ সময়।`,
@@ -189,7 +189,7 @@ export async function GET(request: Request) {
       },
       soil: {
         status: avgSoilTemp > 30 ? "hot" : avgSoilTemp < 18 ? "cold" : "good",
-        title: "🌱 মাটির উষ্ণতা ও মাইক্রোক্লাইমেট",
+        title: "মাটির উষ্ণতা ও মাইক্রোক্লাইমেট",
         msg: avgSoilTemp > 30 
           ? `মাটির তাপমাত্রা স্বাভাবিকের চেয়ে কিছুটা বেশি (${avgSoilTemp.toFixed(1)}°C)।`
           : avgSoilTemp < 18 
@@ -215,7 +215,7 @@ export async function GET(request: Request) {
       },
       harvest: {
         status: dailyPrecip > 2.0 ? "wait" : "ready",
-        title: "🌾 ফসল সংগ্রহ ও প্রক্রিয়াজাতকরণ",
+        title: "ফসল সংগ্রহ ও প্রক্রিয়াজাতকরণ",
         msg: dailyPrecip > 2.0 
           ? "আগামী ২৪ ঘণ্টায় বৃষ্টির পূর্বাভাস রয়েছে, যা ফসল কাটার জন্য ঝুঁকিপূর্ণ।"
           : "আকাশ পরিষ্কার এবং শুষ্ক আবহাওয়া বিরাজ করছে, যা ফসল কাটার জন্য অনুকূল।",

@@ -614,7 +614,7 @@ export default function Home() {
                     : 'bg-soft-white text-text-secondary border-green-primary/10 hover:bg-green-primary/5'
                 }`}
               >
-                সব পরামর্শ (৫টি মাত্রা)
+                সব পরামর্শ
               </button>
               <button 
                 onClick={() => setActiveWeatherTab('rain')}
@@ -624,7 +624,7 @@ export default function Home() {
                     : 'bg-soft-white text-text-secondary border-green-primary/10 hover:bg-sky-50'
                 }`}
               >
-                🌧️ সেচ ও বৃষ্টি
+                সেচ ও বৃষ্টি
               </button>
               <button 
                 onClick={() => setActiveWeatherTab('disease')}
@@ -634,7 +634,7 @@ export default function Home() {
                     : 'bg-soft-white text-text-secondary border-green-primary/10 hover:bg-red-50'
                 }`}
               >
-                🦠 বালাই সংক্রমণ
+                বালাই সংক্রমণ
               </button>
               <button 
                 onClick={() => setActiveWeatherTab('spray')}
@@ -644,7 +644,7 @@ export default function Home() {
                     : 'bg-soft-white text-text-secondary border-green-primary/10 hover:bg-green-50'
                 }`}
               >
-                💨 স্প্রে সময়
+                স্প্রে সময়
               </button>
               <button 
                 onClick={() => setActiveWeatherTab('soil')}
@@ -654,7 +654,7 @@ export default function Home() {
                     : 'bg-soft-white text-text-secondary border-green-primary/10 hover:bg-amber-50'
                 }`}
               >
-                🌱 মাটির তাপমাত্রা
+                মাটির তাপমাত্রা
               </button>
               <button 
                 onClick={() => setActiveWeatherTab('harvest')}
@@ -664,7 +664,7 @@ export default function Home() {
                     : 'bg-soft-white text-text-secondary border-green-primary/10 hover:bg-yellow-50'
                 }`}
               >
-                🌾 ফসল সংগ্রহ
+                ফসল সংগ্রহ
               </button>
             </div>
 
