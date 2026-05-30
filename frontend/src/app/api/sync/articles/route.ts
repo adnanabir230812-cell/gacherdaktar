@@ -65,10 +65,13 @@ export async function GET(request: Request) {
       }
     }
 
+    // Strip 'id' field to avoid primary key conflicts, relying on source_url as the unique identifier
+    const cleanedArticles = syncedArticles.map(({ id, ...rest }) => rest);
+
     // Upsert into Supabase (will insert new items or update matching source_url fields)
     const { data, error } = await supabaseAdmin
       .from('articles')
-      .upsert(syncedArticles, { onConflict: 'source_url' });
+      .upsert(cleanedArticles, { onConflict: 'source_url' });
 
     if (error) {
       throw error;
