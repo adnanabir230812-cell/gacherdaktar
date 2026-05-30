@@ -79,8 +79,35 @@ export async function GET(request: Request) {
         { status: 401 }
       );
     }
-    // Generate daily fluctuating prices to ensure dynamic updates even when DAM scraper hits timeouts
+
     const today = new Date().toISOString().split('T')[0];
+
+    // 1. Check-First: If today's prices already exist in the database, return them immediately
+    try {
+      const { data: existingPrices } = await supabaseAdmin
+        .from('market_prices')
+        .select('*')
+        .eq('market_date', today)
+        .limit(5);
+
+      if (existingPrices && existingPrices.length > 0) {
+        const { data: allTodayPrices } = await supabaseAdmin
+          .from('market_prices')
+          .select('*')
+          .eq('market_date', today);
+
+        return NextResponse.json({
+          success: true,
+          message: `${today} তারিখের দৈনিক বাজার দর ডাটাবেজে অলরেডি সিঙ্ক করা রয়েছে (ক্যাশেড)।`,
+          count: allTodayPrices?.length || 0,
+          synced: allTodayPrices || []
+        });
+      }
+    } catch (checkErr) {
+      console.warn("Check-First prices cache read failed, regenerating:", checkErr);
+    }
+
+    // Generate daily fluctuating prices to ensure dynamic updates even when DAM scraper hits timeouts
     const pricesToSync = BASE_CROP_PRICES.map(item => {
       // Small random fluctuation to simulate daily price updates (-3% to +3%)
       const percentageChange = (Math.random() * 6 - 3) / 100;

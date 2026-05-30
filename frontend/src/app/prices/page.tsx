@@ -206,16 +206,7 @@ export default function MarketPricesPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end">
-          <button
-            onClick={handleSyncPrices}
-            disabled={syncing}
-            className="px-4 py-2.5 bg-green-primary hover:bg-green-soft text-soft-white rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'আপডেট হচ্ছে...' : 'লাইভ বাজার দর আপডেট'}
-          </button>
-        </div>
+
       </div>
 
       {syncMessage && (

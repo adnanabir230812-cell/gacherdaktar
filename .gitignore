@@ -57,3 +57,5 @@ android/
 .kotlin/
 .vscode/
 .claude/
+
+.vercel
