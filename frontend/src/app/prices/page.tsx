@@ -134,6 +134,33 @@ export default function MarketPricesPage() {
     return String(num).split('').map(char => englishToBanglaMap[char] || char).join('');
   };
 
+  const formatBengaliDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      const months = [
+        'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 
+        'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+      ];
+      
+      const englishToBanglaMap: { [key: string]: string } = {
+        '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+        '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯'
+      };
+      
+      const day = date.getDate();
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+
+      const translate = (val: string | number) => 
+        String(val).split('').map(char => englishToBanglaMap[char] || char).join('');
+
+      return `${translate(day)} ${month}, ${translate(year)}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   const getAnalysis = (cropName: string, currentPriceRange: string) => {
     const template = CROP_ANALYSIS_TEMPLATES[cropName];
     if (template) return template;
@@ -185,6 +212,13 @@ export default function MarketPricesPage() {
             <p className="text-text-secondary text-sm font-semibold">
               কৃষি বিপণন অধিদপ্তর (DAM) এর দৈনিক তথ্যের ভিত্তিতে কাওরান বাজার ও দেশীয় আড়তের গড় পাইকারি মূল্য।
             </p>
+            {prices.length > 0 && prices[0].market_date && (
+              <div className="mt-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-primary/10 border border-green-primary/20 text-green-primary text-xs font-black rounded-full shadow-sm">
+                  🗓️ বাজার দরের তারিখ: {formatBengaliDate(prices[0].market_date)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

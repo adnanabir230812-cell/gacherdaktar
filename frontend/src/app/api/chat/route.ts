@@ -271,6 +271,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
+    // Security Check: Restrict user query length to prevent DoS/overflow attacks
+    if (query.length > 2000) {
+      return NextResponse.json(
+        { error: 'আপনার প্রশ্নটি অনেক দীর্ঘ। দয়া করে ২০০০ অক্ষরের মধ্যে আপনার প্রশ্নটি সংক্ষেপ করুন।' },
+        { status: 400 }
+      );
+    }
+
     const { context, sources: dbSources } = retrieveLocalContext(query);
 
     const systemPrompt = `
