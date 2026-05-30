@@ -66,7 +66,6 @@ export default function MarketPricesPage() {
           setPrices(recentData);
         } else {
           setPrices(FALLBACK_PRICES);
-          handleAutoSync(); // Trigger background sync if completely empty
         }
       }
     } catch (err) {
@@ -77,24 +76,7 @@ export default function MarketPricesPage() {
     }
   };
 
-  // Background auto-sync if DB is empty
-  const handleAutoSync = async () => {
-    try {
-      const syncSecret = process.env.NEXT_PUBLIC_SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
-      const res = await fetch(`/api/sync/prices?secret=${syncSecret}`);
-      const data = await res.json();
-      if (data.success) {
-        const today = new Date().toISOString().split('T')[0];
-        const dbQuery = supabase.from('market_prices').select('*').eq('market_date', today);
-        const { data: dbData } = (await withTimeout(dbQuery as any, 2000)) as any;
-        if (dbData && dbData.length > 0) {
-          setPrices(dbData);
-        }
-      }
-    } catch (e) {
-      console.warn("Background auto-sync failed:", e);
-    }
-  };
+
 
   // Trigger scraper endpoint to fetch latest live prices
   const handleSyncPrices = async () => {

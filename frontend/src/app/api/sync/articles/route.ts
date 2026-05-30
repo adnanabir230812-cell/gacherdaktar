@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const forceFallback = searchParams.get('force') === 'true';
 
     // Security Check: Enforce SYNC_SECRET or CRON_SECRET to prevent unauthorized write/delete on database
-    const syncSecret = process.env.SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
+    const syncSecret = process.env.SYNC_SECRET;
     const cronSecret = process.env.CRON_SECRET;
     
     const authHeader = request.headers.get('Authorization');
@@ -16,8 +16,8 @@ export async function GET(request: Request) {
     const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
 
     const isAuthorized = 
-      (token && token === syncSecret) || 
-      (paramSecret && paramSecret === syncSecret) ||
+      (syncSecret && token && token === syncSecret) || 
+      (syncSecret && paramSecret && paramSecret === syncSecret) ||
       (cronSecret && token && token === cronSecret);
 
     if (!isAuthorized) {

@@ -84,7 +84,6 @@ export default function ArticlesPage() {
         setArticles(data);
       } else {
         setArticles(FALLBACK_ARTICLES);
-        handleAutoSync(); // Trigger background sync if empty
       }
     } catch (err) {
       console.error("Error fetching articles:", err);
@@ -94,23 +93,7 @@ export default function ArticlesPage() {
     }
   };
 
-  // Background auto-sync if DB is empty
-  const handleAutoSync = async () => {
-    try {
-      const syncSecret = process.env.NEXT_PUBLIC_SYNC_SECRET || 'krishisathi_sync_secret_token_2026';
-      const res = await fetch(`/api/sync/articles?secret=${syncSecret}`);
-      const data = await res.json();
-      if (data.success) {
-        const dbQuery = supabase.from('articles').select('*').order('publish_date', { ascending: false });
-        const { data: dbData } = (await withTimeout(dbQuery as any, 2000)) as any;
-        if (dbData && dbData.length > 0) {
-          setArticles(dbData);
-        }
-      }
-    } catch (e) {
-      console.warn("Background auto-sync failed:", e);
-    }
-  };
+
 
 
 
