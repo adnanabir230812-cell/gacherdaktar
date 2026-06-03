@@ -24,36 +24,36 @@ export async function GET(request: Request) {
   let data;
   let isWeatherAPI = false;
 
-  const apiKey = process.env.WEATHER_API_KEY || '681c9776dd5947dcb05104416260306';
-  const weatherApiUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(district.name_en)},Bangladesh&days=7&aqi=no&alerts=no&lang=bn`;
+  const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${district.lat}&longitude=${district.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&current_weather=true&hourly=relativehumidity_2m,soil_temperature_0_to_7cm&timezone=Asia/Dhaka`;
 
   try {
-    const res = await fetch(weatherApiUrl, {
+    const res = await fetch(openMeteoUrl, {
       cache: 'no-store',
       signal: AbortSignal.timeout(3000), // 3-second timeout to prevent hangs
     });
     if (!res.ok) {
-      throw new Error('WeatherAPI returned status ' + res.status);
+      throw new Error('Open-Meteo returned status ' + res.status);
     }
     data = await res.json();
-    isWeatherAPI = true;
+    isWeatherAPI = false;
   } catch (fetchErr) {
-    console.warn('Weather API Fetch failed, falling back to Open-Meteo:', fetchErr);
+    console.warn('Open-Meteo Fetch failed, falling back to WeatherAPI:', fetchErr);
     
-    // Fallback to Open-Meteo daily and hourly forecast variables
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${district.lat}&longitude=${district.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&current_weather=true&hourly=relativehumidity_2m,soil_temperature_0_to_7cm&timezone=Asia/Dhaka`;
+    const apiKey = process.env.WEATHER_API_KEY || '681c9776dd5947dcb05104416260306';
+    const weatherApiUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(district.name_en)},Bangladesh&days=7&aqi=no&alerts=no&lang=bn`;
 
     try {
-      const res = await fetch(url, {
+      const res = await fetch(weatherApiUrl, {
         cache: 'no-store',
         signal: AbortSignal.timeout(3000), // 3-second timeout to prevent hangs
       });
       if (!res.ok) {
-        throw new Error('Open-Meteo returned status ' + res.status);
+        throw new Error('WeatherAPI returned status ' + res.status);
       }
       data = await res.json();
+      isWeatherAPI = true;
     } catch (fallbackErr) {
-      console.warn('Open-Meteo fallback failed, using calculated seasonal forecast:', fallbackErr);
+      console.warn('WeatherAPI fallback failed, using calculated seasonal forecast:', fallbackErr);
       
       // Generate seasonal mock data for Bangladesh
       const now = new Date();

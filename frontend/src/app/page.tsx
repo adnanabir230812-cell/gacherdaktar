@@ -24,7 +24,8 @@ import {
   Sunset,
   BookOpen,
   RefreshCw,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 import LeafScanner from '@/components/LeafScanner';
 import { detectUserDistrict } from '@/lib/location';
@@ -511,25 +512,20 @@ export default function Home() {
           </div>
           
           {/* District Selector */}
-          <div className="flex items-center gap-3 bg-gradient-to-r from-soft-white to-amber-50 rounded-2xl px-5 py-3 shadow-md border-2 border-green-primary/20">
-            <MapPin className="w-5 h-5 text-green-primary" />
+          <button
+            type="button"
+            onClick={() => setShowDistrictModal(true)}
+            className="flex items-center gap-3 bg-gradient-to-r from-soft-white to-amber-50 rounded-2xl px-5 py-3 shadow-md border-2 border-green-primary/20 hover:border-green-primary/40 active:scale-95 transition-all text-left cursor-pointer"
+          >
+            <MapPin className="w-5 h-5 text-green-primary shrink-0" />
             <div className="flex flex-col">
               <span className="text-[10px] text-text-secondary font-bold uppercase">জেলা নির্বাচন করুন:</span>
-              <select
-                value={selectedDistrict}
-                onChange={(e) => {
-                  const dist = e.target.value;
-                  setSelectedDistrict(dist);
-                  localStorage.setItem("krishisathi_user_district", dist);
-                }}
-                className="bg-transparent border-none text-green-primary font-black text-base md:text-lg focus:outline-none cursor-pointer pr-6 py-0.5"
-              >
-                {districts.map((d, idx) => (
-                  <option key={idx} value={d.name_bn} className="text-text-primary font-medium">{d.name_bn}</option>
-                ))}
-              </select>
+              <span className="text-green-primary font-black text-base md:text-lg flex items-center gap-1.5 py-0.5">
+                {selectedDistrict}
+                <ChevronDown className="w-4 h-4 text-green-primary shrink-0" />
+              </span>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* 3D Dashboard Layout Grid */}
