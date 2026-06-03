@@ -29,6 +29,7 @@ export async function GET(request: Request) {
 
   try {
     const res = await fetch(weatherApiUrl, {
+      cache: 'no-store',
       signal: AbortSignal.timeout(3000), // 3-second timeout to prevent hangs
     });
     if (!res.ok) {
@@ -44,6 +45,7 @@ export async function GET(request: Request) {
 
     try {
       const res = await fetch(url, {
+        cache: 'no-store',
         signal: AbortSignal.timeout(3000), // 3-second timeout to prevent hangs
       });
       if (!res.ok) {
