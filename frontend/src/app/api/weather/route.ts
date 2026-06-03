@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { DISTRICTS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
   let isWeatherAPI = false;
 
   const apiKey = process.env.WEATHER_API_KEY || '681c9776dd5947dcb05104416260306';
-  const weatherApiUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${district.lat},${district.lon}&days=7&aqi=no&alerts=no&lang=bn`;
+  const weatherApiUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(district.name_en)},Bangladesh&days=7&aqi=no&alerts=no&lang=bn`;
 
   try {
     const res = await fetch(weatherApiUrl, {
@@ -322,12 +323,21 @@ export async function GET(request: Request) {
         precipitation: dailyPrecipitation
       },
       advice: advice
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+      }
     });
   } catch (error: any) {
     console.error('Weather API Error:', error);
     return NextResponse.json({
       error: true,
       message: 'দুঃখিত, লাইভ আবহাওয়া তথ্য এই মুহূর্তে লোড করা সম্ভব হচ্ছে না। অনুগ্রহ করে ইন্টারনেট সংযোগ পরীক্ষা করে পেজটি রিফ্রেশ করুন।'
-    }, { status: 500 });
+    }, { 
+      status: 500,
+      headers: {
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+      }
+    });
   }
 }
