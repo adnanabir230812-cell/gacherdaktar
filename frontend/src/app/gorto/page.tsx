@@ -112,10 +112,17 @@ export default function AdminDashboard() {
   const [countdown, setCountdown] = useState(60);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check session cookie on mount
+  // Check session cookie and sessionStorage on mount
   useEffect(() => {
     const checkSession = async () => {
       try {
+        const isAuthTab = sessionStorage.getItem("krishisathi_admin_authenticated") === "true";
+        if (!isAuthTab) {
+          setIsLoggedIn(false);
+          setLoadingData(false);
+          return;
+        }
+
         const res = await fetch('/api/admin/data');
         if (res.status === 200) {
           setIsLoggedIn(true);
@@ -168,6 +175,7 @@ export default function AdminDashboard() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        sessionStorage.setItem("krishisathi_admin_authenticated", "true");
         setIsLoggedIn(true);
         fetchDashboardData();
       } else {
@@ -181,6 +189,7 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
+    sessionStorage.removeItem("krishisathi_admin_authenticated");
     document.cookie = 'krishisathi_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setIsLoggedIn(false);
     setStats(null);
