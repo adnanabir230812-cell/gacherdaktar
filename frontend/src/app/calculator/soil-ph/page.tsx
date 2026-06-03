@@ -170,6 +170,11 @@ export default function SoilPHCalculator() {
   const [clarifyingQuestions, setClarifyingQuestions] = useState<any[] | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
+  // Inline Chat States
+  const [inlineChatMessages, setInlineChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([]);
+  const [inlineChatInput, setInlineChatInput] = useState('');
+  const [inlineChatLoading, setInlineChatLoading] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -303,8 +308,78 @@ export default function SoilPHCalculator() {
     setAnswers({});
     setCameraError(null);
     stopCamera();
+    setInlineChatMessages([]);
+    setInlineChatInput('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSendInlineChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inlineChatInput.trim() || !scannerResult || inlineChatLoading) return;
+
+    const userMessageText = inlineChatInput;
+    setInlineChatInput('');
+    setInlineChatLoading(true);
+
+    const newMessages = [
+      ...inlineChatMessages,
+      { sender: 'user' as const, text: userMessageText }
+    ];
+    setInlineChatMessages(newMessages);
+
+    try {
+      const diagnosisContextText = `আমি আমার মাটি পরীক্ষা করেছি। গাছের ডাক্তারের রিপোর্ট নিচে দেওয়া হলো:
+মাটির ধরন: ${scannerResult.soil_type}
+আনুমানিক pH মান: ${scannerResult.estimated_ph} (${getPhStatusBangla(scannerResult.estimated_ph)})
+মাটির কণার গঠন ও বৈশিষ্ট্য:
+${Array.isArray(scannerResult.color_texture) ? scannerResult.color_texture.join('\n') : scannerResult.color_texture}
+চাষের উপযোগী লাভজনক ফসলসমূহ:
+${Array.isArray(scannerResult.suitable_crops) ? scannerResult.suitable_crops.join('\n') : scannerResult.suitable_crops}
+জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি:
+${Array.isArray(scannerResult.organic_advice) ? scannerResult.organic_advice.join('\n') : scannerResult.organic_advice}
+অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার:
+${Array.isArray(scannerResult.chemical_advice) ? scannerResult.chemical_advice.join('\n') : scannerResult.chemical_advice}
+মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন:
+${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_measures.join('\n') : scannerResult.preventive_measures}`;
+
+      const hiddenHistory = [
+        { sender: 'user' as const, text: diagnosisContextText },
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার রিপোর্টটি দেখেছি। এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` },
+        ...inlineChatMessages.slice(1)
+      ];
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: userMessageText,
+          history: hiddenHistory,
+          district: location || "ঢাকা"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.answer_bn) {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: data.answer_bn }
+        ]);
+      } else {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: 'দুঃখিত, উত্তর তৈরি করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।' }
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+      setInlineChatMessages([
+        ...newMessages,
+        { sender: 'bot', text: 'নেটওয়ার্ক সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট চেক করে আবার চেষ্টা করুন।' }
+      ]);
+    } finally {
+      setInlineChatLoading(false);
     }
   };
 
@@ -342,6 +417,12 @@ export default function SoilPHCalculator() {
         } else {
           setScannerResult(data.result);
           setClarifyingQuestions(null);
+          setInlineChatMessages([
+            { 
+              sender: 'bot', 
+              text: `প্রিয় কৃষক ভাই, এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` 
+            }
+          ]);
         }
       } else {
         alert(data.error || 'গাছের ডাক্তার মাটি পরীক্ষা করতে ব্যর্থ হয়েছেন। দয়া করে একটু পরিষ্কার ছবি নিয়ে পুনরায় চেষ্টা করুন।');
@@ -793,34 +874,78 @@ export default function SoilPHCalculator() {
               </div>
 
               {/* Reset/New Scan/Download Buttons */}
-              <div className="pt-4 border-t border-green-primary/10 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-                <div className="flex flex-col sm:flex-row gap-2.5 flex-1">
-                  <button
-                    type="button"
-                    onClick={clearImage}
-                    className="px-5 py-3 bg-green-primary hover:bg-[#153526] text-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center active:scale-95 duration-300"
-                  >
-                    নতুন মাটি পরীক্ষা করুন
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => downloadSoilPrescription(scannerResult, imgUrl, location)}
-                    className="px-5 py-3 bg-[#1B4332] hover:bg-[#0F2F1D] text-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center active:scale-95 duration-300"
-                  >
-                    প্রেসক্রিপশন ডাউনলোড করুন
-                  </button>
-                </div>
-                
+              <div className="pt-4 border-t border-green-primary/10 flex flex-col sm:flex-row gap-2.5">
                 <button
                   type="button"
-                  onClick={() => {
-                    router.push(`/chat?q=${encodeURIComponent(`${location} জেলায় আমার মাটির ধরণ ${scannerResult.soil_type} এবং আনুমানিক pH মান ${scannerResult.estimated_ph}। এটি সংশোধন করতে পরামর্শ দিন`)}`);
-                  }}
-                  className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-[#1B4332]/10 to-[#B79400]/10 hover:from-[#1B4332]/15 hover:to-[#B79400]/15 border border-[#1B4332]/20 rounded-2xl transition-all text-xs font-black text-[#1B4332] shadow-sm hover:shadow-md cursor-pointer group shrink-0 duration-300 hover:scale-[1.01] active:scale-[0.99]"
+                  onClick={clearImage}
+                  className="px-5 py-3 bg-green-primary hover:bg-[#153526] text-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center active:scale-95 duration-300 flex-1"
                 >
-                  <span className="flex items-center gap-1.5">💬 মাটির স্বাস্থ্য নিয়ে কথা বলুন</span>
-                  <ArrowRight className="w-4 h-4 text-[#1B4332] transition-transform duration-200 group-hover:translate-x-1" />
+                  নতুন মাটি পরীক্ষা করুন
                 </button>
+                <button
+                  type="button"
+                  onClick={() => downloadSoilPrescription(scannerResult, imgUrl, location)}
+                  className="px-5 py-3 bg-[#1B4332] hover:bg-[#0F2F1D] text-white text-xs md:text-sm font-extrabold rounded-xl transition-all cursor-pointer shadow-md text-center active:scale-95 duration-300 flex-1"
+                >
+                  প্রেসক্রিপশন ডাউনলোড করুন
+                </button>
+              </div>
+
+              {/* 💬 Context-Aware Inline Chat Panel */}
+              <div className="border-t border-green-primary/10 pt-6 space-y-4">
+                <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
+                    <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+                  </div>
+                  
+                  {/* Messages Stream */}
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1 text-xs md:text-sm">
+                    {inlineChatMessages.map((msg, i) => (
+                      <div
+                        key={i}
+                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 font-semibold leading-relaxed ${
+                            msg.sender === 'user'
+                              ? 'bg-green-primary text-white rounded-br-none'
+                              : 'bg-white border border-green-primary/10 text-text-primary rounded-bl-none shadow-sm'
+                          }`}
+                        >
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {inlineChatLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-white border border-green-primary/10 rounded-2xl rounded-bl-none px-4 py-2.5 text-text-secondary flex items-center gap-2 shadow-sm font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.2s]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.4s]" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Message Input Form */}
+                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={inlineChatInput}
+                      onChange={(e) => setInlineChatInput(e.target.value)}
+                      placeholder="মাটির পিএইচ বা সংশোধন নিয়ে গাছের ডাক্তারকে প্রশ্ন করুন..."
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={inlineChatLoading || !inlineChatInput.trim()}
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                    >
+                      পাঠান
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

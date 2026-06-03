@@ -244,6 +244,8 @@ export default function Home() {
   const [chatInput, setChatInput] = useState('');
   const [activeWeatherTab, setActiveWeatherTab] = useState<'all' | 'rain' | 'disease' | 'spray' | 'soil' | 'harvest'>('all');
   const [marqueeDatePrefix, setMarqueeDatePrefix] = useState('');
+  const [showDistrictModal, setShowDistrictModal] = useState(false);
+  const [modalSearchQuery, setModalSearchQuery] = useState('');
 
   // Prompt suggestions
   const promptChips = [
@@ -261,9 +263,15 @@ export default function Home() {
       .then(data => setDistricts(data))
       .catch(err => console.error(err));
 
-    detectUserDistrict('ঢাকা').then(detected => {
-      setSelectedDistrict(detected);
-    });
+    const storedDistrict = localStorage.getItem("krishisathi_user_district");
+    if (storedDistrict) {
+      setSelectedDistrict(storedDistrict);
+    } else {
+      setShowDistrictModal(true);
+      detectUserDistrict('ঢাকা').then(detected => {
+        setSelectedDistrict(detected);
+      });
+    }
 
     // Calculate and set dynamic date prefix on mount (client-side only to avoid hydration mismatch)
     const now = new Date();
@@ -508,7 +516,11 @@ export default function Home() {
               <span className="text-[10px] text-text-secondary font-bold uppercase">জেলা নির্বাচন করুন:</span>
               <select
                 value={selectedDistrict}
-                onChange={(e) => setSelectedDistrict(e.target.value)}
+                onChange={(e) => {
+                  const dist = e.target.value;
+                  setSelectedDistrict(dist);
+                  localStorage.setItem("krishisathi_user_district", dist);
+                }}
                 className="bg-transparent border-none text-green-primary font-black text-base md:text-lg focus:outline-none cursor-pointer pr-6 py-0.5"
               >
                 {districts.map((d, idx) => (
@@ -1204,6 +1216,185 @@ export default function Home() {
         </div>
       </section>
 
+
+
+      {/* 🗺️ DISTRICT SELECTOR POPUP MODAL */}
+      {showDistrictModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border-2 border-green-primary/20 rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl space-y-6 relative transform transition-all duration-300 scale-100">
+            
+            {/* Header */}
+            <div className="space-y-2 shrink-0">
+              <span className="text-[10px] font-black tracking-widest text-green-primary uppercase bg-green-primary/10 px-3 py-1 rounded-full">
+                কৃষিসাথী লোকেশন সেটিংস
+              </span>
+              <h3 className="text-xl md:text-2xl font-black text-text-primary">
+                আপনার জেলা নির্বাচন করুন
+              </h3>
+              <p className="text-xs md:text-sm font-semibold text-text-secondary leading-relaxed">
+                আপনার জেলা নির্বাচন করুন, যাতে গাছের ডাক্তার আপনার এলাকার আবহাওয়া এবং মাটির উর্বরতা অনুযায়ী শতভাগ সঠিক ও সুনির্দিষ্ট পরামর্শ দিতে পারে।
+              </p>
+            </div>
+
+            {/* Search Input Box */}
+            <div className="relative shrink-0">
+              <input
+                type="text"
+                value={modalSearchQuery}
+                onChange={(e) => setModalSearchQuery(e.target.value)}
+                placeholder="জেলার নাম বাংলায় বা ইংরেজিতে খুঁজুন (যেমন: সাতক্ষীরা / Satkhira)..."
+                className="w-full pl-5 pr-12 py-3 rounded-2xl border-2 border-green-primary/20 bg-soft-white text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary focus:border-transparent font-bold text-sm shadow-sm"
+              />
+              <div className="absolute inset-y-0 right-4 flex items-center text-green-primary">
+                🔍
+              </div>
+            </div>
+
+            {/* District Groups Scrollable Area */}
+            <div className="flex-1 overflow-y-auto pr-1 space-y-5 divide-y divide-green-primary/10">
+              
+              {/* Group 1: Divisions (বিভাগীয় শহরসমূহ) */}
+              {(() => {
+                const DIVISIONS = ["ঢাকা", "চট্টগ্রাম", "রাজশাহী", "খুলনা", "বরিশাল", "সিলেট", "রংপুর", "ময়মনসিংহ"];
+                const filtered = districts.filter(d => 
+                  DIVISIONS.includes(d.name_bn) && 
+                  (modalSearchQuery.trim() === '' || 
+                   d.name_bn.toLowerCase().includes(modalSearchQuery.toLowerCase()) || 
+                   d.name_en.toLowerCase().includes(modalSearchQuery.toLowerCase()))
+                );
+                if (filtered.length === 0) return null;
+                return (
+                  <div className="pt-3 first:pt-0 space-y-2">
+                    <h4 className="text-xs font-black text-green-primary uppercase tracking-wider flex items-center gap-1">
+                      🏢 বিভাগীয় শহরসমূহ
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {filtered.map(d => (
+                        <button
+                          key={d.name_bn}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDistrict(d.name_bn);
+                            localStorage.setItem("krishisathi_user_district", d.name_bn);
+                            setShowDistrictModal(false);
+                          }}
+                          className={`px-3 py-2.5 text-xs md:text-sm font-bold rounded-xl border text-center transition-all cursor-pointer hover:bg-green-primary/5 ${
+                            selectedDistrict === d.name_bn
+                              ? 'bg-green-primary text-white border-green-primary shadow-md'
+                              : 'bg-soft-white text-text-primary border-green-primary/10'
+                          }`}
+                        >
+                          {d.name_bn} ({d.name_en})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Group 2: Major Districts (প্রধান ও বড় জেলাসমূহ) */}
+              {(() => {
+                const MAJOR_DISTRICTS = ["সাতক্ষীরা", "যশোর", "বগুড়া", "কুমিল্লা", "পাবনা", "নোয়াখালী", "দিনাজপুর", "টাঙ্গাইল", "ফরিদপুর", "গাজীপুর", "নরসিংদী", "কক্সবাজার", "কুষ্টিয়া", "ঝিনাইদহ", "হবিগঞ্জ", "মৌলভীবাজার", "জামালপুর", "পটুয়াখালী"];
+                const filtered = districts.filter(d => 
+                  MAJOR_DISTRICTS.includes(d.name_bn) && 
+                  (modalSearchQuery.trim() === '' || 
+                   d.name_bn.toLowerCase().includes(modalSearchQuery.toLowerCase()) || 
+                   d.name_en.toLowerCase().includes(modalSearchQuery.toLowerCase()))
+                );
+                if (filtered.length === 0) return null;
+                return (
+                  <div className="pt-4 space-y-2">
+                    <h4 className="text-xs font-black text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                      ⭐ প্রধান ও বড় জেলাসমূহ
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {filtered.map(d => (
+                        <button
+                          key={d.name_bn}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDistrict(d.name_bn);
+                            localStorage.setItem("krishisathi_user_district", d.name_bn);
+                            setShowDistrictModal(false);
+                          }}
+                          className={`px-3 py-2.5 text-xs md:text-sm font-bold rounded-xl border text-center transition-all cursor-pointer hover:bg-green-primary/5 ${
+                            selectedDistrict === d.name_bn
+                              ? 'bg-green-primary text-white border-green-primary shadow-md'
+                              : 'bg-soft-white text-text-primary border-green-primary/10'
+                          }`}
+                        >
+                          {d.name_bn} ({d.name_en})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Group 3: Other Districts (অন্যান্য জেলাসমূহ) */}
+              {(() => {
+                const DIV_MAJ = ["ঢাকা", "চট্টগ্রাম", "রাজশাহী", "খুলনা", "বরিশাল", "সিলেট", "রংপুর", "ময়মনসিংহ", "সাতক্ষীরা", "যশোর", "বগুড়া", "কুমিল্লা", "পাবনা", "নোয়াখালী", "দিনাজপুর", "টাঙ্গাইল", "ফরিদপুর", "গাজীপুর", "নরসিংদী", "কক্সবাজার", "কুষ্টিয়া", "ঝিনাইদহ", "হবিগঞ্জ", "মৌলভীবাজার", "জামালপুর", "পটুয়াখালী"];
+                const filtered = districts.filter(d => 
+                  !DIV_MAJ.includes(d.name_bn) && 
+                  (modalSearchQuery.trim() === '' || 
+                   d.name_bn.toLowerCase().includes(modalSearchQuery.toLowerCase()) || 
+                   d.name_en.toLowerCase().includes(modalSearchQuery.toLowerCase()))
+                );
+                if (filtered.length === 0) return null;
+                return (
+                  <div className="pt-4 space-y-2">
+                    <h4 className="text-xs font-black text-text-secondary uppercase tracking-wider flex items-center gap-1">
+                      📍 অন্যান্য জেলাসমূহ
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {filtered.map(d => (
+                        <button
+                          key={d.name_bn}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDistrict(d.name_bn);
+                            localStorage.setItem("krishisathi_user_district", d.name_bn);
+                            setShowDistrictModal(false);
+                          }}
+                          className={`px-3 py-2.5 text-xs md:text-sm font-bold rounded-xl border text-center transition-all cursor-pointer hover:bg-green-primary/5 ${
+                            selectedDistrict === d.name_bn
+                              ? 'bg-green-primary text-white border-green-primary shadow-md'
+                              : 'bg-soft-white text-text-primary border-green-primary/10'
+                          }`}
+                        >
+                          {d.name_bn} ({d.name_en})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {districts.length > 0 && 
+               districts.filter(d => 
+                 d.name_bn.toLowerCase().includes(modalSearchQuery.toLowerCase()) || 
+                 d.name_en.toLowerCase().includes(modalSearchQuery.toLowerCase())
+               ).length === 0 && (
+                <div className="text-center py-8 text-xs font-bold text-text-secondary">
+                  কোনো জেলা খুঁজে পাওয়া যায়নি
+                </div>
+              )}
+            </div>
+
+            {/* Optional Dismiss button if they want to use default district */}
+            <div className="flex justify-end pt-2 border-t border-green-primary/10 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowDistrictModal(false)}
+                className="px-6 py-2 bg-text-secondary/10 hover:bg-text-secondary/15 text-text-primary font-bold text-xs rounded-xl cursor-pointer active:scale-95 transition-all font-bold"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

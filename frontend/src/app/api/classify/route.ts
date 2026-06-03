@@ -128,31 +128,46 @@ function parseClassificationResponse(text: string): any {
   };
 
   const extractFieldArray = (field: string): any[] | null => {
-    const match = cleaned.match(new RegExp(`"${field}"\\s*:\\s*\\[([^\\]]*)\\]`));
-    if (!match) return null;
-    const arrayStr = match[1];
+    const arrayMatch = cleaned.match(new RegExp(`"${field}"\\s*:\\s*\\[([\\s\\S]*?)\\]`));
+    if (!arrayMatch) return null;
+    const arrayStr = arrayMatch[1];
     
     if (field === 'questions') {
       try {
-        return JSON.parse(`[${arrayStr}]`);
-      } catch {
-        const questions: any[] = [];
-        const objRegex = /\{\s*"id"\s*:\s*"([^"]+)"\s*,\s*"text"\s*:\s*"([^"]+)"\s*,\s*"options"\s*:\s*\[([^\]]*)\]\s*\}/g;
-        let m;
-        while ((m = objRegex.exec(arrayStr)) !== null) {
-          const id = m[1];
-          const text = m[2];
-          const optionsStr = m[3];
-          const options: string[] = [];
-          const optRegex = /"([^"]+)"|'([^']+)'/g;
-          let optMatch;
-          while ((optMatch = optRegex.exec(optionsStr)) !== null) {
-            options.push(optMatch[1] || optMatch[2]);
-          }
-          questions.push({ id, text, options });
-        }
-        return questions.length > 0 ? questions : null;
+        const parsed = JSON.parse(`[${arrayStr}]`);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        console.warn("Direct array parse failed, attempting robust block-by-block parsing:", e);
       }
+      
+      const questions: any[] = [];
+      const blocks = arrayStr.match(/\{[\s\S]*?\}/g);
+      if (blocks) {
+        for (const block of blocks) {
+          const idMatch = block.match(/"id"\s*:\s*"([^"]+)"/) || block.match(/"id"\s*:\s*'([^']+)'/);
+          const textMatch = block.match(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/) || block.match(/"text"\s*:\s*'((?:[^'\\]|\\.)*)'/);
+          const optionsMatch = block.match(/"options"\s*:\s*\[([\s\S]*?)\]/);
+          
+          if (idMatch && textMatch && optionsMatch) {
+            const id = idMatch[1];
+            const text = textMatch[1];
+            const optionsStr = optionsMatch[1];
+            const options: string[] = [];
+            const optRegex = /"([^"\\]*(?:\\.[^"\\]*)*)"|'([^'\\]*(?:\\.[^'\\]*)*)'/g;
+            let optMatch;
+            while ((optMatch = optRegex.exec(optionsStr)) !== null) {
+              const rawOpt = optMatch[1] || optMatch[2] || '';
+              try {
+                options.push(JSON.parse(`"${rawOpt}"`));
+              } catch {
+                options.push(rawOpt);
+              }
+            }
+            questions.push({ id, text, options });
+          }
+        }
+      }
+      return questions.length > 0 ? questions : null;
     }
     return null;
   };

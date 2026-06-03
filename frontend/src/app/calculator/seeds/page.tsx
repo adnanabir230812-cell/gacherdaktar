@@ -142,8 +142,12 @@ export default function SeedCalculator() {
     const crop = SEED_DATABASE.find(c => c.id === selectedCropId);
     if (!crop) return;
 
-    // 1 bigha = 33 decimals
-    const landInBigha = landUnit === 'decimal' ? (Number(landSize) / 33) : Number(landSize);
+    // 1 bigha = 33 decimals, 1 acre = 100 decimals = 3.0303 bighas
+    const landInBigha = landUnit === 'decimal' 
+      ? (Number(landSize) / 33) 
+      : (landUnit === 'acre' 
+          ? (Number(landSize) * (100 / 33)) 
+          : Number(landSize));
     const totalWeight = crop.seed_rate_per_bigha_kg * landInBigha;
 
     setResult({
@@ -251,7 +255,7 @@ export default function SeedCalculator() {
           {/* Land Size Input */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-text-primary">জমির পরিমাণ:</label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="number"
                 value={landSize}
@@ -265,8 +269,9 @@ export default function SeedCalculator() {
                 onChange={(e) => setLandUnit(e.target.value)}
                 className="bg-soft-white border border-green-primary/20 rounded-xl px-3 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold cursor-pointer shrink-0"
               >
-                <option value="bigha">বিঘা</option>
                 <option value="decimal">শতক</option>
+                <option value="bigha">বিঘা</option>
+                <option value="acre">একর</option>
               </select>
             </div>
             <p className="text-[10px] text-text-secondary font-semibold">নোট: ১ বিঘা = ৩৩ শতক।</p>

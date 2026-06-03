@@ -110,10 +110,14 @@ function CalculatorContent() {
       const isFruit = crop.category === 'fruit';
       const density = FRUIT_TREE_DENSITY[crop.id] || 50;
 
-      // Convert land size to bighas (1 bigha = 33 decimals)
+      // Convert land size to bighas (1 bigha = 33 decimals, 1 acre = 100 decimals = 3.0303 bighas)
       const landInBigha = isFruit 
         ? (Number(landSize) / density) 
-        : (landUnit === 'decimal' ? (Number(landSize) / 33) : Number(landSize));
+        : (landUnit === 'decimal' 
+            ? (Number(landSize) / 33) 
+            : (landUnit === 'acre' 
+                ? (Number(landSize) * (100 / 33)) 
+                : Number(landSize)));
 
       const ureaTotal = rule.urea * landInBigha;
       const tspTotal = rule.tsp * landInBigha;
@@ -260,27 +264,28 @@ function CalculatorContent() {
             <label className="text-sm font-semibold text-text-primary">
               {isFruit ? 'গাছ বা গর্তের সংখ্যা:' : 'জমির পরিমাণ:'}
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="number"
                 value={landSize}
                 onChange={(e) => setLandSize(e.target.value === '' ? '' : Number(e.target.value))}
                 min="1"
                 step="any"
-                className="flex-1 min-w-0 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary"
+                className="flex-1 min-w-0 bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold"
               />
               <select
                 value={landUnit}
                 onChange={(e) => setLandUnit(e.target.value)}
-                className="bg-soft-white border border-green-primary/20 rounded-xl px-3 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary shrink-0 cursor-pointer"
+                className="bg-soft-white border border-green-primary/20 rounded-xl px-3 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary shrink-0 cursor-pointer font-bold"
                 disabled={isFruit}
               >
                 {isFruit ? (
                   <option value="unit">টি</option>
                 ) : (
                   <>
-                    <option value="bigha">বিঘা</option>
                     <option value="decimal">শতক</option>
+                    <option value="bigha">বিঘা</option>
+                    <option value="acre">একর</option>
                   </>
                 )}
               </select>
