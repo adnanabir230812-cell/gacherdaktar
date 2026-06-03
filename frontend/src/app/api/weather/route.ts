@@ -141,8 +141,8 @@ export async function GET(request: Request) {
       temp = current.temp_c ?? 28.0;
       conditionText = current.condition?.text ?? "মেঘলা আকাশ";
       
-      // Use today's maximum wind speed and average humidity from forecast for agricultural relevance
-      wind = todayForecast.maxwind_kph ?? current.wind_kph ?? 5.0;
+      // Use current wind speed (to avoid unrealistically high daily max gust readings) and average daily humidity
+      wind = current.wind_kph ?? 5.0;
       avgHumidity = todayForecast.avghumidity ?? current.humidity ?? 75;
       
       // Estimate soil temperature
