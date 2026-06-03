@@ -90,6 +90,17 @@ export async function GET(request: Request) {
     // Unique active sessions
     const uniqueSessions = new Set((analytics || []).map((a: ActivityEntry) => a.session_id)).size;
 
+    // Calculate live audience (active within last 40 seconds)
+    const fortySecondsAgo = Date.now() - 40000;
+    const liveSessions = new Set();
+    (analytics || []).forEach((a: ActivityEntry) => {
+      const activeTime = new Date(a.created_at).getTime();
+      if (activeTime >= fortySecondsAgo) {
+        liveSessions.add(a.session_id);
+      }
+    });
+    const liveAudienceCount = liveSessions.size;
+
     // Page distribution
     const pageCounts: { [key: string]: number } = {};
     (analytics || []).forEach((item: ActivityEntry) => {
@@ -103,6 +114,7 @@ export async function GET(request: Request) {
         averageConfidence: averageConfidence,
         totalPageViews: totalPageViews || 0,
         activeSessions: uniqueSessions,
+        liveAudience: liveAudienceCount,
         cropCounts,
         diseaseCounts,
         pageCounts

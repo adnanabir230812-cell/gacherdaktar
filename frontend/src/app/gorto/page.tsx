@@ -65,6 +65,7 @@ interface Stats {
   averageConfidence: string;
   totalPageViews: number;
   activeSessions: number;
+  liveAudience?: number;
   cropCounts: Record<string, number>;
   diseaseCounts: Record<string, number>;
   pageCounts: Record<string, number>;
@@ -655,7 +656,7 @@ export default function AdminDashboard() {
       {stats && (
         <>
           {/* Key Stat Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/30 transition-all shadow-sm">
               <div className="absolute right-4 top-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-emerald-600">
                 <Scan className="w-6 h-6" />
@@ -677,6 +678,21 @@ export default function AdminDashboard() {
               <p className="text-[11px] text-cyan-600 mt-1 flex items-center gap-1 font-semibold">
                 <CheckCircle className="w-3.5 h-3.5" />
                 মাটি উর্বরতা সংশোধন
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group hover:border-rose-500/30 transition-all shadow-sm">
+              <div className="absolute right-4 top-4 bg-rose-50 p-3 rounded-xl border border-rose-100 text-rose-600 flex items-center justify-center">
+                <span className="relative flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500"></span>
+                </span>
+              </div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">লাইভ ভিজিটর</p>
+              <h3 className="text-2xl font-black text-slate-900 mt-2">{stats.liveAudience ?? 0} জন</h3>
+              <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1.5 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                রিয়েল-টাইম অনলাইন
               </p>
             </div>
 

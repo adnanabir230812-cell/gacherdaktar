@@ -20,7 +20,7 @@ export default function UserTracker() {
 
   useEffect(() => {
     // Avoid double tracking the same path
-    if (pathname === lastTrackedPath.current) return;
+    const isNewPath = pathname !== lastTrackedPath.current;
     
     // Do not track admin panels to avoid leaking admin paths in standard logs
     if (pathname.startsWith('/gorto') || pathname.startsWith('/api/admin')) return;
@@ -29,7 +29,31 @@ export default function UserTracker() {
     lastTrackedPath.current = pathname;
 
     // Track page visit
-    const trackPageVisit = async () => {
+    let timer: NodeJS.Timeout | null = null;
+    if (isNewPath) {
+      const trackPageVisit = async () => {
+        try {
+          await fetch("/api/track", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sessionId: sessionId,
+              pageVisited: pathname,
+              action: "visit",
+              location: localStorage.getItem("krishisathi_user_district") || "Unknown"
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to track page view:", err);
+        }
+      };
+      timer = setTimeout(trackPageVisit, 500);
+    }
+
+    // Active heartbeat track every 30s to measure live audience
+    const heartbeatTimer = setInterval(async () => {
       try {
         await fetch("/api/track", {
           method: "POST",
@@ -39,18 +63,19 @@ export default function UserTracker() {
           body: JSON.stringify({
             sessionId: sessionId,
             pageVisited: pathname,
-            action: "visit",
+            action: "heartbeat",
             location: localStorage.getItem("krishisathi_user_district") || "Unknown"
           }),
         });
       } catch (err) {
-        console.error("Failed to track page view:", err);
+        console.error("Heartbeat track failed:", err);
       }
-    };
+    }, 30000);
 
-    // Small delay to ensure client-side hydration and local storage updates
-    const timer = setTimeout(trackPageVisit, 500);
-    return () => clearTimeout(timer);
+    return () => {
+      if (timer) clearTimeout(timer);
+      clearInterval(heartbeatTimer);
+    };
   }, [pathname]);
 
   return null;
