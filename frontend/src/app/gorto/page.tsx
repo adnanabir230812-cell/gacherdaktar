@@ -96,6 +96,16 @@ export default function AdminDashboard() {
   // Tab State
   const [activeTab, setActiveTab] = useState<TabType>('scans');
 
+  // Time-based English Greeting function for ABIR
+  const getGreeting = () => {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return "Good Morning";
+    if (hr >= 12 && hr < 16) return "Good Noon";
+    if (hr >= 16 && hr < 18) return "Good Afternoon";
+    if (hr >= 18 && hr < 22) return "Good Evening";
+    return "Good Night";
+  };
+
   // Data states
   const [stats, setStats] = useState<Stats | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -116,7 +126,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const isAuthTab = sessionStorage.getItem("krishisathi_admin_authenticated") === "true";
+        const isAuthTab = sessionStorage.getItem("gacherdoctor_admin_authenticated") === "true";
         if (!isAuthTab) {
           setIsLoggedIn(false);
           setLoadingData(false);
@@ -138,6 +148,37 @@ export default function AdminDashboard() {
     };
     checkSession();
   }, []);
+
+  // Synchronize tab state with URL search params (multipage routing function)
+  useEffect(() => {
+    document.title = "গাছের ডাক্তার — অ্যাডমিন প্যানেল";
+
+    const handleUrlChange = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const page = params.get('page') as TabType;
+        if (page && [
+          'scans', 'soil', 'chats', 'fertilizer', 'pesticide', 'seeds',
+          'matchmaker', 'rotation', 'prices', 'loans', 'weather', 'pages', 'security'
+        ].includes(page)) {
+          setActiveTab(page);
+        }
+      }
+    };
+
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
+  const changeTab = (tab: TabType) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      params.set('page', tab);
+      window.history.pushState(null, '', `?${params.toString()}`);
+    }
+  };
 
   // Auto-refresh countdown management
   useEffect(() => {
@@ -175,7 +216,7 @@ export default function AdminDashboard() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        sessionStorage.setItem("krishisathi_admin_authenticated", "true");
+        sessionStorage.setItem("gacherdoctor_admin_authenticated", "true");
         setIsLoggedIn(true);
         fetchDashboardData();
       } else {
@@ -189,7 +230,7 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    sessionStorage.removeItem("krishisathi_admin_authenticated");
+    sessionStorage.removeItem("gacherdoctor_admin_authenticated");
     document.cookie = 'krishisathi_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setIsLoggedIn(false);
     setStats(null);
@@ -556,10 +597,12 @@ export default function AdminDashboard() {
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-emerald-600">
             <BarChart3 className="w-6 h-6 animate-pulse" />
-            <span className="text-xs font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full">KrishiSathi Platform Admin</span>
+            <span className="text-xs font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full">গাছের ডাক্তার প্ল্যাটফর্ম অ্যাডমিন</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-950 tracking-tight">অ্যাডমিন এনালিটিক্স ও ব্যবহারকারী ড্যাশবোর্ড</h1>
-          <p className="text-sm text-slate-500 font-semibold">থিসিস গবেষণা পরিসংখ্যান ও প্রতিটি ফিচারের রিয়েল-টাইম ডাটা লগ</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-950 tracking-tight">
+            {getGreeting()}, ABIR! 👋
+          </h1>
+          <p className="text-sm text-slate-500 font-semibold">গাছের ডাক্তার অ্যাডমিন এনালিটিক্স ও ব্যবহারকারী ড্যাশবোর্ডে আপনাকে স্বাগতম</p>
         </div>
 
         <div className="flex flex-wrap gap-2 items-center w-full lg:w-auto">
@@ -760,7 +803,7 @@ export default function AdminDashboard() {
                 return (
                   <button 
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as TabType)}
+                    onClick={() => changeTab(tab.id as TabType)}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border shrink-0 transition-all cursor-pointer ${
                       isActive 
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/10' 
@@ -842,7 +885,7 @@ export default function AdminDashboard() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400" title="কোনো ছবি সংরক্ষিত নেই (পুরাতন রেকর্ড)">
                                   <Scan className="w-4 h-4" />
                                 </div>
                               )}
@@ -904,7 +947,7 @@ export default function AdminDashboard() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400" title="কোনো ছবি সংরক্ষিত নেই (পুরাতন রেকর্ড)">
                                   <Droplet className="w-4 h-4" />
                                 </div>
                               )}
@@ -971,7 +1014,7 @@ export default function AdminDashboard() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-350">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-350" title="কোনো ছবি সংরক্ষিত নেই">
                                   <MessageSquare className="w-4 h-4" />
                                 </div>
                               )}
