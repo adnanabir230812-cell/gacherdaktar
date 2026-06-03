@@ -135,15 +135,19 @@ export async function GET(request: Request) {
 
     if (isWeatherAPI) {
       const current = data.current || {};
+      const forecastDays = data.forecast?.forecastday || [];
+      const todayForecast = forecastDays[0]?.day || {};
+
       temp = current.temp_c ?? 28.0;
       conditionText = current.condition?.text ?? "মেঘলা আকাশ";
-      wind = current.wind_kph ?? 5.0;
-      avgHumidity = current.humidity ?? 75;
+      
+      // Use today's maximum wind speed and average humidity from forecast for agricultural relevance
+      wind = todayForecast.maxwind_kph ?? current.wind_kph ?? 5.0;
+      avgHumidity = todayForecast.avghumidity ?? current.humidity ?? 75;
       
       // Estimate soil temperature
       avgSoilTemp = temp - 3;
 
-      const forecastDays = data.forecast?.forecastday || [];
       dailyDates = forecastDays.map((f: any) => f.date);
       dailyTempMax = forecastDays.map((f: any) => f.day.maxtemp_c);
       dailyTempMin = forecastDays.map((f: any) => f.day.mintemp_c);
