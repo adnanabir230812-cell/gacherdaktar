@@ -208,6 +208,33 @@ const formatMarkdown = (text: any) => {
   });
 };
 
+const formatChatMessageMarkdown = (text: any) => {
+  if (!text) return '';
+  const cleanText = Array.isArray(text) ? text.join('\n') : String(text);
+  return cleanText.split('\n').map((line, lineIdx) => {
+    let isBullet = false;
+    let cleanLine = line;
+    if (line.trim().startsWith('* ') || line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
+      isBullet = true;
+      cleanLine = line.trim().replace(/^[-*•]\s+/, '');
+    }
+    
+    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
+    const content = parts.map((part, partIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+
+    return (
+      <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
+        {content}
+      </p>
+    );
+  });
+};
+
 const translateToBanglaDigits = (num: number | string): string => {
   const englishToBanglaMap: { [key: string]: string } = {
     '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
@@ -1112,7 +1139,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                               : 'bg-white border border-green-primary/10 text-text-primary rounded-bl-none shadow-sm'
                           }`}
                         >
-                          {msg.text}
+                          {formatChatMessageMarkdown(msg.text)}
                         </div>
                       </div>
                     ))}
