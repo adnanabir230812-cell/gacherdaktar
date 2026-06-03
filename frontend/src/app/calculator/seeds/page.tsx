@@ -156,6 +156,30 @@ export default function SeedCalculator() {
       lineSowing: crop.line_sowing_bn
     });
 
+    // Track seed calculation event
+    try {
+      const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          pageVisited: "/calculator/seeds",
+          action: "seed_calc",
+          location: localStorage.getItem("krishisathi_user_district") || "Unknown",
+          metadata: {
+            cropId: selectedCropId,
+            cropName: crop.name_bn,
+            landSize: landSize,
+            landUnit: landUnit,
+            totalSeedWeight: Math.round(totalWeight * 100) / 100
+          }
+        })
+      });
+    } catch (err) {
+      console.error("Tracking error:", err);
+    }
+
   }, [selectedCropId, landSize, landUnit]);
 
   const translateToBanglaDigits = (num: number | string): string => {

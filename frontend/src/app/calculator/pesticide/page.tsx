@@ -130,6 +130,35 @@ export default function PesticideCalculator() {
         totalTeaspoons: Math.round(totalTeaspoons * 10) / 10,
         totalCaps: totalCaps ? Math.round(totalCaps * 10) / 10 : undefined,
       });
+
+      // Track pesticide calculation event
+      try {
+        const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            pageVisited: "/calculator/pesticide",
+            action: "pesticide_calc",
+            location: localStorage.getItem("krishisathi_user_district") || "Unknown",
+            metadata: {
+              crop: selectedCrop,
+              pesticideClass,
+              pesticideForm,
+              severity,
+              tankSize,
+              landArea,
+              isTreeBased,
+              totalChemicalNeeded: Math.round(totalChemical * 100) / 100,
+              tanksNeeded: tanks
+            }
+          })
+        });
+      } catch (err) {
+        console.error("Tracking error:", err);
+      }
+
       setCalculating(false);
     }, 600);
 

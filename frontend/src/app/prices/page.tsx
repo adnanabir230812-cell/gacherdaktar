@@ -104,6 +104,28 @@ export default function MarketPricesPage() {
     fetchPrices();
   }, []);
 
+  useEffect(() => {
+    if (!expandedCrop) return;
+    try {
+      const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          pageVisited: "/prices",
+          action: "market_price_check",
+          location: localStorage.getItem("krishisathi_user_district") || "Unknown",
+          metadata: {
+            cropName: expandedCrop
+          }
+        })
+      });
+    } catch (err) {
+      console.error("Tracking error:", err);
+    }
+  }, [expandedCrop]);
+
   const filteredPrices = prices.filter(p => 
     p.crop_name.toLowerCase().includes(searchQuery.toLowerCase())
   );

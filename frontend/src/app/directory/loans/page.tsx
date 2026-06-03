@@ -87,6 +87,30 @@ export default function LoansDirectory() {
   const [selectedType, setSelectedType] = useState<'all' | 'subsidy' | 'loan'>('all');
   const [activeItem, setActiveItem] = useState<DirectoryItem | null>(DIRECTORY_DATA[0]);
 
+  React.useEffect(() => {
+    if (!activeItem) return;
+    try {
+      const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          pageVisited: "/directory/loans",
+          action: "loan_check",
+          location: localStorage.getItem("krishisathi_user_district") || "Unknown",
+          metadata: {
+            schemeTitle: activeItem.title,
+            schemeProvider: activeItem.provider,
+            schemeType: activeItem.type
+          }
+        })
+      });
+    } catch (err) {
+      console.error("Tracking error:", err);
+    }
+  }, [activeItem]);
+
   const filteredItems = DIRECTORY_DATA.filter(item => 
     selectedType === 'all' || item.type === selectedType
   );

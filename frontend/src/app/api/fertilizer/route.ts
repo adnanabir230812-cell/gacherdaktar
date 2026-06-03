@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { CROPS } from '../data';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -35,6 +36,31 @@ export async function POST(request: Request) {
       `২. জমি শেষ চাষের সময় সমস্ত টিএসপি (${tspTotal.toFixed(1)} কেজি), জিপসাম (${gypsumTotal.toFixed(1)} কেজি) এবং দস্তা (${zincTotal.toFixed(1)} কেজি) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`,
       `৩. এমওপি সার (${mopTotal.toFixed(1)} কেজি) ২ কিস্তিতে প্রয়োগ করতে হবে: অর্ধেক জমি শেষ চাষের সময় এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর (২য় বার ইউরিয়া দেওয়ার সময়)।`
     ];
+
+    // Log fertilizer calculation to database
+    try {
+      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || '127.0.0.1';
+      const userAgent = request.headers.get('user-agent') || 'Unknown';
+      await supabaseAdmin.from('usage_analytics').insert({
+        session_id: 'fertilizer_session',
+        user_agent: userAgent,
+        ip_address: clientIp,
+        location: null,
+        page_visited: '/calculator',
+        action: 'fertilizer_calc',
+        metadata: {
+          cropName: crop.name_bn,
+          landSize: land,
+          season: season,
+          urea_kg: Math.round(ureaTotal * 100) / 100,
+          tsp_kg: Math.round(tspTotal * 100) / 100,
+          mop_kg: Math.round(mopTotal * 100) / 100
+        },
+        created_at: new Date().toISOString()
+      });
+    } catch (dbErr) {
+      console.error("Failed to log fertilizer calculation:", dbErr);
+    }
 
     return NextResponse.json({
       cropName: crop.name_bn,

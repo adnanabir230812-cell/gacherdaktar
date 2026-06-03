@@ -14,6 +14,7 @@ interface ActivityEntry {
   id: number;
   session_id: string;
   user_agent: string;
+  ip_address?: string;
   page_visited: string;
   action: string;
   location: string;

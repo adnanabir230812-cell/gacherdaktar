@@ -106,6 +106,29 @@ export default function SoilCropMatchmaker() {
       });
 
       setRecommendations(list);
+
+      // Track matchmaker query event
+      try {
+        const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            pageVisited: "/crops/matchmaker",
+            action: "crop_matchmaker",
+            location: district || localStorage.getItem("krishisathi_user_district") || "Unknown",
+            metadata: {
+              soilType,
+              season,
+              recommendationCount: list.length
+            }
+          })
+        });
+      } catch (err) {
+        console.error("Tracking error:", err);
+      }
+
       setCalculating(false);
     }, 600); // Premium loaded transition delay
 

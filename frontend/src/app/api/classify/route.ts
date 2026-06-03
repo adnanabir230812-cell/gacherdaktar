@@ -410,6 +410,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
             crop_name: resObj.crop || crop || (type === 'soil' ? 'মাটি (Soil)' : 'Unknown'),
             disease_name: resObj.disease || (type === 'soil' ? resObj.soil_type : 'Healthy/Unknown'),
             confidence: Number(resObj.confidence) || 0.85,
+            image_url: image,
             location: location || 'ঢাকা',
             created_at: new Date().toISOString()
           });

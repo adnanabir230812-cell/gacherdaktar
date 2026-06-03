@@ -3,6 +3,8 @@ import { CROPS, KNOWLEDGE_SNIPPETS } from '../data';
 import https from 'https';
 import { URL } from 'url';
 import dns from 'dns';
+import { supabaseAdmin } from '@/lib/supabase';
+
 
 dns.setDefaultResultOrder('ipv4first');
 
@@ -432,8 +434,32 @@ ${context || 'No specific crop matching the query.'}
       }
     }
 
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || '127.0.0.1';
+    const userAgent = request.headers.get('user-agent') || 'Unknown';
+    const logChatEvent = async (ansText: string) => {
+      try {
+        await supabaseAdmin.from('usage_analytics').insert({
+          session_id: 'chat_session_' + (district || 'general'),
+          user_agent: userAgent,
+          ip_address: clientIp,
+          location: district || 'ঢাকা',
+          page_visited: '/chat',
+          action: 'chat',
+          metadata: {
+            query: query,
+            response: ansText,
+            image: image || null
+          },
+          created_at: new Date().toISOString()
+        });
+      } catch (dbErr) {
+        console.error("Failed to log chat to analytics:", dbErr);
+      }
+    };
+
     if (geminiSuccess && responseText) {
       const parsed = parseLLMResponse(responseText, dbSources);
+      await logChatEvent(parsed.answer_bn);
       return NextResponse.json(parsed);
     }
 
@@ -442,6 +468,7 @@ ${context || 'No specific crop matching the query.'}
       ? `কৃষক ভাই, দুঃখিত যে সার্ভার বা নেটওয়ার্ক সমস্যার কারণে আমি সরাসরি লাইভ সেবা দিয়ে আপনাকে সম্পূর্ণ পরামর্শ দিতে পারছি না। তবে আমার গাছের ডাক্তার তথ্যশালা অনুযায়ী আপনার প্রশ্নের প্রাসঙ্গিক তথ্য নিচে দেওয়া হলো:\n\n${context}\n\nঅনুগ্রহ করে বিস্তারিত ও জরুরি পরামর্শের জন্য আপনার নিকটস্থ উপজেলা কৃষি অফিসে যোগাযোগ করুন।`
       : 'কৃষক ভাই, দুঃখিত যে সার্ভার বা নেটওয়ার্ক সমস্যার কারণে গাছের ডাক্তারের লাইভ সেবা এই মুহূর্তে সাময়িকভাবে বন্ধ রয়েছে। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করে কিছুক্ষণ পর আবার চেষ্টা করুন।';
 
+    await logChatEvent(dbFallbackText);
     return NextResponse.json({
       answer_bn: dbFallbackText,
       sources: dbSources.length > 0 ? dbSources : ["গাছের ডাক্তার তথ্যশালা"],

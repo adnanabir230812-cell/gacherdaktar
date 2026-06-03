@@ -222,6 +222,29 @@ export default function CropRotationPage() {
   const router = useRouter();
   const [activePlan, setActivePlan] = useState<RotationPlan | null>(ROTATION_DATABASE[0]);
 
+  React.useEffect(() => {
+    if (!activePlan) return;
+    try {
+      const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          pageVisited: "/crops/rotation",
+          action: "crop_rotation",
+          location: localStorage.getItem("krishisathi_user_district") || "Unknown",
+          metadata: {
+            cropName: activePlan.crop_name,
+            season: activePlan.season_bn
+          }
+        })
+      });
+    } catch (err) {
+      console.error("Tracking error:", err);
+    }
+  }, [activePlan]);
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
       {/* Header */}
