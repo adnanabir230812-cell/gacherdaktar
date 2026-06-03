@@ -476,6 +476,7 @@ export default function LeafScanner() {
         },
         body: JSON.stringify({ 
           image: imgUrl,
+          location: localStorage.getItem("krishisathi_user_district") || "ঢাকা",
           answers: userAnswers,
           crop: selectedCrop,
           landSize: isFieldCrop(selectedCrop) ? landSize : undefined,
@@ -909,7 +910,6 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                 disabled={!selectedCrop}
                 className="flex-1 py-3 bg-green-primary hover:bg-[#153526] disabled:bg-[#FAF8F2] disabled:text-text-secondary disabled:border-green-primary/10 disabled:cursor-not-allowed border-2 border-green-primary text-white font-extrabold text-sm rounded-xl shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300"
               >
-                <Cpu className="w-4 h-4" />
                 গাছের ডাক্তারকে দেখান
               </button>
               <button
@@ -925,7 +925,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
 
           {scanning && (
             <div className="p-5 border border-green-primary/15 bg-white rounded-2xl flex flex-col items-center justify-center text-center space-y-3 shadow-sm">
-              <Cpu className="w-8 h-8 text-green-primary animate-spin" />
+              <RefreshCw className="w-8 h-8 text-green-primary animate-spin" />
               <div>
                 <h4 className="font-bold text-text-primary text-sm">রোগ নির্ণয় করা হচ্ছে...</h4>
                 <p className="text-xs text-text-secondary mt-0.5 font-semibold">

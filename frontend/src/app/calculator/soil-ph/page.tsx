@@ -593,7 +593,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                   <div className="absolute inset-0 bg-green-primary/5 rounded-2xl overflow-hidden">
                     <div className="absolute left-0 right-0 h-1 bg-green-500 shadow-[0_0_15px_#22c55e] scanner-laser" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white text-xs font-bold gap-3">
-                      <Cpu className="w-8 h-8 animate-spin text-green-400" />
+                      <RefreshCw className="w-8 h-8 animate-spin text-green-400" />
                       <span className="text-sm font-extrabold tracking-wide">গাছের ডাক্তার মাটি পরীক্ষা করছেন...</span>
                     </div>
                   </div>
@@ -663,7 +663,6 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                 onClick={() => runSoilClassification()}
                 className="flex-1 py-3 bg-green-primary hover:bg-[#153526] text-white font-extrabold text-sm rounded-xl shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95 transition-all duration-300"
               >
-                <Cpu className="w-4 h-4" />
                 গাছের ডাক্তারকে দেখান
               </button>
               <button
@@ -679,7 +678,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
 
           {scanning && (
             <div className="p-5 border border-green-primary/15 bg-white rounded-2xl flex flex-col items-center justify-center text-center space-y-3 shadow-sm">
-              <Cpu className="w-8 h-8 text-green-primary animate-spin" />
+              <RefreshCw className="w-8 h-8 text-green-primary animate-spin" />
               <div>
                 <h4 className="font-bold text-text-primary text-sm">মাটি পরীক্ষা করা হচ্ছে...</h4>
                 <p className="text-xs text-text-secondary mt-0.5 font-semibold">

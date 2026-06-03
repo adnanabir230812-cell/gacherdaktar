@@ -545,39 +545,38 @@ function ChatContent() {
 
   // Helper to render markdown-like lists and bold texts in Bangla
   const formatMessageText = (text: string) => {
-    const parseBold = (str: string) => {
-      const boldRegex = /\*\*(.*?)\*\*/g;
-      const parts = [];
-      let lastIndex = 0;
-      let match;
-      
-      while ((match = boldRegex.exec(str)) !== null) {
-        if (match.index > lastIndex) {
-          parts.push(str.substring(lastIndex, match.index));
-        }
-        parts.push(<strong key={match.index} className="font-extrabold text-green-primary">{match[1]}</strong>);
-        lastIndex = boldRegex.lastIndex;
-      }
-      if (lastIndex < str.length) {
-        parts.push(str.substring(lastIndex));
-      }
-      return parts.length > 0 ? parts : str;
-    };
-
-    return text.split('\n').map((line, idx) => {
+    if (!text) return '';
+    const cleanText = String(text);
+    return cleanText.split('\n').map((line, lineIdx) => {
       const trimmedLine = line.trim();
-      if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
-        const itemContent = trimmedLine.substring(1).trim();
+      let isBullet = false;
+      let cleanLine = line;
+
+      // Match bullets like "* ", "- ", "• ", but do not match bold like "**"
+      if ((trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) && !trimmedLine.startsWith('**')) {
+        isBullet = true;
+        cleanLine = trimmedLine.replace(/^[-*•]\s+/, '');
+      }
+
+      const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
+      const content = parts.map((part, partIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+
+      if (isBullet) {
         return (
-          <li key={idx} className="ml-5 list-disc my-1 text-sm md:text-base leading-relaxed">
-            {parseBold(itemContent)}
+          <li key={lineIdx} className="ml-5 list-disc my-1 text-sm md:text-base leading-relaxed">
+            {content}
           </li>
         );
       }
-      
+
       return (
-        <p key={idx} className="my-1 text-sm md:text-base leading-relaxed">
-          {parseBold(line)}
+        <p key={lineIdx} className="my-1 text-sm md:text-base leading-relaxed">
+          {content}
         </p>
       );
     });
