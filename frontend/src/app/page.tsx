@@ -292,7 +292,7 @@ export default function Home() {
   // Fetch weather data for selected district
   useEffect(() => {
     setLoadingWeather(true);
-    fetch(`/api/weather?district=${encodeURIComponent(selectedDistrict)}`)
+    fetch(`/api/weather?district=${encodeURIComponent(selectedDistrict)}`, { cache: 'no-store' })
       .then(res => {
         if (!res.ok) {
           console.error('Weather API returned non-ok status');
