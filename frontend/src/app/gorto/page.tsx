@@ -66,6 +66,9 @@ interface Stats {
   totalPageViews: number;
   activeSessions: number;
   liveAudience?: number;
+  todayUniqueSessionsCount?: number;
+  liveSessionsDetail?: any[];
+  todaySessionsDetail?: any[];
   cropCounts: Record<string, number>;
   diseaseCounts: Record<string, number>;
   pageCounts: Record<string, number>;
@@ -117,6 +120,11 @@ export default function AdminDashboard() {
 
   // Lightbox Modal for Scan Images
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Location Details Modal States
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalTitle, setLocationModalTitle] = useState('');
+  const [locationModalData, setLocationModalData] = useState<any[]>([]);
 
   // Auto Refresh States (60 seconds)
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
@@ -593,6 +601,77 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* 📍 Active Session Locations Details Modal */}
+      {showLocationModal && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-50 transition-opacity">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 md:p-8 relative shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] animate-fade-in space-y-4">
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowLocationModal(false)}
+              className="absolute right-4 top-4 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-700 transition-colors z-10 cursor-pointer"
+              title="বন্ধ করুন"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            {/* Header */}
+            <div className="space-y-1 pr-8">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full">
+                ব্যবহারকারী লোকেশন ট্র্যাকিং
+              </span>
+              <h3 className="text-xl font-black text-slate-900">{locationModalTitle}</h3>
+              <p className="text-xs text-slate-500 font-semibold">
+                রিয়েল-টাইম কার্যক্রম ও ভৌগোলিক অবস্থান বিবরণ (মোট সেশন: {locationModalData.length}টি)
+              </p>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto pr-1 border border-slate-150 rounded-2xl bg-slate-50/50 divide-y divide-slate-150 shadow-inner max-h-[50vh]">
+              {locationModalData.length === 0 ? (
+                <div className="p-8 text-center text-xs font-bold text-slate-400">
+                  কোনো সক্রিয় সেশন বা লোকেশন ডেটা পাওয়া যায়নি।
+                </div>
+              ) : (
+                locationModalData.map((session, idx) => (
+                  <div key={idx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 flex items-center gap-1">
+                          <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                          {session.location}
+                        </span>
+                        <span className="text-[10px] bg-slate-200 text-slate-650 font-mono px-2 py-0.5 rounded">
+                          ID: {session.session_id.substring(0, 15)}...
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-semibold flex flex-wrap gap-x-2 gap-y-0.5">
+                        <span>📄 পৃষ্ঠা: <span className="text-slate-700 font-bold">{session.page}</span></span>
+                        <span>•</span>
+                        <span className="max-w-[200px] truncate" title={session.user_agent}>🖥️ ব্রাউজার: {session.user_agent.split(')')[0]?.replace('Mozilla/5.0 (', '') || 'N/A'}</span>
+                      </div>
+                    </div>
+                    
+                    <span className="text-[10px] font-mono text-slate-450 shrink-0 self-end sm:self-center">
+                      ⏱️ {new Date(session.last_active).toLocaleTimeString('bn-BD')} ({new Date(session.last_active).toLocaleDateString('bn-BD')})
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end pt-2 border-t border-slate-150">
+              <button 
+                onClick={() => setShowLocationModal(false)}
+                className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Header Panel */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b border-slate-200 pb-6 bg-white p-6 rounded-3xl shadow-sm border">
         <div className="space-y-1">
@@ -656,7 +735,7 @@ export default function AdminDashboard() {
       {stats && (
         <>
           {/* Key Stat Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/30 transition-all shadow-sm">
               <div className="absolute right-4 top-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-emerald-600">
                 <Scan className="w-6 h-6" />
@@ -681,7 +760,33 @@ export default function AdminDashboard() {
               </p>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group hover:border-rose-500/30 transition-all shadow-sm">
+            <div 
+              onClick={() => {
+                setLocationModalTitle("আজকে প্রবেশকারী ব্যবহারকারীদের লোকেশন বিবরণ");
+                setLocationModalData(stats.todaySessionsDetail || []);
+                setShowLocationModal(true);
+              }}
+              className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/50 hover:shadow-md transition-all shadow-sm cursor-pointer"
+            >
+              <div className="absolute right-4 top-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100 text-emerald-600">
+                <Users className="w-6 h-6 animate-pulse" />
+              </div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">আজকের ভিজিটর</p>
+              <h3 className="text-2xl font-black text-slate-900 mt-2">{stats.todayUniqueSessionsCount ?? 0} জন</h3>
+              <p className="text-[11px] text-emerald-600 mt-1 flex items-center gap-1 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                আজ সচল অনন্য (ক্লিক করুন)
+              </p>
+            </div>
+
+            <div 
+              onClick={() => {
+                setLocationModalTitle("সক্রিয় লাইভ ব্যবহারকারীদের লোকেশন বিবরণ");
+                setLocationModalData(stats.liveSessionsDetail || []);
+                setShowLocationModal(true);
+              }}
+              className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group hover:border-rose-500/50 hover:shadow-md transition-all shadow-sm cursor-pointer"
+            >
               <div className="absolute right-4 top-4 bg-rose-50 p-3 rounded-xl border border-rose-100 text-rose-600 flex items-center justify-center">
                 <span className="relative flex h-3.5 w-3.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -692,7 +797,7 @@ export default function AdminDashboard() {
               <h3 className="text-2xl font-black text-slate-900 mt-2">{stats.liveAudience ?? 0} জন</h3>
               <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1.5 font-semibold">
                 <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                রিয়েল-টাইম অনলাইন
+                রিয়েল-টাইম অনলাইন (ক্লিক করুন)
               </p>
             </div>
 
@@ -997,61 +1102,6 @@ export default function AdminDashboard() {
                   </table>
                 )}
 
-                {/* 3. Chatbot conversations */}
-                {activeTab === 'chats' && (
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 text-xs font-black uppercase text-slate-700 border-b border-slate-200">
-                      <tr>
-                        <th className="p-4">ছবি</th>
-                        <th className="p-4">কৃষকের প্রশ্ন (Farmer Query)</th>
-                        <th className="p-4">চ্যাটবটের উত্তর (Response)</th>
-                        <th className="p-4">লোকেশন</th>
-                        <th className="p-4">তারিখ ও সময়</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {chatLogs.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো চ্যাটবট প্রশ্নোত্তরের বিবরণ পাওয়া যায়নি।</td>
-                        </tr>
-                      ) : (
-                        chatLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4">
-                              {log.metadata?.image ? (
-                                <div 
-                                  onClick={() => setSelectedImage(log.metadata?.image || null)}
-                                  className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in bg-slate-100 shrink-0 relative hover:scale-105 transition-transform"
-                                >
-                                  <img 
-                                    src={log.metadata?.image} 
-                                    alt="Chat Image" 
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-350" title="কোনো ছবি সংরক্ষিত নেই">
-                                  <MessageSquare className="w-4 h-4" />
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-4 font-bold text-slate-900 max-w-[220px] truncate" title={log.metadata?.query}>
-                              {log.metadata?.query || 'N/A'}
-                            </td>
-                            <td className="p-4 text-xs text-slate-600 max-w-[320px] truncate" title={log.metadata?.response}>
-                              {log.metadata?.response || 'N/A'}
-                            </td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">{log.location}</td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                )}
-
                 {/* 4. Fertilizer calculations */}
                 {activeTab === 'fertilizer' && (
                   <table className="w-full text-left text-sm">
@@ -1063,13 +1113,14 @@ export default function AdminDashboard() {
                         <th className="p-4">ইউরিয়া (N)</th>
                         <th className="p-4">টিএসপি (P)</th>
                         <th className="p-4">এমওপি (K)</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {fertilizerLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="p-10 text-center text-slate-400">কোনো সার হিসাব গণনার ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={8} className="p-10 text-center text-slate-400">কোনো সার হিসাব গণনার ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         fertilizerLogs.map((log) => (
@@ -1084,6 +1135,12 @@ export default function AdminDashboard() {
                             <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.urea_kg} কেজি</td>
                             <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.tsp_kg} কেজি</td>
                             <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.mop_kg} কেজি</td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 text-xs font-mono text-slate-500">
                               {new Date(log.created_at).toLocaleString('bn-BD')}
                             </td>
@@ -1093,7 +1150,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 5. Pesticide Dose Calculator */}
                 {activeTab === 'pesticide' && (
                   <table className="w-full text-left text-sm">
@@ -1105,13 +1162,14 @@ export default function AdminDashboard() {
                         <th className="p-4">ট্যাঙ্ক ও জমি</th>
                         <th className="p-4">মোট ওষুধ পরিমাণ</th>
                         <th className="p-4">প্রয়োজনীয় স্প্রে ট্যাঙ্ক</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {pesticideLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="p-10 text-center text-slate-400">কোনো কীটনাশক ডোজ পরিমাপের লগ পাওয়া যায়নি।</td>
+                          <td colSpan={8} className="p-10 text-center text-slate-400">কোনো কীটনাশক ডোজ পরিমাপের লগ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         pesticideLogs.map((log) => (
@@ -1128,6 +1186,12 @@ export default function AdminDashboard() {
                             </td>
                             <td className="p-4 font-mono font-bold text-emerald-600">{log.metadata?.totalChemicalNeeded} {log.metadata?.pesticideForm === 'liquid' ? 'মিলি' : 'গ্রাম'}</td>
                             <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.tanksNeeded} ড্রাম</td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 text-xs font-mono text-slate-500">
                               {new Date(log.created_at).toLocaleString('bn-BD')}
                             </td>
@@ -1137,7 +1201,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 6. Seed sowing calculator */}
                 {activeTab === 'seeds' && (
                   <table className="w-full text-left text-sm">
@@ -1146,13 +1210,14 @@ export default function AdminDashboard() {
                         <th className="p-4">বীজ / ফসলের জাত</th>
                         <th className="p-4">জমির পরিমাণ</th>
                         <th className="p-4">প্রয়োজনীয় বীজের মোট ওজন</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {seedLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-400">কোনো বীজ বপন পরিমাপের লগ পাওয়া যায়নি।</td>
+                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো বীজ বপন পরিমাপের লগ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         seedLogs.map((log) => (
@@ -1160,6 +1225,12 @@ export default function AdminDashboard() {
                             <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
                             <td className="p-4 font-semibold text-slate-700">{log.metadata?.landSize} {log.metadata?.landUnit === 'bigha' ? 'বিঘা' : 'শতক'}</td>
                             <td className="p-4 font-mono font-bold text-emerald-600">{log.metadata?.totalSeedWeight} কেজি</td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 text-xs font-mono text-slate-500">
                               {new Date(log.created_at).toLocaleString('bn-BD')}
                             </td>
@@ -1169,13 +1240,13 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 7. Crop Matchmaker */}
                 {activeTab === 'matchmaker' && (
                   <table className="w-full text-left text-sm">
                     <thead className="bg-slate-50 text-xs font-black uppercase text-slate-700 border-b border-slate-200">
                       <tr>
-                        <th className="p-4">জেলা / এলাকা</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">মাটির ধরন</th>
                         <th className="p-4">নির্বাচিত মৌসুম</th>
                         <th className="p-4">ম্যাচিং লাভজনক শস্য সংখ্যা</th>
@@ -1190,7 +1261,12 @@ export default function AdminDashboard() {
                       ) : (
                         matchmakerLogs.map((log) => (
                           <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900">{log.location || 'ঢাকা'}</td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 text-xs font-semibold text-slate-700">
                               {log.metadata?.soilType === 'loam' ? 'দোআঁশ মাটি' : log.metadata?.soilType === 'sandy' ? 'বেলে দোআঁশ' : log.metadata?.soilType === 'clay' ? 'এটেল মাটি' : 'লাল/অম্লীয় মাটি'}
                             </td>
@@ -1209,7 +1285,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 8. Crop Rotation */}
                 {activeTab === 'rotation' && (
                   <table className="w-full text-left text-sm">
@@ -1217,19 +1293,26 @@ export default function AdminDashboard() {
                       <tr>
                         <th className="p-4">বর্তমানে আবাদকৃত ফসল</th>
                         <th className="p-4">ফসলের মৌসুম</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {rotationLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="p-10 text-center text-slate-400">কোনো শস্য চক্র পর্যালোচনার ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={4} className="p-10 text-center text-slate-400">কোনো শস্য চক্র পর্যালোচনার ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         rotationLogs.map((log) => (
                           <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
                             <td className="p-4 text-xs text-slate-500 font-bold">{log.metadata?.season}</td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 text-xs font-mono text-slate-500">
                               {new Date(log.created_at).toLocaleString('bn-BD')}
                             </td>
@@ -1239,20 +1322,21 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 9. Market Prices Check */}
                 {activeTab === 'prices' && (
                   <table className="w-full text-left text-sm">
                     <thead className="bg-slate-50 text-xs font-black uppercase text-slate-700 border-b border-slate-200">
                       <tr>
                         <th className="p-4">অনুসন্ধানকৃত ফসলের নাম</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {priceLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={2} className="p-10 text-center text-slate-400">কোনো পাইকারি বাজার মূল্য অনুসন্ধানের বিবরণ পাওয়া যায়নি।</td>
+                          <td colSpan={3} className="p-10 text-center text-slate-400">কোনো পাইকারি বাজার মূল্য অনুসন্ধানের বিবরণ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         priceLogs.map((log) => (
@@ -1261,6 +1345,12 @@ export default function AdminDashboard() {
                               <Coins className="w-4 h-4 text-amber-500" />
                               {log.metadata?.cropName}
                             </td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 text-xs font-mono text-slate-500">
                               {new Date(log.created_at).toLocaleString('bn-BD')}
                             </td>
@@ -1270,7 +1360,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 10. Loan Eligibility Checks */}
                 {activeTab === 'loans' && (
                   <table className="w-full text-left text-sm">
@@ -1279,13 +1369,14 @@ export default function AdminDashboard() {
                         <th className="p-4">অনুমোদিত স্কিম / টাইটেল</th>
                         <th className="p-4">আবেদন গ্রহণকারী সংস্থা</th>
                         <th className="p-4">টাইপ</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {loanLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-400">কোনো অনুদান বা ঋণ অনুসন্ধান করার ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো অনুদান বা ঋণ অনুসন্ধান করার ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         loanLogs.map((log) => (
@@ -1301,6 +1392,12 @@ export default function AdminDashboard() {
                                 {log.metadata?.schemeType === 'subsidy' ? 'প্রণোদনা ভর্তুকি' : '৪% রেয়াতি ঋণ'}
                               </span>
                             </td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 text-xs font-mono text-slate-500">
                               {new Date(log.created_at).toLocaleString('bn-BD')}
                             </td>
@@ -1310,7 +1407,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 11. Weather/Irrigation Searches */}
                 {activeTab === 'weather' && (
                   <table className="w-full text-left text-sm">
@@ -1349,7 +1446,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 )}
-
+ 
                 {/* 12. General page visits */}
                 {activeTab === 'pages' && (
                   <table className="w-full text-left text-sm">
@@ -1357,6 +1454,7 @@ export default function AdminDashboard() {
                       <tr>
                         <th className="p-4">সেশন আইডি</th>
                         <th className="p-4">ভিজিটেড পাথ</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">আইপি অ্যাড্রেস</th>
                         <th className="p-4">ডিভাইস / ইউজার এজেন্ট</th>
                         <th className="p-4">তারিখ ও সময়</th>
@@ -1365,13 +1463,19 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-slate-200">
                       {generalPageLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো ভিজিটর পেজ অ্যাক্টিভিটি পাওয়া যায়নি।</td>
+                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো ভিজিটর পেজ অ্যাক্টিভিটি পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         generalPageLogs.map((log) => (
                           <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="p-4 text-xs font-mono text-emerald-600">{log.session_id.substring(0, 15)}...</td>
                             <td className="p-4 text-xs font-mono font-semibold text-slate-800">{log.page_visited}</td>
+                            <td className="p-4 text-xs text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                {log.location || 'ঢাকা'}
+                              </span>
+                            </td>
                             <td className="p-4 font-mono text-xs text-slate-500">{log.ip_address}</td>
                             <td className="p-4 text-xs text-slate-500 max-w-[200px] truncate" title={log.user_agent}>
                               {log.user_agent}

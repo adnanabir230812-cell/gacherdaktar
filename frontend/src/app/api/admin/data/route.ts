@@ -90,16 +90,59 @@ export async function GET(request: Request) {
     // Unique active sessions
     const uniqueSessions = new Set((analytics || []).map((a: ActivityEntry) => a.session_id)).size;
 
-    // Calculate live audience (active within last 40 seconds)
+    // Get current date string in Bangladesh (UTC+6)
+    const bdNow = new Date(Date.now() + 6 * 3600000);
+    const bdTodayStr = bdNow.toISOString().split('T')[0];
+
+    // Calculate live audience (active within last 40 seconds) and today's sessions
     const fortySecondsAgo = Date.now() - 40000;
-    const liveSessions = new Set();
+    
+    // Track unique sessions for today
+    const todaySessions = new Set<string>();
+
+    // Track detailed info for live and today's sessions
+    const liveSessionsMap = new Map<string, { session_id: string; location: string; last_active: string; page: string; user_agent: string }>();
+    const todaySessionsMap = new Map<string, { session_id: string; location: string; last_active: string; page: string; user_agent: string }>();
+
     (analytics || []).forEach((a: ActivityEntry) => {
       const activeTime = new Date(a.created_at).getTime();
+      const bdTime = new Date(activeTime + 6 * 3600000);
+      const bdDateStr = bdTime.toISOString().split('T')[0];
+      
+      const record = {
+        session_id: a.session_id,
+        location: a.location || 'ঢাকা',
+        last_active: a.created_at,
+        page: a.page_visited,
+        user_agent: a.user_agent || 'Unknown'
+      };
+
+      if (bdDateStr === bdTodayStr) {
+        todaySessions.add(a.session_id);
+        if (!todaySessionsMap.has(a.session_id)) {
+          todaySessionsMap.set(a.session_id, record);
+        } else {
+          const existing = todaySessionsMap.get(a.session_id)!;
+          if (new Date(record.last_active).getTime() > new Date(existing.last_active).getTime()) {
+            todaySessionsMap.set(a.session_id, record);
+          }
+        }
+      }
+
       if (activeTime >= fortySecondsAgo) {
-        liveSessions.add(a.session_id);
+        if (!liveSessionsMap.has(a.session_id)) {
+          liveSessionsMap.set(a.session_id, record);
+        } else {
+          const existing = liveSessionsMap.get(a.session_id)!;
+          if (new Date(record.last_active).getTime() > new Date(existing.last_active).getTime()) {
+            liveSessionsMap.set(a.session_id, record);
+          }
+        }
       }
     });
-    const liveAudienceCount = liveSessions.size;
+
+    const liveAudienceCount = liveSessionsMap.size;
+    const todayUniqueSessionsCount = todaySessions.size;
 
     // Page distribution
     const pageCounts: { [key: string]: number } = {};
@@ -115,6 +158,9 @@ export async function GET(request: Request) {
         totalPageViews: totalPageViews || 0,
         activeSessions: uniqueSessions,
         liveAudience: liveAudienceCount,
+        todayUniqueSessionsCount,
+        liveSessionsDetail: Array.from(liveSessionsMap.values()),
+        todaySessionsDetail: Array.from(todaySessionsMap.values()),
         cropCounts,
         diseaseCounts,
         pageCounts
