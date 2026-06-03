@@ -16,7 +16,6 @@ import {
   Calendar,
   Compass,
   ArrowUpRight,
-  TrendingUp,
   MapPin,
   CheckCircle,
   Coins,
@@ -1205,107 +1204,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 🌾 SEASONAL CROP RECOMMENDATION MATRIX */}
-      <section className="bg-soft-white/90 rounded-3xl border-2 border-green-primary/10 p-8 space-y-6 shadow-xl relative overflow-hidden scroll-reveal">
-        
-        {/* Soft sun glow inside crop section */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-sunlight/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-green-primary/10 pb-6 gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-green-primary font-black text-xs mb-1 uppercase tracking-wider">
-              <TrendingUp className="w-4 h-4" /> উচ্চ ফলনশীল লাভজনক ফসল
-            </div>
-            <h2 className="text-3xl font-black text-text-primary">আদর্শ মৌসুমি লাভজনক ফসলসমূহ</h2>
-            <p className="text-sm text-text-secondary font-semibold">আপনার খামারে চাষ উপযোগী উচ্চ লাভজনক জাতসমূহ</p>
-          </div>
-          <button 
-            onClick={() => router.push('/crops')}
-            className="px-6 py-3 rounded-full bg-green-primary text-soft-white text-xs font-black hover:bg-green-soft hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer border border-green-700/20"
-          >
-            সব ফসল দেখুন <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Crop 1 */}
-          <div className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-warm-bg/30 space-y-4 hover:shadow-lg transition-all">
-            <span className="text-5xl block">🌾</span>
-            <div>
-              <h4 className="font-black text-xl text-text-primary">ধান (বোরো)</h4>
-              <p className="text-xs text-text-secondary font-bold">Oryza sativa | বোরো-রবি মৌসুম</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-xs pt-3 border-t border-green-primary/5">
-              <div>
-                <span className="text-text-secondary block font-bold">গড় ফলন:</span>
-                <p className="font-black text-text-primary text-base">৬.২ টন/হেক্টর</p>
-              </div>
-              <div>
-                <span className="text-text-secondary block font-bold">সম্ভাব্য লাভ:</span>
-                <p className="font-black text-green-primary text-base">১২,০০০ ৳/বিঘা</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => router.push('/crops?c=1')}
-              className="w-full text-center py-2.5 bg-green-primary/10 text-green-primary rounded-xl text-xs font-black hover:bg-green-primary hover:text-soft-white transition-all cursor-pointer"
-            >
-              বিস্তারিত গাইড
-            </button>
-          </div>
-
-          {/* Crop 2 */}
-          <div className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-warm-bg/30 space-y-4 hover:shadow-lg transition-all">
-            <span className="text-5xl block">🍍</span>
-            <div>
-              <h4 className="font-black text-xl text-text-primary">আনারস</h4>
-              <p className="text-xs text-text-secondary font-bold">Ananas comosus | সারা বছর</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-xs pt-3 border-t border-green-primary/5">
-              <div>
-                <span className="text-text-secondary block font-bold">গড় ফলন:</span>
-                <p className="font-black text-text-primary text-base">২৪.০ টন/হেক্টর</p>
-              </div>
-              <div>
-                <span className="text-text-secondary block font-bold">সম্ভাব্য লাভ:</span>
-                <p className="font-black text-green-primary text-base">২৬,০০০ ৳/বিঘা</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => router.push('/crops')}
-              className="w-full text-center py-2.5 bg-green-primary/10 text-green-primary rounded-xl text-xs font-black hover:bg-green-primary hover:text-soft-white transition-all cursor-pointer"
-            >
-              বিস্তারিত গাইড
-            </button>
-          </div>
-
-          {/* Crop 3 */}
-          <div className="border border-green-primary/10 hover:border-green-primary/30 rounded-2xl p-6 bg-warm-bg/30 space-y-4 hover:shadow-lg transition-all">
-            <span className="text-5xl block">🍃</span>
-            <div>
-              <h4 className="font-black text-xl text-text-primary">পান (Betel Leaf)</h4>
-              <p className="text-xs text-text-secondary font-bold">Piper betle | অর্থকরী / বারোমাসি</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-xs pt-3 border-t border-green-primary/5">
-              <div>
-                <span className="text-text-secondary block font-bold">গড় ফলন:</span>
-                <p className="font-black text-text-primary text-base">১০.০ টন/হেক্টর</p>
-              </div>
-              <div>
-                <span className="text-text-secondary block font-bold">সম্ভাব্য লাভ:</span>
-                <p className="font-black text-green-primary text-base">৪৫,০০০ ৳/বিঘা</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => router.push('/crops')}
-              className="w-full text-center py-2.5 bg-green-primary/10 text-green-primary rounded-xl text-xs font-black hover:bg-green-primary hover:text-soft-white transition-all cursor-pointer"
-            >
-              বিস্তারিত গাইড
-            </button>
-          </div>
-
-        </div>
-      </section>
     </div>
   );
 }

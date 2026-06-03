@@ -1,11 +1,11 @@
 {
   "crons": [
     {
-      "path": "/api/sync/prices",
+      "path": "/api/sync/prices?secret=krishisathi_sync_secret_token_2026",
       "schedule": "0 3 * * *"
     },
     {
-      "path": "/api/sync/articles",
+      "path": "/api/sync/articles?secret=krishisathi_sync_secret_token_2026",
       "schedule": "0 2 * * *"
     }
   ]

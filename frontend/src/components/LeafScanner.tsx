@@ -15,7 +15,8 @@ import {
   Trash2,
   Sparkles,
   ArrowRight,
-  ChevronDown
+  ChevronDown,
+  X
 } from 'lucide-react';
 
 interface CropItem {
@@ -514,32 +515,54 @@ export default function LeafScanner() {
               <input
                 type="text"
                 value={cropSearchQuery}
-                onFocus={() => setIsCropDropdownOpen(true)}
+                onFocus={(e) => {
+                  setIsCropDropdownOpen(true);
+                  e.target.select();
+                }}
                 onChange={(e) => {
                   setCropSearchQuery(e.target.value);
                   setSelectedCrop(''); // Reset selected crop until clicked
                   setIsCropDropdownOpen(true);
                 }}
                 placeholder="ফসলের নাম লিখুন বা নিচের তালিকা থেকে সিলেক্ট করুন..."
-                className="w-full px-4 py-3 rounded-xl border-2 border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary focus:border-transparent font-bold text-xs md:text-sm shadow-sm"
+                className="w-full pl-4 pr-16 py-3 rounded-xl border-2 border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary focus:border-transparent font-bold text-xs md:text-sm shadow-sm"
               />
-              <button
-                type="button"
-                onClick={() => setIsCropDropdownOpen(!isCropDropdownOpen)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-text-secondary hover:text-green-primary cursor-pointer"
-              >
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCropDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-2">
+                {cropSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCropSearchQuery('');
+                      setSelectedCrop('');
+                      setIsCropDropdownOpen(true);
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded-full text-text-secondary hover:text-red-500 transition-colors cursor-pointer"
+                    title="মুছে ফেলুন"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsCropDropdownOpen(!isCropDropdownOpen)}
+                  className="p-1 hover:bg-gray-100 rounded-full text-text-secondary hover:text-green-primary transition-colors cursor-pointer"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCropDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
             </div>
 
-                        {/* Dropdown List Overlay */}
+            {/* Dropdown List Overlay */}
             {isCropDropdownOpen && (
               <div className="absolute z-20 w-full mt-1 bg-white border border-green-primary/15 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-green-primary/5">
                 {(() => {
+                  const selectedCropItem = CROPS_LIST.find(c => c.bn === selectedCrop);
+                  const selectedCropDisplayVal = selectedCropItem ? `${selectedCropItem.bn} (${selectedCropItem.en})` : '';
+
                   const filtered = CROPS_LIST.filter(c => {
                     const displayStr = `${c.bn} (${c.en})`;
                     // If no search query, or search query matches selected crop, show all
-                    if (!cropSearchQuery || cropSearchQuery === displayStr || cropSearchQuery === selectedCrop) {
+                    if (!cropSearchQuery || cropSearchQuery === selectedCropDisplayVal || cropSearchQuery === selectedCrop) {
                       return true;
                     }
                     const query = cropSearchQuery.toLowerCase().trim();

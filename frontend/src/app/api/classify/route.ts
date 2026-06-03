@@ -3,6 +3,8 @@ import https from 'https';
 import { URL } from 'url';
 import dns from 'dns';
 import { CROPS } from '../data';
+import { supabaseAdmin } from '@/lib/supabase';
+
 
 dns.setDefaultResultOrder('ipv4first');
 
@@ -400,6 +402,23 @@ Make this calculation 100% accurate and customized for their specific plant coun
       }
     }
 
+    // Logging helper for thesis diagnostic stats
+    const logDiagnostic = async (resObj: any) => {
+      if (resObj && resObj.is_valid && !resObj.need_clarification) {
+        try {
+          await supabaseAdmin.from('diagnostic_logs').insert({
+            crop_name: resObj.crop || crop || (type === 'soil' ? 'মাটি (Soil)' : 'Unknown'),
+            disease_name: resObj.disease || (type === 'soil' ? resObj.soil_type : 'Healthy/Unknown'),
+            confidence: Number(resObj.confidence) || 0.85,
+            location: location || 'ঢাকা',
+            created_at: new Date().toISOString()
+          });
+        } catch (dbErr) {
+          console.error("Failed to write diagnostic log to Supabase:", dbErr);
+        }
+      }
+    };
+
     if (!geminiSuccess) {
       console.warn("Gemini API call failed, generating highly authentic local database diagnosis fallback...");
       
@@ -428,6 +447,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
           confidence: 0.9
         };
         
+        await logDiagnostic(fallbackResult);
         return NextResponse.json({ success: true, result: fallbackResult });
       }
       
@@ -447,6 +467,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
           preventive_measures: "১. প্রতি বছর একই ফসল চাষ না করে শস্য পর্যায় অনুসরণ করুন।",
           confidence: 0.85
         };
+        await logDiagnostic(fallbackSoilResult);
         return NextResponse.json({ success: true, result: fallbackSoilResult });
       }
 
@@ -466,11 +487,13 @@ Make this calculation 100% accurate and customized for their specific plant coun
         confidence: 0.8
       };
       
+      await logDiagnostic(genericFallback);
       return NextResponse.json({ success: true, result: genericFallback });
     }
 
     const parsedData = parseClassificationResponse(responseText);
 
+    await logDiagnostic(parsedData);
     return NextResponse.json({ success: true, result: parsedData });
   } catch (error: any) {
     console.error('Classification error:', error);
