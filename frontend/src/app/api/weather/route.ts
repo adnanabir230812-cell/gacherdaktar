@@ -20,118 +20,169 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'District not found in Bangladesh database' }, { status: 404 });
   }
 
-  // Open-Meteo daily and hourly forecast variables
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${district.lat}&longitude=${district.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&current_weather=true&hourly=relativehumidity_2m,soil_temperature_0_to_7cm&timezone=Asia/Dhaka`;
-
-
   let data;
+  let isWeatherAPI = false;
+
+  const apiKey = process.env.WEATHER_API_KEY || '681c9776dd5947dcb05104416260306';
+  const weatherApiUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${district.lat},${district.lon}&days=7&aqi=no&alerts=no&lang=bn`;
+
   try {
-    const res = await fetch(url, {
+    const res = await fetch(weatherApiUrl, {
       signal: AbortSignal.timeout(3000), // 3-second timeout to prevent hangs
     });
     if (!res.ok) {
-      throw new Error('Open-Meteo returned status ' + res.status);
+      throw new Error('WeatherAPI returned status ' + res.status);
     }
     data = await res.json();
+    isWeatherAPI = true;
   } catch (fetchErr) {
-    console.warn('Weather API Fetch failed, using calculated seasonal forecast:', fetchErr);
+    console.warn('Weather API Fetch failed, falling back to Open-Meteo:', fetchErr);
     
-    // Generate seasonal mock data for Bangladesh
-    const now = new Date();
-    const month = now.getMonth(); // 0-indexed (0 is Jan, 4 is May)
-    
-    let temp = 28;
-    let code = 3; // cloudy
-    let humidity = 75;
-    let soil_temp = 26;
-    let wind = 8;
-    let precip = 0;
-    
-    if (month >= 10 || month <= 1) { // Nov, Dec, Jan, Feb (Winter)
-      temp = 21;
-      code = 2; // Part cloudy
-      humidity = 65;
-      soil_temp = 18;
-      wind = 6;
-      precip = 0;
-    } else if (month >= 2 && month <= 4) { // Mar, Apr, May (Summer/Pre-monsoon)
-      temp = 33;
-      code = 95; // Thunderstorm / Kalbaishakhi
-      humidity = 82;
-      soil_temp = 29;
-      wind = 14;
-      precip = 10.5;
-    } else { // Jun, Jul, Aug, Sep, Oct (Monsoon/Rainy)
-      temp = 29;
-      code = 63; // Rain
-      humidity = 88;
-      soil_temp = 26;
-      wind = 11;
-      precip = 22.0;
-    }
-    
-    const dates = [];
-    const tempMax = [];
-    const tempMin = [];
-    const precipitation = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const d = new Date();
-      d.setDate(now.getDate() + i);
-      dates.push(d.toISOString().split('T')[0]);
-      tempMax.push(Math.round(temp + Math.random() * 3));
-      tempMin.push(Math.round(temp - 4 - Math.random() * 2));
-      precipitation.push(i === 0 ? precip : Math.round(precip * Math.random()));
-    }
-    
-    data = {
-      current_weather: {
-        temperature: temp,
-        weathercode: code,
-        windspeed: wind
-      },
-      hourly: {
-        relativehumidity_2m: Array(24).fill(humidity),
-        soil_temperature_0_to_7cm: Array(24).fill(soil_temp)
-      },
-      daily: {
-        time: dates,
-        temperature_2m_max: tempMax,
-        temperature_2m_min: tempMin,
-        precipitation_sum: precipitation
+    // Fallback to Open-Meteo daily and hourly forecast variables
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${district.lat}&longitude=${district.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&current_weather=true&hourly=relativehumidity_2m,soil_temperature_0_to_7cm&timezone=Asia/Dhaka`;
+
+    try {
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(3000), // 3-second timeout to prevent hangs
+      });
+      if (!res.ok) {
+        throw new Error('Open-Meteo returned status ' + res.status);
       }
-    };
+      data = await res.json();
+    } catch (fallbackErr) {
+      console.warn('Open-Meteo fallback failed, using calculated seasonal forecast:', fallbackErr);
+      
+      // Generate seasonal mock data for Bangladesh
+      const now = new Date();
+      const month = now.getMonth(); // 0-indexed (0 is Jan, 4 is May)
+      
+      let temp = 28;
+      let code = 3; // cloudy
+      let humidity = 75;
+      let soil_temp = 26;
+      let wind = 8;
+      let precip = 0;
+      
+      if (month >= 10 || month <= 1) { // Nov, Dec, Jan, Feb (Winter)
+        temp = 21;
+        code = 2; // Part cloudy
+        humidity = 65;
+        soil_temp = 18;
+        wind = 6;
+        precip = 0;
+      } else if (month >= 2 && month <= 4) { // Mar, Apr, May (Summer/Pre-monsoon)
+        temp = 33;
+        code = 95; // Thunderstorm / Kalbaishakhi
+        humidity = 82;
+        soil_temp = 29;
+        wind = 14;
+        precip = 10.5;
+      } else { // Jun, Jul, Aug, Sep, Oct (Monsoon/Rainy)
+        temp = 29;
+        code = 63; // Rain
+        humidity = 88;
+        soil_temp = 26;
+        wind = 11;
+        precip = 22.0;
+      }
+      
+      const dates = [];
+      const tempMax = [];
+      const tempMin = [];
+      const precipitation = [];
+      
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(now.getDate() + i);
+        dates.push(d.toISOString().split('T')[0]);
+        tempMax.push(Math.round(temp + Math.random() * 3));
+        tempMin.push(Math.round(temp - 4 - Math.random() * 2));
+        precipitation.push(i === 0 ? precip : Math.round(precip * Math.random()));
+      }
+      
+      data = {
+        current_weather: {
+          temperature: temp,
+          weathercode: code,
+          windspeed: wind
+        },
+        hourly: {
+          relativehumidity_2m: Array(24).fill(humidity),
+          soil_temperature_0_to_7cm: Array(24).fill(soil_temp)
+        },
+        daily: {
+          time: dates,
+          temperature_2m_max: tempMax,
+          temperature_2m_min: tempMin,
+          precipitation_sum: precipitation
+        }
+      };
+    }
   }
 
   try {
+    let temp: number;
+    let conditionText: string;
+    let wind: number;
+    let avgHumidity: number;
+    let avgSoilTemp: number;
+    let dailyDates: string[] = [];
+    let dailyTempMax: number[] = [];
+    let dailyTempMin: number[] = [];
+    let dailyPrecipitation: number[] = [];
+    let dailyPrecip = 0;
 
-    const weatherCodes: { [key: number]: string } = {
-      0: "পরিষ্কার রৌদ্রোজ্জ্বল আকাশ (Sunny)",
-      1: "প্রধানত পরিষ্কার আকাশ", 2: "আংশিক মেঘলা", 3: "মেঘলা আকাশ",
-      45: "কুয়াশাচ্ছন্ন", 48: "ঘন কুয়াশা ও বরফ কণা",
-      51: "হালকা গুঁড়িগুঁড়ি বৃষ্টি", 53: "মাঝারি গুঁড়িগুঁড়ি বৃষ্টি", 55: "ঘন গুঁড়িগুঁড়ি বৃষ্টি",
-      61: "হালকা বৃষ্টি", 63: "মাঝারি বৃষ্টি", 65: "ভারী বৃষ্টি",
-      71: "হালকা তুষারপাত", 73: "মাঝারি তুষারপাত", 75: "ভারী তুষারপাত",
-      77: "তুষার কণা",
-      80: "হালকা বৃষ্টির ঝাপটা", 81: "মাঝারি বৃষ্টির ঝাপটা", 82: "ভারী মুষলধারে বৃষ্টি",
-      85: "হালকা তুষারপাত ঝাপটা", 86: "ভারী তুষারপাত ঝাপটা",
-      95: "বজ্রবিদ্যুৎসহ ঝড়ো হাওয়া", 96: "বজ্রবিদ্যুৎ ও শিলাবৃষ্টি", 99: "প্রবল বজ্রঝড় ও শিলাবৃষ্টি"
-    };
+    if (isWeatherAPI) {
+      const current = data.current || {};
+      temp = current.temp_c ?? 28.0;
+      conditionText = current.condition?.text ?? "মেঘলা আকাশ";
+      wind = current.wind_kph ?? 5.0;
+      avgHumidity = current.humidity ?? 75;
+      
+      // Estimate soil temperature
+      avgSoilTemp = temp - 3;
 
-    const current = data.current_weather || {};
-    const code = current.weathercode ?? 0;
-    const temp = current.temperature ?? 28.0;
-    const wind = current.windspeed ?? 5.0;
+      const forecastDays = data.forecast?.forecastday || [];
+      dailyDates = forecastDays.map((f: any) => f.date);
+      dailyTempMax = forecastDays.map((f: any) => f.day.maxtemp_c);
+      dailyTempMin = forecastDays.map((f: any) => f.day.mintemp_c);
+      dailyPrecipitation = forecastDays.map((f: any) => f.day.totalprecip_mm);
+      dailyPrecip = dailyPrecipitation[0] ?? 0;
+    } else {
+      const current = data.current_weather || {};
+      const code = current.weathercode ?? 0;
+      temp = current.temperature ?? 28.0;
+      wind = current.windspeed ?? 5.0;
 
-    // Fetch relative humidity (average of last 24h)
-    const hourlyHumidity = data.hourly?.relativehumidity_2m || [];
-    const avgHumidity = hourlyHumidity.slice(0, 24).reduce((a: number, b: number) => a + b, 0) / (hourlyHumidity.slice(0, 24).length || 1) || 75;
+      const weatherCodes: { [key: number]: string } = {
+        0: "পরিষ্কার রৌদ্রোজ্জ্বল আকাশ (Sunny)",
+        1: "প্রধানত পরিষ্কার আকাশ", 2: "আংশিক মেঘলা", 3: "মেঘলা আকাশ",
+        45: "কুয়াশাচ্ছন্ন", 48: "ঘন কুয়াশা ও বরফ কণা",
+        51: "হালকা গুঁড়িগুঁড়ি বৃষ্টি", 53: "মাঝারি গুঁড়িগুঁড়ি বৃষ্টি", 55: "ঘন গুঁড়িগুঁড়ি বৃষ্টি",
+        61: "হালকা বৃষ্টি", 63: "মাঝারি বৃষ্টি", 65: "ভারী বৃষ্টি",
+        71: "হালকা তুষারপাত", 73: "মাঝারি তুষারপাত", 75: "ভারী তুষারপাত",
+        77: "তুষার কণা",
+        80: "হালকা বৃষ্টির ঝাপটা", 81: "মাঝারি বৃষ্টির ঝাপটা", 82: "ভারী মুষলধারে বৃষ্টি",
+        85: "হালকা তুষারপাত ঝাপটা", 86: "ভারী তুষারপাত ঝাপটা",
+        95: "বজ্রবিদ্যুৎসহ ঝড়ো হাওয়া", 96: "বজ্রবিদ্যুৎ ও শিলাবৃষ্টি", 99: "প্রবল বজ্রঝড় ও শিলাবৃষ্টি"
+      };
+      conditionText = weatherCodes[code] || "মেঘলা আকাশ";
 
-    // Fetch soil temperature
-    const soilTemps = data.hourly?.soil_temperature_0_to_7cm || [];
-    const avgSoilTemp = soilTemps.slice(0, 24).reduce((a: number, b: number) => a + b, 0) / (soilTemps.slice(0, 24).length || 1) || 26.5;
+      // Fetch relative humidity (average of last 24h)
+      const hourlyHumidity = data.hourly?.relativehumidity_2m || [];
+      avgHumidity = hourlyHumidity.slice(0, 24).reduce((a: number, b: number) => a + b, 0) / (hourlyHumidity.slice(0, 24).length || 1) || 75;
 
-    const dailyPrecip = data.daily?.precipitation_sum?.[0] ?? 0;
+      // Fetch soil temperature
+      const soilTemps = data.hourly?.soil_temperature_0_to_7cm || [];
+      avgSoilTemp = soilTemps.slice(0, 24).reduce((a: number, b: number) => a + b, 0) / (soilTemps.slice(0, 24).length || 1) || 26.5;
+
+      dailyDates = data.daily?.time || [];
+      dailyTempMax = data.daily?.temperature_2m_max || [];
+      dailyTempMin = data.daily?.temperature_2m_min || [];
+      dailyPrecipitation = data.daily?.precipitation_sum || [];
+      dailyPrecip = dailyPrecipitation[0] ?? 0;
+    }
+
 
     // Multi-dimensional advice structure
     const advice = {
@@ -249,7 +300,7 @@ export async function GET(request: Request) {
         metadata: {
           district: district.name_bn,
           temp: temp,
-          condition: weatherCodes[code] || "মেঘলা আকাশ"
+          condition: conditionText
         },
         created_at: new Date().toISOString()
       });
@@ -260,15 +311,15 @@ export async function GET(request: Request) {
     return NextResponse.json({
       district: district.name_bn,
       temp: temp,
-      condition: weatherCodes[code] || "মেঘলা আকাশ",
+      condition: conditionText,
       wind_speed: wind,
       humidity: Math.round(avgHumidity),
       soil_temp: Math.round(avgSoilTemp),
       daily: {
-        dates: data.daily?.time || [],
-        temp_max: data.daily?.temperature_2m_max || [],
-        temp_min: data.daily?.temperature_2m_min || [],
-        precipitation: data.daily?.precipitation_sum || []
+        dates: dailyDates,
+        temp_max: dailyTempMax,
+        temp_min: dailyTempMin,
+        precipitation: dailyPrecipitation
       },
       advice: advice
     });
