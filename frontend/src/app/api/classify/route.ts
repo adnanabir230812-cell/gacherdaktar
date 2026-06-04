@@ -4,6 +4,7 @@ import { URL } from 'url';
 import dns from 'dns';
 import { CROPS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
+import { checkSecurity } from '@/lib/security';
 
 
 dns.setDefaultResultOrder('ipv4first');
@@ -193,6 +194,11 @@ function parseClassificationResponse(text: string): any {
 }
 
 export async function POST(request: Request) {
+  const security = checkSecurity(request, 'classify');
+  if (security.blocked && security.response) {
+    return security.response;
+  }
+
   const startTime = Date.now();
   const getRemainingTime = (maxDurationMs: number) => {
     const elapsed = Date.now() - startTime;

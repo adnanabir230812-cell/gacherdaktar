@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { CROPS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
+import { checkSecurity } from '@/lib/security';
 
 export async function POST(request: Request) {
+  const security = checkSecurity(request, 'general');
+  if (security.blocked && security.response) {
+    return security.response;
+  }
   try {
     const { cropId, landSize, season } = await request.json();
 

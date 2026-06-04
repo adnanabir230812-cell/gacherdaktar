@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { DISTRICTS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
+import { checkSecurity } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+  const security = checkSecurity(request, 'general');
+  if (security.blocked && security.response) {
+    return security.response;
+  }
   const { searchParams } = new URL(request.url);
   const districtName = searchParams.get('district');
 

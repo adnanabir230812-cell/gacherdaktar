@@ -4,6 +4,7 @@ import https from 'https';
 import { URL } from 'url';
 import dns from 'dns';
 import { supabaseAdmin } from '@/lib/supabase';
+import { checkSecurity } from '@/lib/security';
 
 
 dns.setDefaultResultOrder('ipv4first');
@@ -260,6 +261,11 @@ function parseLLMResponse(text: string, dbSources: string[] = []): any {
 }
 
 export async function POST(request: Request) {
+  const security = checkSecurity(request, 'chat');
+  if (security.blocked && security.response) {
+    return security.response;
+  }
+
   const startTime = Date.now();
   const getRemainingTime = (maxDurationMs: number) => {
     const elapsed = Date.now() - startTime;
