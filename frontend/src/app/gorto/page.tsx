@@ -27,7 +27,9 @@ import {
   Coins,
   Wrench,
   Search,
-  BookOpen
+  BookOpen,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface LogEntry {
@@ -125,6 +127,7 @@ export default function AdminDashboard() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationModalTitle, setLocationModalTitle] = useState('');
   const [locationModalData, setLocationModalData] = useState<any[]>([]);
+  const [expandedLogId, setExpandedLogId] = useState<string | number | null>(null);
 
   // Auto Refresh States (60 seconds)
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
@@ -182,6 +185,7 @@ export default function AdminDashboard() {
 
   const changeTab = (tab: TabType) => {
     setActiveTab(tab);
+    setExpandedLogId(null);
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       params.set('page', tab);
@@ -983,52 +987,103 @@ export default function AdminDashboard() {
                         <th className="p-4">কনফিডেন্স</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {leafScans.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো রোগ নির্ণয়ের ইতিহাস খুঁজে পাওয়া যায়নি।</td>
+                          <td colSpan={7} className="p-10 text-center text-slate-400">কোনো রোগ নির্ণয়ের ইতিহাস খুঁজে পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        leafScans.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4">
-                              {log.image_url ? (
-                                <div 
-                                  onClick={() => setSelectedImage(log.image_url || null)}
-                                  className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in bg-slate-100 shrink-0 relative hover:scale-105 transition-transform"
-                                >
-                                  <img 
-                                    src={log.image_url} 
-                                    alt="Scan thumb" 
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400" title="কোনো ছবি সংরক্ষিত নেই (পুরাতন রেকর্ড)">
-                                  <Scan className="w-4 h-4" />
-                                </div>
+                        leafScans.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4">
+                                  {log.image_url ? (
+                                    <div 
+                                      onClick={() => setSelectedImage(log.image_url || null)}
+                                      className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in bg-slate-100 shrink-0 relative hover:scale-105 transition-transform"
+                                    >
+                                      <img 
+                                        src={log.image_url} 
+                                        alt="Scan thumb" 
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400" title="কোনো ছবি সংরক্ষিত নেই (পুরাতন রেকর্ড)">
+                                      <Scan className="w-4 h-4" />
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="p-4 font-bold text-slate-900">{log.crop_name}</td>
+                                <td className="p-4 text-emerald-600 font-semibold">{log.disease_name}</td>
+                                <td className="p-4 text-xs">
+                                  <span className={`px-2.5 py-1 rounded-md font-bold ${log.confidence >= 0.85 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                                    {(Number(log.confidence) * 100).toFixed(0)}%
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={7} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4">
+                                      <div className="flex flex-col md:flex-row gap-6">
+                                        {log.image_url && (
+                                          <div 
+                                            onClick={() => setSelectedImage(log.image_url || null)}
+                                            className="w-full md:w-48 h-48 rounded-xl overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in shrink-0 relative bg-slate-50 hover:scale-[1.02] transition-transform"
+                                          >
+                                            <img src={log.image_url} alt="Scan details" className="w-full h-full object-cover" />
+                                          </div>
+                                        )}
+                                        <div className="flex-1 space-y-3">
+                                          <div className="flex items-center gap-2">
+                                            <span className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-black border border-emerald-100">
+                                              শনাক্তকৃত ফলাফল
+                                            </span>
+                                          </div>
+                                          <h4 className="text-lg font-black text-slate-900">{log.crop_name}</h4>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                              <span className="block text-slate-400 font-bold mb-0.5">আক্রান্ত রোগ</span>
+                                              <span className="font-bold text-slate-800">{log.disease_name}</span>
+                                            </div>
+                                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                              <span className="block text-slate-400 font-bold mb-0.5">নিশ্চয়তা (Confidence)</span>
+                                              <span className="font-mono font-bold text-slate-800">{(Number(log.confidence) * 100).toFixed(0)}%</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
                               )}
-                            </td>
-                            <td className="p-4 font-bold text-slate-900">{log.crop_name}</td>
-                            <td className="p-4 text-emerald-600 font-semibold">{log.disease_name}</td>
-                            <td className="p-4 text-xs">
-                              <span className={`px-2.5 py-1 rounded-md font-bold ${log.confidence >= 0.85 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                                {(Number(log.confidence) * 100).toFixed(0)}%
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1045,62 +1100,217 @@ export default function AdminDashboard() {
                         <th className="p-4">অবস্থা</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {soilScans.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো মাটির নমুনা পরীক্ষার ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={7} className="p-10 text-center text-slate-400">কোনো মাটির নমুনা পরীক্ষার ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        soilScans.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4">
-                              {log.image_url ? (
-                                <div 
-                                  onClick={() => setSelectedImage(log.image_url || null)}
-                                  className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in bg-slate-100 shrink-0 relative hover:scale-105 transition-transform"
-                                >
-                                  <img 
-                                    src={log.image_url} 
-                                    alt="Soil scan thumb" 
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400" title="কোনো ছবি সংরক্ষিত নেই (পুরাতন রেকর্ড)">
-                                  <Droplet className="w-4 h-4" />
-                                </div>
+                        soilScans.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4">
+                                  {log.image_url ? (
+                                    <div 
+                                      onClick={() => setSelectedImage(log.image_url || null)}
+                                      className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in bg-slate-100 shrink-0 relative hover:scale-105 transition-transform"
+                                    >
+                                      <img 
+                                        src={log.image_url} 
+                                        alt="Soil scan thumb" 
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400" title="কোনো ছবি সংরক্ষিত নেই (পুরাতন রেকর্ড)">
+                                      <Droplet className="w-4 h-4" />
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="p-4 font-bold text-slate-900">{log.disease_name}</td>
+                                <td className="p-4 font-mono font-bold text-cyan-600">{Number(log.confidence).toFixed(1)}</td>
+                                <td className="p-4 text-xs">
+                                  <span className={`px-2 py-1 rounded font-bold ${
+                                    Number(log.confidence) < 6.0 
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200' 
+                                      : Number(log.confidence) > 7.5 
+                                        ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                                        : 'bg-green-50 text-green-700 border border-green-200'
+                                  }`}>
+                                    {Number(log.confidence) < 6.0 ? 'অম্লীয় মাটি' : Number(log.confidence) > 7.5 ? 'ক্ষারীয় মাটি' : 'স্বাভাবিক মাটি'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={7} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4">
+                                      <div className="flex flex-col md:flex-row gap-6">
+                                        {log.image_url && (
+                                          <div 
+                                            onClick={() => setSelectedImage(log.image_url || null)}
+                                            className="w-full md:w-48 h-48 rounded-xl overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in shrink-0 relative bg-slate-50 hover:scale-[1.02] transition-transform"
+                                          >
+                                            <img src={log.image_url} alt="Soil details" className="w-full h-full object-cover" />
+                                          </div>
+                                        )}
+                                        <div className="flex-1 space-y-3">
+                                          <div className="flex items-center gap-2">
+                                            <span className="bg-cyan-50 text-cyan-700 px-3 py-1 rounded-full text-xs font-black border border-cyan-100">
+                                              মাটির নমুনা রিপোর্ট
+                                            </span>
+                                          </div>
+                                          <h4 className="text-lg font-black text-slate-900">{log.disease_name}</h4>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                              <span className="block text-slate-400 font-bold mb-0.5">আনুমানিক pH মান</span>
+                                              <span className="font-mono font-bold text-cyan-600">{Number(log.confidence).toFixed(1)}</span>
+                                            </div>
+                                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                              <span className="block text-slate-400 font-bold mb-0.5">মাটির অবস্থা</span>
+                                              <span className="font-bold text-slate-800 text-sm">
+                                                {Number(log.confidence) < 6.0 ? 'অম্লীয় মাটি' : Number(log.confidence) > 7.5 ? 'ক্ষারীয় মাটি' : 'স্বাভাবিক মাটি'}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <div className="text-xs bg-amber-50/50 p-3.5 rounded-lg border border-amber-100 text-slate-700">
+                                            <span className="font-black text-amber-800 block mb-1">সুপারিশকৃত সমাধান:</span>
+                                            {Number(log.confidence) < 6.0 
+                                              ? 'অম্লত্ব কমাতে প্রতি শতকে ১ থেকে ১.৫ কেজি ডলোচুন শেষ চাষের সময় মাটিতে মিশিয়ে দিতে হবে।' 
+                                              : Number(log.confidence) > 7.5 
+                                                ? 'ক্ষারত্ব/লবণাক্ততা সংশোধনে প্রতি শতকে ১.৫ থেকে ২ কেজি জিপসাম সার শেষ চাষে প্রয়োগ করতে হবে।' 
+                                                : 'মাটির pH স্বাভাবিক আছে। নিয়মিত জৈব সার প্রয়োগ করলেই চলবে।'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
                               )}
-                            </td>
-                            <td className="p-4 font-bold text-slate-900">{log.disease_name}</td>
-                            <td className="p-4 font-mono font-bold text-cyan-600">{Number(log.confidence).toFixed(1)}</td>
-                            <td className="p-4 text-xs">
-                              <span className={`px-2 py-1 rounded font-bold ${
-                                Number(log.confidence) < 6.0 
-                                  ? 'bg-amber-50 text-amber-700 border border-amber-200' 
-                                  : Number(log.confidence) > 7.5 
-                                    ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                                    : 'bg-green-50 text-green-700 border border-green-200'
-                              }`}>
-                                {Number(log.confidence) < 6.0 ? 'অম্লীয় মাটি' : Number(log.confidence) > 7.5 ? 'ক্ষারীয় মাটি' : 'স্বাভাবিক মাটি'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
                 )}
+
+                
+                {/* 3. Chatbot Conversations */}
+                {activeTab === 'chats' && (
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-xs font-black uppercase text-slate-700 border-b border-slate-200">
+                      <tr>
+                        <th className="p-4">সেশন আইডি / সোর্স</th>
+                        <th className="p-4">লোকেশন / জেলা</th>
+                        <th className="p-4">চাষীর প্রশ্ন (ইউজার কোয়েরি)</th>
+                        <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {chatLogs.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো চ্যাটবট কথোপকথনের বিবরণ পাওয়া যায়নি।</td>
+                        </tr>
+                      ) : (
+                        chatLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 text-xs font-mono text-emerald-600">
+                                  {log.session_id.substring(0, 15)}...
+                                </td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-semibold text-slate-700 max-w-[300px] truncate" title={log.metadata?.query}>
+                                  {log.metadata?.query}
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={5} className="p-6">
+                                    <div className="max-w-3xl mx-auto space-y-4">
+                                      <div className="flex flex-col gap-3">
+                                        {/* User Message Bubble */}
+                                        <div className="flex flex-col items-end gap-1">
+                                          <span className="text-[10px] text-slate-400 font-bold mr-1">চাষী (User)</span>
+                                          <div className="bg-emerald-600 text-white rounded-2xl rounded-tr-none px-4 py-3 text-xs max-w-[85%] shadow-sm leading-relaxed whitespace-pre-wrap font-medium text-left">
+                                            {log.metadata?.query}
+                                            {/* Optional Image */}
+                                            {log.metadata?.image && (
+                                              <div className="mt-3 rounded-lg overflow-hidden border border-emerald-700 max-w-[200px]">
+                                                <img 
+                                                  src={log.metadata.image.startsWith('data:') ? log.metadata.image : `data:image/jpeg;base64,${log.metadata.image}`}
+                                                  alt="Uploaded by farmer"
+                                                  className="w-full h-auto max-h-[150px] object-cover cursor-zoom-in"
+                                                  onClick={() => setSelectedImage(log.metadata.image)}
+                                                />
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Bot Response Bubble */}
+                                        <div className="flex flex-col items-start gap-1">
+                                          <span className="text-[10px] text-slate-400 font-bold ml-1">গাছের ডাক্তার (Chatbot)</span>
+                                          <div className="bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-none px-4 py-3 text-xs max-w-[85%] shadow-sm leading-relaxed whitespace-pre-wrap font-medium text-left">
+                                            {log.metadata?.response}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                )}
+
 
                 {/* 4. Fertilizer calculations */}
                 {activeTab === 'fertilizer' && (
@@ -1115,37 +1325,89 @@ export default function AdminDashboard() {
                         <th className="p-4">এমওপি (K)</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {fertilizerLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="p-10 text-center text-slate-400">কোনো সার হিসাব গণনার ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={9} className="p-10 text-center text-slate-400">কোনো সার হিসাব গণনার ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        fertilizerLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
-                            <td className="p-4 font-semibold text-slate-700">{log.metadata?.landSize} বিঘা</td>
-                            <td className="p-4 text-xs">
-                              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md font-bold">
-                                {log.metadata?.season}
-                              </span>
-                            </td>
-                            <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.urea_kg} কেজি</td>
-                            <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.tsp_kg} কেজি</td>
-                            <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.mop_kg} কেজি</td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        fertilizerLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
+                                <td className="p-4 font-semibold text-slate-700">{log.metadata?.landSize} বিঘা</td>
+                                <td className="p-4 text-xs">
+                                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 rounded-md font-bold">
+                                    {log.metadata?.season}
+                                  </span>
+                                </td>
+                                <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.urea_kg} কেজি</td>
+                                <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.tsp_kg} কেজি</td>
+                                <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.mop_kg} কেজি</td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={9} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <Sprout className="w-4 h-4 text-emerald-600" />
+                                          সার প্রয়োগ নির্দেশিকা ({log.metadata?.cropName})
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">ইউরিয়া</span>
+                                          <span className="font-mono font-bold text-slate-800 text-sm">{log.metadata?.urea_kg || 0} কেজি</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">টিএসপি</span>
+                                          <span className="font-mono font-bold text-slate-800 text-sm">{log.metadata?.tsp_kg || 0} কেজি</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">এমওপি</span>
+                                          <span className="font-mono font-bold text-slate-800 text-sm">{log.metadata?.mop_kg || 0} কেজি</span>
+                                        </div>
+                                      </div>
+                                      <div className="bg-emerald-50/30 p-4 rounded-xl border border-emerald-100 space-y-2 text-slate-700">
+                                        <span className="font-black text-emerald-800 block">প্রয়োগ পদ্ধতি:</span>
+                                        <ul className="list-disc pl-4 space-y-1">
+                                          <li>ইউরিয়া সার ৩টি সমান কিস্তিতে চারা রোপণের ১৫ দিন, ৩০ দিন এবং কাইচ থোড় আসার ৫-৭ দিন আগে প্রয়োগ করুন।</li>
+                                          <li>সমস্ত টিএসপি সার জমি শেষ চাষের সময় মাটির সাথে ভালো করে মিশিয়ে দিন।</li>
+                                          <li>এমওপি সার ২ কিস্তিতে প্রয়োগ করুন (অর্ধেক শেষ চাষে এবং বাকি অর্ধেক চারা রোপণের ৩৫-৪০ দিন পর)।</li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1164,39 +1426,91 @@ export default function AdminDashboard() {
                         <th className="p-4">প্রয়োজনীয় স্প্রে ট্যাঙ্ক</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {pesticideLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="p-10 text-center text-slate-400">কোনো কীটনাশক ডোজ পরিমাপের লগ পাওয়া যায়নি।</td>
+                          <td colSpan={9} className="p-10 text-center text-slate-400">কোনো কীটনাশক ডোজ পরিমাপের লগ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        pesticideLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900">{log.metadata?.crop}</td>
-                            <td className="p-4 text-xs">
-                              <span className="block font-semibold">{log.metadata?.pesticideClass === 'insecticide' ? 'কীটনাশক' : log.metadata?.pesticideClass === 'fungicide' ? 'ছত্রাকনাশক' : log.metadata?.pesticideClass === 'herbicide' ? 'আগাছানাশক' : 'হরমোন (PGR)'}</span>
-                              <span className="text-slate-400 font-mono">({log.metadata?.pesticideForm === 'liquid' ? 'তরল' : 'পাউডার'})</span>
-                            </td>
-                            <td className="p-4 text-xs font-bold text-amber-700">{log.metadata?.severity === 'preventive' ? 'প্রতিরোধমূলক' : log.metadata?.severity === 'mild' ? 'মাঝারি আক্রমণ' : 'তীব্র আক্রমণ'}</td>
-                            <td className="p-4 text-xs text-slate-600">
-                              <span className="block">ড্রাম: {log.metadata?.tankSize} লিটার</span>
-                              <span className="block font-semibold">আবাদ: {log.metadata?.landArea} {log.metadata?.isTreeBased ? 'গাছ' : 'শতক'}</span>
-                            </td>
-                            <td className="p-4 font-mono font-bold text-emerald-600">{log.metadata?.totalChemicalNeeded} {log.metadata?.pesticideForm === 'liquid' ? 'মিলি' : 'গ্রাম'}</td>
-                            <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.tanksNeeded} ড্রাম</td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        pesticideLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 font-bold text-slate-900">{log.metadata?.crop}</td>
+                                <td className="p-4 text-xs">
+                                  <span className="block font-semibold">{log.metadata?.pesticideClass === 'insecticide' ? 'কীটনাশক' : log.metadata?.pesticideClass === 'fungicide' ? 'ছত্রাকনাশক' : log.metadata?.pesticideClass === 'herbicide' ? 'আগাছানাশক' : 'হরমোন (PGR)'}</span>
+                                  <span className="text-slate-400 font-mono">({log.metadata?.pesticideForm === 'liquid' ? 'তরল' : 'পাউডার'})</span>
+                                </td>
+                                <td className="p-4 text-xs font-bold text-amber-700">{log.metadata?.severity === 'preventive' ? 'প্রতিরোধমূলক' : log.metadata?.severity === 'mild' ? 'মাঝারি আক্রমণ' : 'তীব্র আক্রমণ'}</td>
+                                <td className="p-4 text-xs text-slate-600">
+                                  <span className="block">ড্রাম: {log.metadata?.tankSize} লিটার</span>
+                                  <span className="block font-semibold">আবাদ: {log.metadata?.landArea} {log.metadata?.isTreeBased ? 'গাছ' : 'শতক'}</span>
+                                </td>
+                                <td className="p-4 font-mono font-bold text-emerald-600">{log.metadata?.totalChemicalNeeded} {log.metadata?.pesticideForm === 'liquid' ? 'মিলি' : 'গ্রাম'}</td>
+                                <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.tanksNeeded} ড্রাম</td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={9} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <Wrench className="w-4 h-4 text-emerald-600" />
+                                          কীটনাশক ডোজ গণনা রিপোর্ট ({log.metadata?.crop})
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">আক্রমণের মাত্রা</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.severity === 'preventive' ? 'প্রতিরোধমূলক' : log.metadata?.severity === 'mild' ? 'মাঝারি' : 'তীব্র আক্রমণ'}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">মোট জমির পরিমাণ</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.landArea} {log.metadata?.isTreeBased ? 'গাছ' : 'শতক'}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">প্রয়োজনীয় রাসায়নিক</span>
+                                          <span className="font-mono font-bold text-emerald-700">{log.metadata?.totalChemicalNeeded} {log.metadata?.pesticideForm === 'liquid' ? 'মিলি' : 'গ্রাম'}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">মোট স্প্রে ট্যাঙ্ক</span>
+                                          <span className="font-mono font-bold text-slate-800">{log.metadata?.tanksNeeded} ড্রাম ({log.metadata?.tankSize}L)</span>
+                                        </div>
+                                      </div>
+                                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-600">
+                                        <span className="font-bold block mb-1">বালাইনাশক ধরণ:</span>
+                                        {log.metadata?.pesticideClass === 'insecticide' ? 'কীটনাশক' : log.metadata?.pesticideClass === 'fungicide' ? 'ছত্রাকনাশক' : log.metadata?.pesticideClass === 'herbicide' ? 'আগাছানাশক' : 'হরমোন (PGR)'} ({log.metadata?.pesticideForm === 'liquid' ? 'তরল ফর্মুলেশন' : 'পাউডার ফর্মুলেশন'})
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1212,30 +1526,74 @@ export default function AdminDashboard() {
                         <th className="p-4">প্রয়োজনীয় বীজের মোট ওজন</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {seedLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো বীজ বপন পরিমাপের লগ পাওয়া যায়নি।</td>
+                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো বীজ বপন পরিমাপের লগ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        seedLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
-                            <td className="p-4 font-semibold text-slate-700">{log.metadata?.landSize} {log.metadata?.landUnit === 'bigha' ? 'বিঘা' : 'শতক'}</td>
-                            <td className="p-4 font-mono font-bold text-emerald-600">{log.metadata?.totalSeedWeight} কেজি</td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        seedLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
+                                <td className="p-4 font-semibold text-slate-700">{log.metadata?.landSize} {log.metadata?.landUnit === 'bigha' ? 'বিঘা' : 'শতক'}</td>
+                                <td className="p-4 font-mono font-bold text-emerald-600">{log.metadata?.totalSeedWeight} কেজি</td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={6} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <BookOpen className="w-4 h-4 text-emerald-600" />
+                                          বীজের পরিমাণ গণনা রিপোর্ট ({log.metadata?.cropName})
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">ফসল / জাত</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.cropName}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">জমির পরিমাণ</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.landSize} {log.metadata?.landUnit === 'bigha' ? 'বিঘা' : 'শতক'}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">মোট বীজ প্রয়োজন</span>
+                                          <span className="font-mono font-bold text-emerald-700 text-sm">{log.metadata?.totalSeedWeight} কেজি</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1251,36 +1609,88 @@ export default function AdminDashboard() {
                         <th className="p-4">নির্বাচিত মৌসুম</th>
                         <th className="p-4">ম্যাচিং লাভজনক শস্য সংখ্যা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {matchmakerLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো ফসল ম্যাচমেকার অনুসন্ধানের লগ পাওয়া যায়নি।</td>
+                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো ফসল ম্যাচমেকার অনুসন্ধানের লগ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        matchmakerLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-semibold text-slate-700">
-                              {log.metadata?.soilType === 'loam' ? 'দোআঁশ মাটি' : log.metadata?.soilType === 'sandy' ? 'বেলে দোআঁশ' : log.metadata?.soilType === 'clay' ? 'এটেল মাটি' : 'লাল/অম্লীয় মাটি'}
-                            </td>
-                            <td className="p-4 text-xs">
-                              <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 font-bold">
-                                {log.metadata?.season === 'robi' ? 'রবি (শীতকাল)' : log.metadata?.season === 'kharif1' ? 'খরিপ-১ (গ্রীষ্মকাল)' : 'খরিপ-২ (বর্ষাকাল)'}
-                              </span>
-                            </td>
-                            <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.recommendationCount}টি শস্য</td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        matchmakerLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-semibold text-slate-700">
+                                  {log.metadata?.soilType === 'loam' ? 'দোআঁশ মাটি' : log.metadata?.soilType === 'sandy' ? 'বেলে দোআঁশ' : log.metadata?.soilType === 'clay' ? 'এটেল মাটি' : 'লাল/অম্লীয় মাটি'}
+                                </td>
+                                <td className="p-4 text-xs">
+                                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 font-bold">
+                                    {log.metadata?.season === 'robi' ? 'রবি (শীতকাল)' : log.metadata?.season === 'kharif1' ? 'খরিপ-১ (গ্রীষ্মকাল)' : 'খরিপ-২ (বর্ষাকাল)'}
+                                  </span>
+                                </td>
+                                <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.recommendationCount}টি শস্য</td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={6} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <Sprout className="w-4 h-4 text-emerald-600" />
+                                          অনুকূল শস্য ম্যাচমেকার লগ
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">লোকেশন / জেলা</span>
+                                          <span className="font-bold text-slate-800">{log.location || 'ঢাকা'}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">মাটির ধরন</span>
+                                          <span className="font-bold text-slate-800">
+                                            {log.metadata?.soilType === 'loam' ? 'দোআঁশ মাটি' : log.metadata?.soilType === 'sandy' ? 'বেলে দোআঁশ' : log.metadata?.soilType === 'clay' ? 'এটেল মাটি' : 'লাল/অম্লীয় মাটি'}
+                                          </span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">নির্বাচিত মৌসুম</span>
+                                          <span className="font-bold text-slate-800">
+                                            {log.metadata?.season === 'robi' ? 'রবি (শীতকাল)' : log.metadata?.season === 'kharif1' ? 'খরিপ-১ (গ্রীষ্ম)' : 'খরিপ-২ (বর্ষা)'}
+                                          </span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">সুপারিশকৃত ফসল</span>
+                                          <span className="font-mono font-bold text-emerald-700 text-sm">{log.metadata?.recommendationCount}টি শস্য</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1295,29 +1705,73 @@ export default function AdminDashboard() {
                         <th className="p-4">ফসলের মৌসুম</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {rotationLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-400">কোনো শস্য চক্র পর্যালোচনার ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো শস্য চক্র পর্যালোচনার ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        rotationLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
-                            <td className="p-4 text-xs text-slate-500 font-bold">{log.metadata?.season}</td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        rotationLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 font-bold text-slate-900">{log.metadata?.cropName}</td>
+                                <td className="p-4 text-xs text-slate-500 font-bold">{log.metadata?.season}</td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={5} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <RefreshCw className="w-4 h-4 text-emerald-600" />
+                                          شস্য পর্যায় (Crop Rotation) লগ
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">আবাদকৃত বর্তমান ফসল</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.cropName}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">বর্তমান মৌসুম</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.season}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">লোকেশন / জেলা</span>
+                                          <span className="font-bold text-slate-800">{log.location || 'ঢাকা'}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1331,31 +1785,75 @@ export default function AdminDashboard() {
                         <th className="p-4">অনুসন্ধানকৃত ফসলের নাম</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {priceLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="p-10 text-center text-slate-400">কোনো পাইকারি বাজার মূল্য অনুসন্ধানের বিবরণ পাওয়া যায়নি।</td>
+                          <td colSpan={4} className="p-10 text-center text-slate-400">কোনো পাইকারি বাজার মূল্য অনুসন্ধানের বিবরণ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        priceLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900 flex items-center gap-1.5">
-                              <Coins className="w-4 h-4 text-amber-500" />
-                              {log.metadata?.cropName}
-                            </td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        priceLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 font-bold text-slate-900 flex items-center gap-1.5">
+                                  <Coins className="w-4 h-4 text-amber-500" />
+                                  {log.metadata?.cropName}
+                                </td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={4} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <Coins className="w-4 h-4 text-emerald-600" />
+                                          পাইকারি বাজার দর অনুসন্ধান লগ
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">অনুসন্ধানকৃত ফসল</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.cropName}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">লোকেশন / জেলা</span>
+                                          <span className="font-bold text-slate-800">{log.location || 'ঢাকা'}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">তারিখ ও সময়</span>
+                                          <span className="font-bold text-slate-800">{new Date(log.created_at).toLocaleString('bn-BD')}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1371,38 +1869,82 @@ export default function AdminDashboard() {
                         <th className="p-4">টাইপ</th>
                         <th className="p-4">লোকেশন / জেলা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {loanLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো অনুদান বা ঋণ অনুসন্ধান করার ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো অনুদান বা ঋণ অনুসন্ধান করার ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        loanLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900">{log.metadata?.schemeTitle}</td>
-                            <td className="p-4 text-xs text-slate-500 font-bold">{log.metadata?.schemeProvider}</td>
-                            <td className="p-4 text-xs">
-                              <span className={`px-2 py-0.5 rounded font-black text-[10px] uppercase border ${
-                                log.metadata?.schemeType === 'subsidy' 
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-150' 
-                                  : 'bg-amber-50 text-amber-700 border-amber-150'
-                              }`}>
-                                {log.metadata?.schemeType === 'subsidy' ? 'প্রণোদনা ভর্তুকি' : '৪% রেয়াতি ঋণ'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        loanLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 font-bold text-slate-900">{log.metadata?.schemeTitle}</td>
+                                <td className="p-4 text-xs text-slate-500 font-bold">{log.metadata?.schemeProvider}</td>
+                                <td className="p-4 text-xs">
+                                  <span className={`px-2 py-0.5 rounded font-black text-[10px] uppercase border ${
+                                    log.metadata?.schemeType === 'subsidy' 
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-150' 
+                                      : 'bg-amber-50 text-amber-700 border-amber-150'
+                                  }`}>
+                                    {log.metadata?.schemeType === 'subsidy' ? 'প্রণোদনা ভর্তুকি' : '৪% রেয়াতি ঋণ'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={6} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <Shield className="w-4 h-4 text-emerald-600" />
+                                          কৃষি ঋণ ও অনুদান অনুসন্ধান লগ
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">স্কিম / টাইটেল</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.schemeTitle}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">উৎস / প্রদানকারী সংস্থা</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.schemeProvider}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">ঋণ / ভর্তুকি টাইপ</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.schemeType === 'subsidy' ? 'প্রণোদনা ভর্তুকি' : '৪% রেয়াতি ঋণ'}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1417,31 +1959,75 @@ export default function AdminDashboard() {
                         <th className="p-4">রেকর্ডেড তাপমাত্রা</th>
                         <th className="p-4">আবহাওয়া অবস্থা</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {weatherLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-400">কোনো আবহাওয়া বা সেচ গাইড অনুসন্ধানের ইতিহাস পাওয়া যায়নি।</td>
+                          <td colSpan={5} className="p-10 text-center text-slate-400">কোনো আবহাওয়া বা সেচ গাইড অনুসন্ধানের ইতিহাস পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        weatherLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900 flex items-center gap-1">
-                              <MapPin className="w-4 h-4 text-amber-500" />
-                              {log.metadata?.district}
-                            </td>
-                            <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.temp}°C</td>
-                            <td className="p-4 text-xs">
-                              <span className="bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-md font-bold">
-                                {log.metadata?.condition}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        weatherLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 font-bold text-slate-900 flex items-center gap-1">
+                                  <MapPin className="w-4 h-4 text-amber-500" />
+                                  {log.metadata?.district}
+                                </td>
+                                <td className="p-4 font-mono font-bold text-slate-800">{log.metadata?.temp}°C</td>
+                                <td className="p-4 text-xs">
+                                  <span className="bg-sky-50 text-sky-700 border border-sky-100 px-2.5 py-1 rounded-md font-bold">
+                                    {log.metadata?.condition}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={5} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <CloudSun className="w-4 h-4 text-emerald-600" />
+                                          আবহাওয়া ও সেচ অনুসন্ধান লগ
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">অনুসন্ধানকৃত জেলা</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.district}</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">রেকর্ডেড তাপমাত্রা</span>
+                                          <span className="font-mono font-bold text-slate-800">{log.metadata?.temp}°C</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                          <span className="block text-slate-400 font-bold mb-0.5">আবহাওয়া অবস্থা</span>
+                                          <span className="font-bold text-slate-800">{log.metadata?.condition}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1458,33 +2044,81 @@ export default function AdminDashboard() {
                         <th className="p-4">আইপি অ্যাড্রেস</th>
                         <th className="p-4">ডিভাইস / ইউজার এজেন্ট</th>
                         <th className="p-4">তারিখ ও সময়</th>
+                        <th className="p-4 text-right">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {generalPageLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো ভিজিটর পেজ অ্যাক্টিভিটি পাওয়া যায়নি।</td>
+                          <td colSpan={7} className="p-10 text-center text-slate-400">কোনো ভিজিটর পেজ অ্যাক্টিভিটি পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
-                        generalPageLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 text-xs font-mono text-emerald-600">{log.session_id.substring(0, 15)}...</td>
-                            <td className="p-4 text-xs font-mono font-semibold text-slate-800">{log.page_visited}</td>
-                            <td className="p-4 text-xs text-slate-500 font-semibold">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                {log.location || 'ঢাকা'}
-                              </span>
-                            </td>
-                            <td className="p-4 font-mono text-xs text-slate-500">{log.ip_address}</td>
-                            <td className="p-4 text-xs text-slate-500 max-w-[200px] truncate" title={log.user_agent}>
-                              {log.user_agent}
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(log.created_at).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
+                        generalPageLogs.map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          return (
+                            <React.Fragment key={log.id}>
+                              <tr className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-4 text-xs font-mono text-emerald-600">{log.session_id.substring(0, 15)}...</td>
+                                <td className="p-4 text-xs font-mono font-semibold text-slate-800">{log.page_visited}</td>
+                                <td className="p-4 text-xs text-slate-500 font-semibold">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    {log.location || 'ঢাকা'}
+                                  </span>
+                                </td>
+                                <td className="p-4 font-mono text-xs text-slate-500">{log.ip_address}</td>
+                                <td className="p-4 text-xs text-slate-500 max-w-[200px] truncate" title={log.user_agent}>
+                                  {log.user_agent}
+                                </td>
+                                <td className="p-4 text-xs font-mono text-slate-500">
+                                  {new Date(log.created_at).toLocaleString('bn-BD')}
+                                </td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                                    className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    {isExpanded ? 'লুকান' : 'বিস্তারিত'}
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && (
+                                <tr className="bg-slate-50/50">
+                                  <td colSpan={7} className="p-6">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-3xl mx-auto space-y-4 text-xs text-left">
+                                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                                          <Laptop className="w-4 h-4 text-emerald-600" />
+                                          ভিজিটর অ্যাক্টিভিটি সেশন ডিটেইল
+                                        </h4>
+                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                      </div>
+                                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 space-y-3 text-slate-700">
+                                        <div>
+                                          <span className="font-bold block text-slate-400 mb-0.5">সেশন আইডি:</span>
+                                          <span className="font-mono text-slate-800 select-all">{log.session_id}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-bold block text-slate-400 mb-0.5">আইপি অ্যাড্রেস:</span>
+                                          <span className="font-mono text-slate-800 select-all">{log.ip_address}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-bold block text-slate-400 mb-0.5">ভিজিটেড পাথ:</span>
+                                          <span className="font-mono text-slate-800">{log.page_visited}</span>
+                                        </div>
+                                        <div>
+                                          <span className="font-bold block text-slate-400 mb-0.5">ডিভাইস / ইউজার এজেন্ট:</span>
+                                          <span className="text-slate-600 text-xs block leading-relaxed">{log.user_agent}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
