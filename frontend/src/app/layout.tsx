@@ -40,12 +40,21 @@ export const metadata: Metadata = {
 import Header from "../components/Header";
 import ScrollObserver from "../components/ScrollObserver";
 import UserTracker from "../components/UserTracker";
+import { headers } from "next/headers";
+import maintenanceConfig from "../config/maintenance.json";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  
+  const isMaintenanceMode = maintenanceConfig.enabled;
+  const isGorto = pathname.startsWith('/gorto') || pathname.startsWith('/api/admin');
+  const showShell = !isMaintenanceMode || isGorto;
+
   return (
     <html lang="bn">
       <head>
@@ -62,39 +71,52 @@ export default function RootLayout({
           crossOrigin=""
         />
       </head>
-      <body className="antialiased min-h-screen flex flex-col pb-16 md:pb-0">
+      <body className={`antialiased min-h-screen flex flex-col ${showShell ? 'pb-16 md:pb-0' : 'pb-0 bg-slate-950'}`}>
         <ScrollObserver />
         <UserTracker />
-        {/* 🌾 Top Developer Attribution Banner */}
-        <div id="developer-attribution-banner" className="w-full bg-gradient-to-r from-green-primary via-emerald-800 to-amber-600 text-soft-white text-center py-2 text-xs md:text-sm font-extrabold tracking-wider shadow-md border-b border-amber-400/20 flex items-center justify-center gap-1.5">
-          <span>✨</span>
-          <span>Developed by <strong className="text-sunlight font-black drop-shadow-sm">Adnan Shah Abir</strong></span>
-          <span>✨</span>
-        </div>
-
-        <Header />
-
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
-          {children}
-        </main>
-
-        <footer className="w-full border-t border-green-primary/10 bg-soft-white/50 py-8 mt-12">
-          <div className="mx-auto max-w-7xl px-4 flex flex-col md:flex-row items-center justify-between text-xs text-text-secondary gap-6">
-            <div className="space-y-1">
-              <p>© ২০২৬ গাছের ডাক্তার। সর্বস্বত্ব সংরক্ষিত।</p>
-              <p className="text-[11px] font-bold">
-                ডিজাইন ও ডেভেলপমেন্ট: <strong className="text-green-primary font-black">Adnan Shah Abir</strong>
-              </p>
+        
+        {showShell && (
+          <>
+            {/* 🌾 Top Developer Attribution Banner */}
+            <div id="developer-attribution-banner" className="w-full bg-gradient-to-r from-green-primary via-emerald-800 to-amber-600 text-soft-white text-center py-2 text-xs md:text-sm font-extrabold tracking-wider shadow-md border-b border-amber-400/20 flex items-center justify-center gap-1.5">
+              <span>✨</span>
+              <span>Developed by <strong className="text-sunlight font-black drop-shadow-sm">Adnan Shah Abir</strong></span>
+              <span>✨</span>
             </div>
-            <div className="flex gap-4">
-              <span>জাতীয় কৃষি তথ্য কেন্দ্র: ১৬১২৩</span>
-              <span>•</span>
-              <span>BRRI ও BARI নির্দেশিকা দ্বারা ভেরিফাইড</span>
+            <Header />
+          </>
+        )}
+
+        {showShell ? (
+          <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+            {children}
+          </main>
+        ) : (
+          <main className="flex-1 w-full flex items-center justify-center p-0 m-0">
+            {children}
+          </main>
+        )}
+
+        {showShell && (
+          <footer className="w-full border-t border-green-primary/10 bg-soft-white/50 py-8 mt-12">
+            <div className="mx-auto max-w-7xl px-4 flex flex-col md:flex-row items-center justify-between text-xs text-text-secondary gap-6">
+              <div className="space-y-1">
+                <p>© ২০২৬ গাছের ডাক্তার। সর্বস্বত্ব সংরক্ষিত।</p>
+                <p className="text-[11px] font-bold">
+                  ডিজাইন ও ডেভেলপমেন্ট: <strong className="text-green-primary font-black">Adnan Shah Abir</strong>
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <span>জাতীয় কৃষি তথ্য কেন্দ্র: ১৬১২৩</span>
+                <span>•</span>
+                <span>BRRI ও BARI নির্দেশিকা দ্বারা ভেরিফাইড</span>
+              </div>
             </div>
-          </div>
-        </footer>
+          </footer>
+        )}
         <Analytics />
       </body>
     </html>
   );
 }
+

@@ -4,6 +4,10 @@ import maintenanceConfig from './config/maintenance.json';
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Set custom header for pathname so Server Components can read it
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', pathname);
 
   // Check if maintenance is enabled
   if (maintenanceConfig.enabled) {
@@ -38,14 +42,22 @@ export function proxy(request: NextRequest) {
         );
       }
 
-      // Otherwise, rewrite to maintenance page
+      // Otherwise, rewrite to maintenance page with custom headers
       const url = request.nextUrl.clone();
       url.pathname = '/maintenance';
-      return NextResponse.rewrite(url);
+      return NextResponse.rewrite(url, {
+        request: {
+          headers: requestHeaders,
+        }
+      });
     }
   }
 
-  return NextResponse.next();
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    }
+  });
 }
 
 export const config = {

@@ -3,13 +3,13 @@ import { Sprout, Smartphone, ShieldAlert } from 'lucide-react';
 
 export default function MaintenancePage() {
   return (
-    <div className="min-h-[70vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 rounded-3xl overflow-hidden shadow-2xl relative border border-emerald-500/10">
+    <div className="min-h-screen w-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-950 relative overflow-hidden">
       
       {/* Decorative Blur Orbs */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
 
-      <div className="max-w-xl w-full text-center space-y-8 relative z-10">
+      <div className="max-w-md w-full text-center space-y-8 relative z-10 px-4">
         
         {/* Animated Badge Header */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-950/80 border border-emerald-500/20 text-emerald-400 text-xs font-black tracking-wide uppercase shadow-inner backdrop-blur-md animate-pulse">
@@ -33,7 +33,7 @@ export default function MaintenancePage() {
         {/* Title */}
         <div className="space-y-3">
           <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-100 to-amber-200 tracking-tight">
-            গাছের ডাক্তার (Gacher Doctor)
+            গাছের ডাক্তার
           </h1>
           <p className="text-emerald-400 font-bold text-lg">
             সাময়িক বিরতি ও নতুন পথচলা
@@ -41,40 +41,28 @@ export default function MaintenancePage() {
         </div>
 
         {/* Card Body */}
-        <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-6 text-left">
+        <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-6 text-center">
           
-          <div className="text-slate-300 font-medium text-sm leading-relaxed text-center sm:text-left">
-            <strong className="text-white">প্রিয় কৃষক ভাই ও শুভানুধ্যায়ী,</strong><br />
-            আপনাদের কৃষি ও ফসলের রোগবালাইয়ের আরও দ্রুত, সহজ এবং সম্পূর্ণ নিরাপদ সমাধান দিতে <strong className="text-emerald-400">"গাছের ডাক্তার"</strong> প্ল্যাটফর্মটি এখন একটি পূর্ণাঙ্গ ও আধুনিক <strong className="text-amber-400">মোবাইল অ্যাপ্লিকেশনে (Mobile Application)</strong> রূপান্তর হচ্ছে!
+          <div className="text-slate-300 font-semibold text-sm leading-relaxed space-y-4">
+            <p className="text-white text-base font-bold">
+              প্রিয় কৃষক ভাই ও শুভানুধ্যায়ী,
+            </p>
+            <p>
+              আপনাদের কৃষি সংক্রান্ত সমস্যার আরও সহজ ও দ্রুত সমাধান দিতে <strong className="text-emerald-400">"গাছের ডাক্তার"</strong> এখন মোবাইল অ্যাপ্লিকেশনে রূপান্তর হচ্ছে!
+            </p>
+            <p>
+              আমাদের নতুন ও উন্নত মোবাইল অ্যাপ্লিকেশন তৈরির কাজ দ্রুত গতিতে এগিয়ে চলছে। খুব শীঘ্রই এটি গুগল প্লে স্টোরে উন্মুক্ত করা হবে।
+            </p>
           </div>
 
-          <div className="border-t border-white/5 pt-5 space-y-3">
-            <h3 className="text-xs font-black text-emerald-400 uppercase tracking-wider">নতুন অ্যাপে যা যা থাকছে:</h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-400">
-              <li className="flex items-center gap-2 bg-white/5 p-2.5 rounded-xl border border-white/5 font-semibold">
-                <span className="text-emerald-500 text-sm">✓</span> আরও উন্নত রোগ সনাক্তকরণ ক্যামেরা
-              </li>
-              <li className="flex items-center gap-2 bg-white/5 p-2.5 rounded-xl border border-white/5 font-semibold">
-                <span className="text-emerald-500 text-sm">✓</span> সম্পূর্ণ ভয়েস কন্ট্রোল বাংলা চ্যাট
-              </li>
-              <li className="flex items-center gap-2 bg-white/5 p-2.5 rounded-xl border border-white/5 font-semibold">
-                <span className="text-emerald-500 text-sm">✓</span> ৪% রেটে কৃষি ঋণ ও অনুদান গাইড
-              </li>
-              <li className="flex items-center gap-2 bg-white/5 p-2.5 rounded-xl border border-white/5 font-semibold">
-                <span className="text-emerald-500 text-sm">✓</span> সর্বোচ্চ ডাটা ও আইডিয়া নিরাপত্তা
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-amber-950/20 border border-amber-500/10 rounded-2xl p-4 text-xs text-amber-300/90 leading-relaxed font-semibold">
-            📢 <strong className="text-amber-400">নিরাপত্তা নোটিশ:</strong> অ্যাপ্লিকেশন তৈরির এই বিশেষ সময়টিতে প্ল্যাটফর্মের ডাটা এবং ইউনিক আইডিয়াগুলোর সর্বোচ্চ নিরাপত্তা বজায় রাখার স্বার্থে এই ওয়েবসাইটের পাবলিক কার্যক্রম সাময়িকভাবে বন্ধ রাখা হয়েছে।
+          <div className="bg-amber-950/20 border border-amber-500/10 rounded-2xl p-4 text-xs text-amber-300/90 leading-relaxed font-bold">
+            📢 নিরাপত্তা নোটিশ: অ্যাপ্লিকেশন উন্নয়ন কাজ চলাকালীন এবং ডাটার সর্বোচ্চ নিরাপত্তা জোরদার করার লক্ষ্যে এই ওয়েবসাইটটির পাবলিক কার্যক্রম সাময়িকভাবে বন্ধ রাখা হয়েছে।
           </div>
 
         </div>
 
         {/* Footer */}
         <div className="space-y-2 text-xs text-slate-500">
-          <p>খুব শীঘ্রই সরাসরি গুগল প্লে-স্টোরে অফিসিয়াল মোবাইল অ্যাপ নিয়ে ফিরে আসব।</p>
           <p className="font-bold text-slate-400">আপনাদের সাময়িক অসুবিধার জন্য আমরা আন্তরিকভাবে দুঃখিত ও কৃতজ্ঞ।</p>
           <div className="pt-4 text-[10px] text-slate-600 font-mono">
             © ২০২৬ গাছের ডাক্তার • ডেভেলপড বাই আদনান শাহ আবির
