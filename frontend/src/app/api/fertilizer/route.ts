@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { CROPS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
-import { checkSecurity } from '@/lib/security';
+import { checkSecurity, isOwnerIp } from '@/lib/security';
 
 export async function POST(request: Request) {
-  const security = checkSecurity(request, 'general');
+  const security = await checkSecurity(request, 'general');
   if (security.blocked && security.response) {
     return security.response;
   }
@@ -46,23 +46,28 @@ export async function POST(request: Request) {
     try {
       const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || '127.0.0.1';
       const userAgent = request.headers.get('user-agent') || 'Unknown';
-      await supabaseAdmin.from('usage_analytics').insert({
-        session_id: 'fertilizer_session',
-        user_agent: userAgent,
-        ip_address: clientIp,
-        location: null,
-        page_visited: '/calculator',
-        action: 'fertilizer_calc',
-        metadata: {
-          cropName: crop.name_bn,
-          landSize: land,
-          season: season,
-          urea_kg: Math.round(ureaTotal * 100) / 100,
-          tsp_kg: Math.round(tspTotal * 100) / 100,
-          mop_kg: Math.round(mopTotal * 100) / 100
-        },
-        created_at: new Date().toISOString()
-      });
+      
+      if (await isOwnerIp(clientIp)) {
+        console.log(`[Bypass Logging] Fertilizer calc logging bypassed for owner IP: ${clientIp}`);
+      } else {
+        await supabaseAdmin.from('usage_analytics').insert({
+          session_id: 'fertilizer_session',
+          user_agent: userAgent,
+          ip_address: clientIp,
+          location: null,
+          page_visited: '/calculator',
+          action: 'fertilizer_calc',
+          metadata: {
+            cropName: crop.name_bn,
+            landSize: land,
+            season: season,
+            urea_kg: Math.round(ureaTotal * 100) / 100,
+            tsp_kg: Math.round(tspTotal * 100) / 100,
+            mop_kg: Math.round(mopTotal * 100) / 100
+          },
+          created_at: new Date().toISOString()
+        });
+      }
     } catch (dbErr) {
       console.error("Failed to log fertilizer calculation:", dbErr);
     }

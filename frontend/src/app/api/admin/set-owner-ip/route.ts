@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'আপনার আইপি সফলভাবে সেভ করা হয়েছে।',
+      message: 'আপনার আইপি সফলভাবে লক করা হয়েছে।',
       ownerIp: clientIp
     });
 

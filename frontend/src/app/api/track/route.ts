@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { isOwnerIp } from '@/lib/security';
 
 function getClientIp(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
@@ -19,6 +20,11 @@ export async function POST(request: Request) {
 
     const ip = getClientIp(request);
     const userAgent = request.headers.get('user-agent') || 'Unknown';
+
+    // Skip database logging if request originates from owner/admin IP
+    if (await isOwnerIp(ip)) {
+      return NextResponse.json({ success: true, bypassed: true });
+    }
 
     // Insert analytics log bypassing RLS using admin client
     const { error } = await supabaseAdmin

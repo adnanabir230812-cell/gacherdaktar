@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { DISTRICTS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
-import { checkSecurity } from '@/lib/security';
+import { checkSecurity, isOwnerIp } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const security = checkSecurity(request, 'general');
+  const security = await checkSecurity(request, 'general');
   if (security.blocked && security.response) {
     return security.response;
   }
@@ -302,20 +302,25 @@ export async function GET(request: Request) {
     try {
       const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || '127.0.0.1';
       const userAgent = request.headers.get('user-agent') || 'Unknown';
-      await supabaseAdmin.from('usage_analytics').insert({
-        session_id: 'weather_session_' + district.name_en,
-        user_agent: userAgent,
-        ip_address: clientIp,
-        location: district.name_bn,
-        page_visited: '/weather',
-        action: 'weather_search',
-        metadata: {
-          district: district.name_bn,
-          temp: temp,
-          condition: conditionText
-        },
-        created_at: new Date().toISOString()
-      });
+      
+      if (await isOwnerIp(clientIp)) {
+        console.log(`[Bypass Logging] Weather search logging bypassed for owner IP: ${clientIp}`);
+      } else {
+        await supabaseAdmin.from('usage_analytics').insert({
+          session_id: 'weather_session_' + district.name_en,
+          user_agent: userAgent,
+          ip_address: clientIp,
+          location: district.name_bn,
+          page_visited: '/weather',
+          action: 'weather_search',
+          metadata: {
+            district: district.name_bn,
+            temp: temp,
+            condition: conditionText
+          },
+          created_at: new Date().toISOString()
+        });
+      }
     } catch (dbErr) {
       console.error("Failed to log weather search:", dbErr);
     }

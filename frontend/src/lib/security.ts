@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from './supabase';
 
 // Simple in-memory rate limiter store
 // Key: IP_address:type, Value: array of timestamps (ms)
@@ -22,6 +23,36 @@ if (typeof globalThis !== 'undefined') {
   }
 }
 
+// In-memory cache for owner/admin IP to avoid database overload
+let ownerIpCache: string | null = null;
+let lastOwnerCacheUpdate = 0;
+const OWNER_CACHE_TTL = 30000; // 30 seconds
+
+export async function getOwnerIp(): Promise<string | null> {
+  if (!ownerIpCache || Date.now() - lastOwnerCacheUpdate > OWNER_CACHE_TTL) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('usage_analytics')
+        .select('ip_address')
+        .eq('session_id', 'SYSTEM_OWNER_IP')
+        .limit(1);
+      
+      if (!error && data && data.length > 0) {
+        ownerIpCache = data[0].ip_address;
+        lastOwnerCacheUpdate = Date.now();
+      }
+    } catch (err) {
+      console.error("Error fetching owner IP:", err);
+    }
+  }
+  return ownerIpCache;
+}
+
+export async function isOwnerIp(ip: string): Promise<boolean> {
+  const owner = await getOwnerIp();
+  return owner === ip;
+}
+
 // Known bot patterns in User-Agent
 const BAD_BOT_PATTERNS = [
   /python/i,
@@ -42,7 +73,7 @@ const BAD_BOT_PATTERNS = [
   /jmeter/i
 ];
 
-function getClientIp(request: Request): string {
+export function getClientIp(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
     return forwarded.split(',')[0].trim();
@@ -56,12 +87,18 @@ export interface SecurityCheckResult {
   response?: NextResponse;
 }
 
-export function checkSecurity(
+export async function checkSecurity(
   request: Request,
   type: 'chat' | 'classify' | 'general'
-): SecurityCheckResult {
+): Promise<SecurityCheckResult> {
   const userAgent = request.headers.get('user-agent') || '';
   const ip = getClientIp(request);
+
+  // If request is from the registered admin/owner IP, bypass security rate limits
+  const isOwner = await isOwnerIp(ip);
+  if (isOwner) {
+    return { blocked: false };
+  }
 
   // 1. Block known bad bots/CLI tools
   for (const pattern of BAD_BOT_PATTERNS) {

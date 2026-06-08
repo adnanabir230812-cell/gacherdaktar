@@ -4,7 +4,7 @@ import { URL } from 'url';
 import dns from 'dns';
 import { CROPS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
-import { checkSecurity } from '@/lib/security';
+import { checkSecurity, isOwnerIp } from '@/lib/security';
 
 
 dns.setDefaultResultOrder('ipv4first');
@@ -194,7 +194,7 @@ function parseClassificationResponse(text: string): any {
 }
 
 export async function POST(request: Request) {
-  const security = checkSecurity(request, 'classify');
+  const security = await checkSecurity(request, 'classify');
   if (security.blocked && security.response) {
     return security.response;
   }
@@ -433,6 +433,15 @@ Make this calculation 100% accurate and customized for their specific plant coun
     const logDiagnostic = async (resObj: any) => {
       if (resObj && resObj.is_valid && !resObj.need_clarification) {
         try {
+          const forwarded = request.headers.get('x-forwarded-for');
+          const realIp = request.headers.get('x-real-ip');
+          const clientIp = forwarded ? forwarded.split(',')[0].trim() : (realIp || '127.0.0.1');
+
+          if (await isOwnerIp(clientIp)) {
+            console.log(`[Bypass Logging] Diagnostic log bypassed for owner IP: ${clientIp}`);
+            return;
+          }
+
           await supabaseAdmin.from('diagnostic_logs').insert({
             crop_name: resObj.crop || crop || (type === 'soil' ? 'মাটি (Soil)' : 'Unknown'),
             disease_name: resObj.disease || (type === 'soil' ? resObj.soil_type : 'Healthy/Unknown'),

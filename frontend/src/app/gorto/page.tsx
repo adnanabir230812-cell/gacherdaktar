@@ -308,7 +308,7 @@ export default function AdminDashboard() {
   };
 
   const handleRegisterOwnerIp = async () => {
-    const confirmReg = confirm('আপনার বর্তমান আইপিকে অ্যাডমিন আইপি হিসেবে সেভ করতে চান?');
+    const confirmReg = confirm('আপনার বর্তমান আইপিকে অ্যাডমিন আইপি হিসেবে লক করতে চান?');
     if (!confirmReg) return;
 
     try {
@@ -2298,7 +2298,7 @@ export default function AdminDashboard() {
                           onClick={handleRegisterOwnerIp}
                           className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors shadow-md shadow-emerald-500/10 cursor-pointer self-start sm:self-center shrink-0"
                         >
-                          আমার আইপি রেজিস্টার করুন
+                          Lock My IP
                         </button>
                       </div>
 

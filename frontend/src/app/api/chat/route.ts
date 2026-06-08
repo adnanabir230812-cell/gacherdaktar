@@ -4,7 +4,7 @@ import https from 'https';
 import { URL } from 'url';
 import dns from 'dns';
 import { supabaseAdmin } from '@/lib/supabase';
-import { checkSecurity } from '@/lib/security';
+import { checkSecurity, isOwnerIp } from '@/lib/security';
 
 
 dns.setDefaultResultOrder('ipv4first');
@@ -261,7 +261,7 @@ function parseLLMResponse(text: string, dbSources: string[] = []): any {
 }
 
 export async function POST(request: Request) {
-  const security = checkSecurity(request, 'chat');
+  const security = await checkSecurity(request, 'chat');
   if (security.blocked && security.response) {
     return security.response;
   }
@@ -444,6 +444,10 @@ ${context || 'No specific crop matching the query.'}
     const userAgent = request.headers.get('user-agent') || 'Unknown';
     const logChatEvent = async (ansText: string) => {
       try {
+        if (await isOwnerIp(clientIp)) {
+          console.log(`[Bypass Logging] Chat event logging bypassed for owner IP: ${clientIp}`);
+          return;
+        }
         await supabaseAdmin.from('usage_analytics').insert({
           session_id: 'chat_session_' + (district || 'general'),
           user_agent: userAgent,
