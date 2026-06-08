@@ -34,6 +34,7 @@ import {
 
 interface LogEntry {
   id: number;
+  session_id?: string;
   crop_name: string;
   disease_name: string;
   confidence: number;
@@ -128,6 +129,11 @@ export default function AdminDashboard() {
   const [locationModalTitle, setLocationModalTitle] = useState('');
   const [locationModalData, setLocationModalData] = useState<any[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | number | null>(null);
+  
+  // IP Blocking / Admin IP States
+  const [ownerIp, setOwnerIp] = useState<string | null>(null);
+  const [blockedList, setBlockedList] = useState<{ ip: string; blocked_at: string }[]>([]);
+  const [blockingIp, setBlockingIp] = useState<string | null>(null);
 
   // Auto Refresh States (60 seconds)
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
@@ -252,6 +258,118 @@ export default function AdminDashboard() {
     setAttempts([]);
   };
 
+  const fetchBlocklist = async () => {
+    try {
+      const res = await fetch('/api/admin/block-ip');
+      if (res.ok) {
+        const json = await res.json();
+        setOwnerIp(json.ownerIp);
+        setBlockedList(json.blockedList || []);
+      }
+    } catch (err) {
+      console.error("Error fetching blocklist:", err);
+    }
+  };
+
+  const handleBlockIp = async (ip: string, action: 'block' | 'unblock') => {
+    if (action === 'block' && ip === ownerIp) {
+      alert('অ্যাডমিন নিজের আইপি ব্লক করতে পারবেন না!');
+      return;
+    }
+    
+    if (action === 'block') {
+      const confirmBlock = confirm(`আপনি কি আইপি ${ip} চিরতরে ব্লক করতে চান?`);
+      if (!confirmBlock) return;
+    } else {
+      const confirmUnblock = confirm(`আপনি কি আইপি ${ip} আনব্লক করতে চান?`);
+      if (!confirmUnblock) return;
+    }
+
+    setBlockingIp(ip);
+    try {
+      const res = await fetch('/api/admin/block-ip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, action })
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert(json.message);
+        await fetchBlocklist();
+      } else {
+        alert(json.error || 'সমস্যা হয়েছে।');
+      }
+    } catch (err) {
+      console.error("Error blocking IP:", err);
+      alert('সার্ভার কানেকশন এরর!');
+    } finally {
+      setBlockingIp(null);
+    }
+  };
+
+  const handleRegisterOwnerIp = async () => {
+    const confirmReg = confirm('আপনার বর্তমান আইপিকে অ্যাডমিন আইপি হিসেবে সেভ করতে চান?');
+    if (!confirmReg) return;
+
+    try {
+      const res = await fetch('/api/admin/set-owner-ip', {
+        method: 'POST'
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert(json.message);
+        setOwnerIp(json.ownerIp);
+      } else {
+        alert(json.error || 'সমস্যা হয়েছে।');
+      }
+    } catch (err) {
+      console.error("Error setting owner IP:", err);
+      alert('সার্ভার কানেকশন এরর!');
+    }
+  };
+
+  const getIpForSession = (sessionId: string | undefined) => {
+    if (!sessionId) return undefined;
+    const activity = activities.find(a => a.session_id === sessionId);
+    return activity ? activity.ip_address : undefined;
+  };
+
+  const renderIpAndBlockButton = (ipAddress: string | undefined) => {
+    if (!ipAddress) return <span className="text-slate-400 italic font-sans text-[11px]">N/A</span>;
+    
+    const isOwner = ipAddress === ownerIp;
+    const isBlocked = blockedList.some(item => item.ip === ipAddress);
+    
+    return (
+      <div className="inline-flex items-center gap-1.5 font-mono text-xs">
+        <span className="text-slate-700 font-semibold select-all">{ipAddress}</span>
+        {isOwner && (
+          <span className="px-1.5 py-0.5 rounded bg-green-150 text-green-700 text-[10px] font-black border border-green-200">
+            আপনি (Owner)
+          </span>
+        )}
+        {isBlocked && (
+          <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-black border border-rose-250">
+            ব্লকড
+          </span>
+        )}
+        {!isOwner && (
+          <button
+            onClick={() => handleBlockIp(ipAddress, isBlocked ? 'unblock' : 'block')}
+            disabled={blockingIp === ipAddress}
+            className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-all active:scale-95 cursor-pointer ${
+              isBlocked
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-250 hover:bg-emerald-100'
+                : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+            }`}
+          >
+            {blockingIp === ipAddress ? '...' : isBlocked ? 'আনব্লক' : 'ব্লক'}
+          </button>
+        )}
+      </div>
+    );
+  };
+
   const fetchDashboardData = async () => {
     setLoadingData(true);
     try {
@@ -262,6 +380,7 @@ export default function AdminDashboard() {
         setLogs(data.logs);
         setActivities(data.analytics);
         setAttempts(data.attempts);
+        await fetchBlocklist();
       } else if (res.status === 401) {
         setIsLoggedIn(false);
       }
@@ -921,7 +1040,7 @@ export default function AdminDashboard() {
                 { id: 'loans', label: 'কৃষি ঋণ', count: loanLogs.length, icon: Shield },
                 { id: 'weather', label: 'আবহাওয়া ও সেচ', count: weatherLogs.length, icon: CloudSun },
                 { id: 'pages', label: 'ভিজিটর পেজ', count: generalPageLogs.length, icon: Laptop },
-                { id: 'security', label: 'নিরাপত্তা লগ', count: attempts.length, icon: ShieldAlert },
+                { id: 'security', label: 'নিরাপত্তা ও ব্লক লিস্ট', count: attempts.length + blockedList.length, icon: ShieldAlert },
               ].map((tab) => {
                 const IconComponent = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1074,6 +1193,10 @@ export default function AdminDashboard() {
                                               <span className="block text-slate-400 font-bold mb-0.5">নিশ্চয়তা (Confidence)</span>
                                               <span className="font-mono font-bold text-slate-800">{(Number(log.confidence) * 100).toFixed(0)}%</span>
                                             </div>
+                                             <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 sm:col-span-2">
+                                               <span className="block text-slate-400 font-bold mb-0.5">আইপি অ্যাড্রেস</span>
+                                               {renderIpAndBlockButton(getIpForSession(log.session_id))}
+                                             </div>
                                           </div>
                                         </div>
                                       </div>
@@ -1195,6 +1318,10 @@ export default function AdminDashboard() {
                                                 {Number(log.confidence) < 6.0 ? 'অম্লীয় মাটি' : Number(log.confidence) > 7.5 ? 'ক্ষারীয় মাটি' : 'স্বাভাবিক মাটি'}
                                               </span>
                                             </div>
+                                             <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 sm:col-span-2">
+                                               <span className="block text-slate-400 font-bold mb-0.5">আইপি অ্যাড্রেস</span>
+                                               {renderIpAndBlockButton(getIpForSession(log.session_id))}
+                                             </div>
                                           </div>
                                           <div className="text-xs bg-amber-50/50 p-3.5 rounded-lg border border-amber-100 text-slate-700">
                                             <span className="font-black text-amber-800 block mb-1">সুপারিশকৃত সমাধান:</span>
@@ -1377,7 +1504,10 @@ export default function AdminDashboard() {
                                           <Sprout className="w-4 h-4 text-emerald-600" />
                                           সার প্রয়োগ নির্দেশিকা ({log.metadata?.cropName})
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -1480,7 +1610,10 @@ export default function AdminDashboard() {
                                           <Wrench className="w-4 h-4 text-emerald-600" />
                                           কীটনাশক ডোজ গণনা রিপোর্ট ({log.metadata?.crop})
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -1571,7 +1704,10 @@ export default function AdminDashboard() {
                                           <BookOpen className="w-4 h-4 text-emerald-600" />
                                           বীজের পরিমাণ গণনা রিপোর্ট ({log.metadata?.cropName})
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -1660,7 +1796,10 @@ export default function AdminDashboard() {
                                           <Sprout className="w-4 h-4 text-emerald-600" />
                                           অনুকূল শস্য ম্যাচমেকার লগ
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -1749,7 +1888,10 @@ export default function AdminDashboard() {
                                           <RefreshCw className="w-4 h-4 text-emerald-600" />
                                           شস্য পর্যায় (Crop Rotation) লগ
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -1831,7 +1973,10 @@ export default function AdminDashboard() {
                                           <Coins className="w-4 h-4 text-emerald-600" />
                                           পাইকারি বাজার দর অনুসন্ধান লগ
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -1922,7 +2067,10 @@ export default function AdminDashboard() {
                                           <Shield className="w-4 h-4 text-emerald-600" />
                                           কৃষি ঋণ ও অনুদান অনুসন্ধান লগ
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -2005,7 +2153,10 @@ export default function AdminDashboard() {
                                           <CloudSun className="w-4 h-4 text-emerald-600" />
                                           আবহাওয়া ও সেচ অনুসন্ধান লগ
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
@@ -2092,7 +2243,10 @@ export default function AdminDashboard() {
                                           <Laptop className="w-4 h-4 text-emerald-600" />
                                           ভিজিটর অ্যাক্টিভিটি সেশন ডিটেইল
                                         </h4>
-                                        <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                        <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
+                                          <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
+                                          {renderIpAndBlockButton(log.ip_address)}
+                                        </div>
                                       </div>
                                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 space-y-3 text-slate-700">
                                         <div>
@@ -2101,8 +2255,8 @@ export default function AdminDashboard() {
                                         </div>
                                         <div>
                                           <span className="font-bold block text-slate-400 mb-0.5">আইপি অ্যাড্রেস:</span>
-                                          <span className="font-mono text-slate-800 select-all">{log.ip_address}</span>
-                                        </div>
+                                           {renderIpAndBlockButton(log.ip_address)}
+                                         </div>
                                         <div>
                                           <span className="font-bold block text-slate-400 mb-0.5">ভিজিটেড পাথ:</span>
                                           <span className="font-mono text-slate-800">{log.page_visited}</span>
@@ -2124,40 +2278,127 @@ export default function AdminDashboard() {
                   </table>
                 )}
 
-                {/* 13. Login attempts security */}
+                {/* 13. Login attempts security and IP blocklist */}
                 {activeTab === 'security' && (
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 text-xs font-black uppercase text-slate-700 border-b border-slate-200">
-                      <tr>
-                        <th className="p-4">আইপি অ্যাড্রেস</th>
-                        <th className="p-4">ইনপুট ইউজারনেম</th>
-                        <th className="p-4">অবস্থা</th>
-                        <th className="p-4">চেষ্টার সময়</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {attempts.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="p-10 text-center text-slate-400">লগইনের কোনো চেষ্টা রেকর্ড করা হয়নি।</td>
-                        </tr>
-                      ) : (
-                        attempts.map((att) => (
-                          <tr key={att.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 font-mono text-xs text-slate-800">{att.ip_address}</td>
-                            <td className="p-4 text-xs font-mono text-slate-500">{att.username}</td>
-                            <td className="p-4 text-xs">
-                              <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] ${att.is_successful ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-                                {att.is_successful ? 'সফল লগইন' : 'ব্যর্থ চেষ্টা'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-xs font-mono text-slate-500">
-                              {new Date(att.attempt_time).toLocaleString('bn-BD')}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                  <div className="space-y-6 text-xs text-left">
+                    
+                    {/* Admin IP Management Card */}
+                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                        <div className="space-y-1">
+                          <h5 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                            <Shield className="w-4 h-4 text-emerald-600" />
+                            অ্যাডমিন আইপি অ্যাড্রেস সেটিংস
+                          </h5>
+                          <p className="text-[11px] text-slate-500 font-semibold">
+                            ভুলবশত নিজের কানেকশন ব্লক হওয়া রোধ করতে আপনার বর্তমান আইপি অ্যাড্রেস রেজিস্টার করে রাখুন।
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleRegisterOwnerIp}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors shadow-md shadow-emerald-500/10 cursor-pointer self-start sm:self-center shrink-0"
+                        >
+                          আমার আইপি রেজিস্টার করুন
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-xl border border-slate-150 font-mono">
+                        <span className="font-sans font-bold text-slate-400">বর্তমানে রেজিস্টার্ড অ্যাডমিন আইপি:</span>
+                        <span className="text-emerald-700 font-black">{ownerIp || 'কোনো আইপি সেভ করা নেই'}</span>
+                      </div>
+                    </div>
+
+                    {/* Blocked IPs Table */}
+                    <div className="space-y-3">
+                      <h5 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <ShieldAlert className="w-4 h-4 text-rose-500" />
+                        ব্লকড আইপি তালিকা ({blockedList.length}টি)
+                      </h5>
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-slate-50 text-xs font-black uppercase text-slate-700 border-b border-slate-200">
+                            <tr>
+                              <th className="p-4">ব্লকড আইপি</th>
+                              <th className="p-4">ব্লক করার সময়</th>
+                              <th className="p-4 text-right">অ্যাকশন</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200">
+                            {blockedList.length === 0 ? (
+                              <tr>
+                                <td colSpan={3} className="p-8 text-center text-slate-450 font-bold">কোনো আইপি ব্লক করা হয়নি।</td>
+                              </tr>
+                            ) : (
+                              blockedList.map((item) => (
+                                <tr key={item.ip} className="hover:bg-slate-50/50 transition-colors">
+                                  <td className="p-4 font-mono text-xs font-bold text-slate-900">{item.ip}</td>
+                                  <td className="p-4 text-xs font-mono text-slate-500">
+                                    {new Date(item.blocked_at).toLocaleString('bn-BD')}
+                                  </td>
+                                  <td className="p-4 text-right">
+                                    <button
+                                      onClick={() => handleBlockIp(item.ip, 'unblock')}
+                                      disabled={blockingIp === item.ip}
+                                      className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md inline-flex items-center gap-1 border border-emerald-150 transition-all cursor-pointer shadow-sm"
+                                    >
+                                      আনব্লক করুন
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Login Attempts History */}
+                    <div className="space-y-3">
+                      <h5 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <Lock className="w-4 h-4 text-slate-500" />
+                        লগইন চেষ্টার ইতিহাস
+                      </h5>
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-slate-50 text-xs font-black uppercase text-slate-700 border-b border-slate-200">
+                            <tr>
+                              <th className="p-4">আইপি অ্যাড্রেস</th>
+                              <th className="p-4">ইনপুট ইউজারনেম</th>
+                              <th className="p-4">অবস্থা</th>
+                              <th className="p-4">চেষ্টার সময়</th>
+                              <th className="p-4 text-right">অ্যাকশন</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200">
+                            {attempts.length === 0 ? (
+                              <tr>
+                                <td colSpan={5} className="p-10 text-center text-slate-400">লগইনের কোনো চেষ্টা রেকর্ড করা হয়নি।</td>
+                              </tr>
+                            ) : (
+                              attempts.map((att) => (
+                                <tr key={att.id} className="hover:bg-slate-50/50 transition-colors">
+                                  <td className="p-4 font-mono text-xs text-slate-800">{att.ip_address}</td>
+                                  <td className="p-4 text-xs font-mono text-slate-500">{att.username}</td>
+                                  <td className="p-4 text-xs">
+                                    <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] ${att.is_successful ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                                      {att.is_successful ? 'সফল লগইন' : 'ব্যর্থ চেষ্টা'}
+                                    </span>
+                                  </td>
+                                  <td className="p-4 text-xs font-mono text-slate-500">
+                                    {new Date(att.attempt_time).toLocaleString('bn-BD')}
+                                  </td>
+                                  <td className="p-4 text-right">
+                                    {renderIpAndBlockButton(att.ip_address)}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                  </div>
                 )}
 
               </div>
