@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Calculator, Sprout, Landmark, ArrowRight, HelpCircle, ClipboardList } from 'lucide-react';
+import { Calculator, Sprout, Landmark, ArrowRight, HelpCircle, ClipboardList, RefreshCw } from 'lucide-react';
 import { Crop, CROPS } from '../api/data';
 import { CROP_GUIDELINES_DB } from '../api/cropGuidelines';
 
@@ -52,6 +52,33 @@ const formatWeight = (weightInKg: number): string => {
   }
 };
 
+const formatChatMessageMarkdown = (text: any) => {
+  if (!text) return '';
+  const cleanText = Array.isArray(text) ? text.join('\n') : String(text);
+  return cleanText.split('\n').map((line, lineIdx) => {
+    let isBullet = false;
+    let cleanLine = line;
+    if (line.trim().startsWith('* ') || line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
+      isBullet = true;
+      cleanLine = line.trim().replace(/^[-*•]\s+/, '');
+    }
+    
+    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
+    const content = parts.map((part, partIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+
+    return (
+      <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
+        {content}
+      </p>
+    );
+  });
+};
+
 function CalculatorContent() {
   const searchParams = useSearchParams();
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -61,6 +88,11 @@ function CalculatorContent() {
   const [landUnit, setLandUnit] = useState('bigha'); // bigha, decimal, or unit
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [calculating, setCalculating] = useState(false);
+
+  // Inline Chat States
+  const [inlineChatMessages, setInlineChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([]);
+  const [inlineChatInput, setInlineChatInput] = useState('');
+  const [inlineChatLoading, setInlineChatLoading] = useState(false);
 
   const crop = CROPS.find(c => c.id === selectedCropId);
   const isFruit = crop?.category === 'fruit';
@@ -202,11 +234,84 @@ function CalculatorContent() {
         zinc: zincTotal,
         guidelines
       });
+
+      setInlineChatMessages([
+        { 
+          sender: 'bot', 
+          text: `প্রিয় কৃষক ভাই, এই সারের হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+        }
+      ]);
+
       setCalculating(false);
     }, 600);
 
     return () => clearTimeout(timer);
   }, [selectedCropId, selectedSeason, landSize, landUnit]);
+
+  const handleSendInlineChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inlineChatInput.trim() || !result || inlineChatLoading) return;
+
+    const userMessageText = inlineChatInput;
+    setInlineChatInput('');
+    setInlineChatLoading(true);
+
+    const newMessages = [
+      ...inlineChatMessages,
+      { sender: 'user' as const, text: userMessageText }
+    ];
+    setInlineChatMessages(newMessages);
+
+    try {
+      const crop = CROPS.find(c => c.id === selectedCropId);
+      const hiddenHistory = [
+        { sender: 'user' as const, text: `আমি আমার জমির জন্য সার হিসাব করেছি। ফসল: ${crop?.name_bn || ''}, মৌসুম: ${selectedSeason}, জমির পরিমাণ: ${landSize} ${landUnit === 'decimal' ? 'শতক' : landUnit === 'bigha' ? 'বিঘা' : landUnit === 'acre' ? 'একর' : 'টি'}।` },
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার জমির জন্য সারের হিসাব ও প্রয়োগের কিস্তি নির্ধারণ করে দিয়েছি:
+ইউরিয়া: ${formatWeight(result.urea)}
+টিএসপি: ${formatWeight(result.tsp)}
+এমওপি: ${formatWeight(result.mop)}
+জিপসাম: ${formatWeight(result.gypsum)}
+দস্তা (Zinc): ${formatWeight(result.zinc)}
+
+সার প্রয়োগের নির্দেশাবলী:
+${result.guidelines.join('\n')}
+
+এই সারের মাত্রা বা প্রয়োগ নিয়ে আপনার কোনো জিজ্ঞাসা থাকলে নির্দ্বিধায় বলুন।` },
+        ...inlineChatMessages.slice(1)
+      ];
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: userMessageText,
+          history: hiddenHistory,
+          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.answer_bn) {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: data.answer_bn }
+        ]);
+      } else {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: 'দুঃখিত, উত্তর তৈরি করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।' }
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+      setInlineChatMessages([
+        ...newMessages,
+        { sender: 'bot', text: 'নেটওয়ার্ক সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট চেক করে আবার চেষ্টা করুন।' }
+      ]);
+    } finally {
+      setInlineChatLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-8 relative">
@@ -307,7 +412,7 @@ function CalculatorContent() {
               <div>
                 <h4 className="font-bold text-text-primary">সার সুপারিশ গণনা করা হচ্ছে...</h4>
                 <p className="text-xs text-text-secondary max-w-sm mt-1">
-                  ডিজিটাল কৃষি তথ্যভাণ্ডার থেকে আপনার ফসল ({crop?.name_bn || ''}) এর সুনির্দিষ্ট ডিপিই সারের মাত্রা মেলানো হচ্ছে।
+                  ডিজিটাল কৃষি তথ্যভাণ্ডার থেকে আপনার ফসল ({crop?.name_bn || ''}) এর সুনির্দিষ্ট DAE সারের মাত্রা মেলানো হচ্ছে।
                 </p>
               </div>
             </div>
@@ -389,6 +494,63 @@ function CalculatorContent() {
                 </div>
               </div>
 
+              {/* 💬 Context-Aware Inline Chat Panel */}
+              <div className="border-t border-green-primary/10 pt-6 space-y-4">
+                <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
+                    <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+                  </div>
+                  
+                  {/* Messages Stream */}
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1 text-xs md:text-sm">
+                    {inlineChatMessages.map((msg, i) => (
+                      <div
+                        key={i}
+                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 font-semibold leading-relaxed ${
+                            msg.sender === 'user'
+                              ? 'bg-green-primary text-white rounded-br-none'
+                              : 'bg-white border border-green-primary/10 text-text-primary rounded-bl-none shadow-sm'
+                          }`}
+                        >
+                          {formatChatMessageMarkdown(msg.text)}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {inlineChatLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-white border border-green-primary/10 rounded-2xl rounded-bl-none px-4 py-2.5 text-text-secondary flex items-center gap-2 shadow-sm font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.2s]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.4s]" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Message Input Form */}
+                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={inlineChatInput}
+                      onChange={(e) => setInlineChatInput(e.target.value)}
+                      placeholder="সার প্রয়োগ বা মাত্রা নিয়ে গাছের ডাক্তারকে প্রশ্ন করুন..."
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={inlineChatLoading || !inlineChatInput.trim()}
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                    >
+                      পাঠান
+                    </button>
+                  </form>
+                </div>
+              </div>
+
             </div>
           ) : (
             <div className="h-full min-h-[300px] border-2 border-dashed border-green-primary/20 rounded-3xl flex flex-col items-center justify-center text-center p-8 space-y-4 bg-soft-white/40">
@@ -396,7 +558,7 @@ function CalculatorContent() {
               <div>
                 <h4 className="font-bold text-text-primary">সার পরিমাপের ফলাফল দেখতে প্রস্তুত</h4>
                 <p className="text-xs text-text-secondary max-w-sm mt-1">
-                  বাঁদিকের প্যানেলে আপনার ফসল, মৌসুম ও জমির সাইজ সিলেক্ট করুন। DAE অনুমোদিত সারের ডোজ স্বয়ংক্রিয়ভাবে হিসাব হয়ে যাবে।
+                  বামেদিকের প্যানেলে আপনার ফসল, মৌসুম ও জমির সাইজ সিলেক্ট করুন। DAE অনুমোদিত সারের ডোজ স্বয়ংক্রিয়ভাবে হিসাব হয়ে যাবে।
                 </p>
               </div>
             </div>

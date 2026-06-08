@@ -372,8 +372,22 @@ ${Array.isArray(scannerResult.chemical_advice) ? scannerResult.chemical_advice.j
 ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_measures.join('\n') : scannerResult.preventive_measures}`;
 
       const hiddenHistory = [
-        { sender: 'user' as const, text: diagnosisContextText },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার রিপোর্টটি দেখেছি। এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` },
+        { sender: 'user' as const, text: 'আমি আমার মাটির একটি ছবি পরীক্ষা করেছি। আমাকে এই পরীক্ষার রিপোর্ট এবং এর সমাধান দিন।' },
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার মাটি পরীক্ষার রিপোর্ট নিচে তৈরি করে দিলাম:
+মাটির ধরন: ${scannerResult.soil_type}
+আনুমানিক pH মান: ${scannerResult.estimated_ph} (${getPhStatusBangla(scannerResult.estimated_ph)})
+মাটির কণার গঠন ও বৈশিষ্ট্য:
+${Array.isArray(scannerResult.color_texture) ? scannerResult.color_texture.join('\n') : scannerResult.color_texture}
+চাষের উপযোগী লাভজনক ফসলসমূহ:
+${Array.isArray(scannerResult.suitable_crops) ? scannerResult.suitable_crops.join('\n') : scannerResult.suitable_crops}
+জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি:
+${Array.isArray(scannerResult.organic_advice) ? scannerResult.organic_advice.join('\n') : scannerResult.organic_advice}
+অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার:
+${Array.isArray(scannerResult.chemical_advice) ? scannerResult.chemical_advice.join('\n') : scannerResult.chemical_advice}
+মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন:
+${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_measures.join('\n') : scannerResult.preventive_measures}
+
+এই মাটি পরীক্ষা সম্পর্কিত আপনার যদি কোনো প্রশ্ন থাকে, দয়া করে বলুন।` },
         ...inlineChatMessages.slice(1)
       ];
 
@@ -1044,72 +1058,100 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
             </div>
           </div>
 
-          {/* Grid Content */}
-          <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '25px' }}>
-            {/* Left Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {/* Main Content (Horizontal Flex for Image & Seal, and Full-Width for text) */}
+          <div>
+            {/* Top Row: Leaf Image & Digital Seal */}
+            <div style={{ display: 'flex', gap: '30px', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', backgroundColor: '#F9FAFB', padding: '15px', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
               {imgUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img 
                   src={imgUrl} 
                   alt="Soil Sample" 
-                  style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #1B4332', marginBottom: '20px' }}
+                  style={{ width: '180px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #1B4332' }}
                 />
               ) : (
-                <div style={{ width: '100%', height: '160px', backgroundColor: '#F3F4F6', borderRadius: '8px', border: '2px dashed #D1D5DB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#9CA3AF', marginBottom: '20px' }}>
+                <div style={{ width: '180px', height: '120px', backgroundColor: '#F3F4F6', borderRadius: '8px', border: '2px dashed #D1D5DB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#9CA3AF' }}>
                   ছবি সংযুক্ত নেই
                 </div>
               )}
-              <div style={{ border: '2px dashed #1B4332', padding: '12px', borderRadius: '8px', textAlign: 'center', width: '90%', backgroundColor: '#FFFFFF' }}>
-                <p style={{ margin: '0 0 5px 0', fontSize: '10px', fontWeight: 'bold', color: '#1B4332' }}>গাছের ডাক্তার দ্বারা অনুমোদিত</p>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#1B4332', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontWeight: 'bold', fontSize: '14px' }}>✓</div>
+              
+              {/* Premium Digital Certification Seal */}
+              <div style={{ 
+                width: '110px', 
+                height: '110px', 
+                borderRadius: '50%', 
+                border: '4px double #C5A880', 
+                backgroundColor: '#FFFFFF',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                padding: '5px'
+              }}>
+                <div style={{
+                  width: '92px',
+                  height: '92px',
+                  borderRadius: '50%',
+                  border: '1px solid #E8F5E9',
+                  backgroundColor: '#F9FBF9',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#1B4332'
+                }}>
+                  <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#40916C', letterSpacing: '0.5px', marginBottom: '1px' }}>APPROVED</span>
+                  <span style={{ fontSize: '11px', fontWeight: '900', color: '#1B4332', margin: '2px 0' }}>গাছের ডাক্তার</span>
+                  <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#D4AF37', marginTop: '1px' }}>★ ★ ★</span>
+                </div>
               </div>
             </div>
 
-            {/* Right Column */}
-            <div style={{ borderLeft: '2px solid #E8F5E9', paddingLeft: '20px' }}>
-              <div style={{ marginBottom: '15px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🔍 মাটির কণার গঠন ও বৈশিষ্ট্য</h3>
-                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+            {/* Bottom Row: Full-width Details */}
+            <div style={{ width: '100%' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🔍 মাটির কণার গঠন ও বৈশিষ্ট্য</h3>
+                <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.color_texture && String(scannerResult.color_texture).split('\n').map((line, idx) => (
-                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                    <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
                   ))}
                 </div>
               </div>
 
-              <div style={{ marginBottom: '15px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌾 চাষের উপযোগী লাভজনক ফসলসমূহ</h3>
-                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌾 চাষের উপযোগী লাভজনক ফসলসমূহ</h3>
+                <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.suitable_crops && String(scannerResult.suitable_crops).split('\n').map((line, idx) => (
-                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                    <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
                   ))}
                 </div>
               </div>
 
-              <div style={{ marginBottom: '15px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌿 জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি</h3>
-                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌿 জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি</h3>
+                <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.organic_advice && String(scannerResult.organic_advice).split('\n').map((line, idx) => (
-                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                    <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
                   ))}
                 </div>
               </div>
 
-              <div style={{ marginBottom: '15px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🧪 অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার সুপারিশ</h3>
-                <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🧪 অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার সুপারিশ</h3>
+                <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.chemical_advice && String(scannerResult.chemical_advice).split('\n').map((line, idx) => (
-                    <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                    <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
                   ))}
                 </div>
               </div>
 
               {scannerResult?.preventive_measures && (
                 <div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 5px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🛡️ মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন</h3>
-                  <div style={{ fontSize: '12px', lineHeight: '1.6', color: '#374151' }}>
+                  <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🛡️ মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন</h3>
+                  <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                     {String(scannerResult.preventive_measures).split('\n').map((line, idx) => (
-                      <p key={idx} style={{ margin: '2px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                      <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
                     ))}
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, RefreshCw, ShieldCheck, ClipboardList, Info, HelpCircle } from 'lucide-react';
 
@@ -30,11 +30,11 @@ const ROTATION_DATABASE: RotationPlan[] = [
     crop_name: "আলু (Seed Potato)",
     season_bn: "শীতকাল (রবি মৌসুম)",
     ideal_followers: [
-      { name: "হাইব্রিড ভুট্টা", benefits: "আলু উত্তোলনের পর উচ্চ পুষ্টি গ্রহণকারী ভুট্টা চাষে আলুর অবশিষ্ট সারের সর্বোচ্চ ব্যবহার হয়।" },
+      { name: "হাইбриড ভুট্টা", benefits: "আলু উত্তোলনের পর উচ্চ পুষ্টি গ্রহণকারী ভুট্টা চাষে আলুর অবশিষ্ট সারের সর্বোচ্চ ব্যবহার হয়।" },
       { name: "তোষা পাট", benefits: "পাটের গভীর শিকড় মাটির নিচের স্তরের পুষ্টি টেনে আনে এবং পাটের পাতা পচে প্রচুর জৈব সার তৈরি করে।" }
     ],
     pest_benefit: "আলুর পর পাট বা তিল চাষ করলে আলুর সাধারণ স্কেব ব্যাকটেরিয়া এবং কৃমি পোকা (Nematode) দমন হয়।",
-    soil_benefit: "আলু চাষে মাটি গভীরভাবে আলগা করতে হয়, যা মাটির অক্সিজেন বৃদ্ধি করে ও পরবর্তী ফসলের শিকড় গঠনে সাহায্য করে।"
+    soil_benefit: "আলু চাষে মাটি গভীরভাবে আলগা করতে হয়, যা মাটির oxygen বৃদ্ধি করে ও পরবর্তী ফসলের শিকড় গঠনে সাহায্য করে।"
   },
   {
     crop_name: "দেশি পেঁয়াজ",
@@ -57,7 +57,7 @@ const ROTATION_DATABASE: RotationPlan[] = [
     soil_benefit: "ডাল জাতীয় ফসল মাটির ক্ষয়রোধ করে এবং মাটিতে ফসফরাস ও নাইট্রোজেন সারের কার্যকারিতা বৃদ্ধি করে।"
   },
   {
-    crop_name: "হাইব্রিড ভুট্টা",
+    crop_name: "হাইбриড ভুট্টা",
     season_bn: "রবি ও গ্রীষ্ম মৌসুম",
     ideal_followers: [
       { name: "মুগ ডাল (সবুজ সার)", benefits: "ভুট্টার পর মাটিতে নাইট্রোজেন বাড়াতে মুগ চাষ ও কচি গাছ মাটিতে চাষ দিয়ে মিশিয়ে দেওয়া উত্তম।" },
@@ -90,11 +90,11 @@ const ROTATION_DATABASE: RotationPlan[] = [
     crop_name: "বারি সরিষা",
     season_bn: "শীতকাল (রবি মৌসুম)",
     ideal_followers: [
-      { name: "বোরো ধান", benefits: "সরিষা কাটার পর বোরো ধান রোপণ করলে সরিষার অবশিষ্টাংশ মাটির রন্ধ্রতা বাড়ায়।" },
-      { name: "গ্রীষ্মকালীন মুগ ডাল", benefits: "সরিষার পর মুগ ডাল চাষে মাটির ক্ষয়প্রাপ্ত পুষ্টি উপাদান প্রাকৃতিক উপায়ে পূরণ হয়।" }
+      { name: "বোরো ধান", benefits: "sరిষা কাটার পর বোরো ধান রোপণ করলে সরিষার অবশিষ্টাংশ মাটির রন্ধ্রতা বাড়ায়।" },
+      { name: "গ্রীষ্মকালীন মুগ ডাল", benefits: "sరిষার পর মুগ ডাল চাষে মাটির ক্ষয়প্রাপ্ত পুষ্টি উপাদান প্রাকৃতিক উপায়ে পূরণ হয়।" }
     ],
-    pest_benefit: "সরিষার শিকড় নিঃসৃত রস ও তেলের অবশিষ্টাংশ মাটির ক্ষতিকারক ছত্রাক ও কৃমির জন্য প্রাকৃতিক প্রতিষেধক হিসেবে কাজ করে।",
-    soil_benefit: "সরিষা কাটার পর শিকড় পচে মাটির রন্ধ্রতা বৃদ্ধি করে, যা পরবর্তী বোরো ধানের চারা সহজে কুশি গজাতে সাহায্য করে।"
+    pest_benefit: "sరిষার শিকড় নিঃসৃত রস ও তেলের অবশিষ্টাংশ মাটির ক্ষতিকারক ছত্রাক ও কৃমির জন্য প্রাকৃতিক প্রতিষেধক হিসেবে কাজ করে।",
+    soil_benefit: "sరిষা কাটার পর শিকড় পচে মাটির রন্ধ্রতা বৃদ্ধি করে, যা পরবর্তী বোরো ধানের চারা সহজে কুশি গজাতে সাহায্য করে।"
   },
   {
     crop_name: "বেগুন",
@@ -218,12 +218,52 @@ const ROTATION_DATABASE: RotationPlan[] = [
   }
 ];
 
+const formatChatMessageMarkdown = (text: any) => {
+  if (!text) return '';
+  const cleanText = Array.isArray(text) ? text.join('\n') : String(text);
+  return cleanText.split('\n').map((line, lineIdx) => {
+    let isBullet = false;
+    let cleanLine = line;
+    if (line.trim().startsWith('* ') || line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
+      isBullet = true;
+      cleanLine = line.trim().replace(/^[-*•]\s+/, '');
+    }
+    
+    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
+    const content = parts.map((part, partIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+
+    return (
+      <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
+        {content}
+      </p>
+    );
+  });
+};
+
 export default function CropRotationPage() {
   const router = useRouter();
   const [activePlan, setActivePlan] = useState<RotationPlan | null>(ROTATION_DATABASE[0]);
 
-  React.useEffect(() => {
+  // Inline Chat States
+  const [inlineChatMessages, setInlineChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([]);
+  const [inlineChatInput, setInlineChatInput] = useState('');
+  const [inlineChatLoading, setInlineChatLoading] = useState(false);
+
+  useEffect(() => {
     if (!activePlan) return;
+    
+    setInlineChatMessages([
+      { 
+        sender: 'bot', 
+        text: `প্রিয় কৃষক ভাই, ${activePlan.crop_name} এর পর পর্যায়ক্রমিক ফসল চাষ বা শস্য পর্যায় পরিকল্পনা নিয়ে কোনো প্রশ্ন থাকলে বলুন।` 
+      }
+    ]);
+
     try {
       const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
       fetch("/api/track", {
@@ -244,6 +284,125 @@ export default function CropRotationPage() {
       console.error("Tracking error:", err);
     }
   }, [activePlan]);
+
+  const handleSendInlineChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inlineChatInput.trim() || !activePlan || inlineChatLoading) return;
+
+    const userMessageText = inlineChatInput;
+    setInlineChatInput('');
+    setInlineChatLoading(true);
+
+    const newMessages = [
+      ...inlineChatMessages,
+      { sender: 'user' as const, text: userMessageText }
+    ];
+    setInlineChatMessages(newMessages);
+
+    try {
+      const followersStr = activePlan.ideal_followers.map(f => f.name).join(', ');
+      const hiddenHistory = [
+        { sender: 'user' as const, text: `আমি আমার জমিতে বর্তমানে ${activePlan.crop_name} চাষ করছি। এর পর কোন ফসল আবর্তন করে চাষ করা ভালো হবে?` },
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, ${activePlan.crop_name} এর পর চাষের জন্য আদর্শ শস্য পর্যায়ক্রম নিচে নির্ধারণ করে দিয়েছি:
+প্রস্তাবিত পরবর্তী ফসল: ${followersStr}
+
+মাটির গুণাগুণ বৃদ্ধি: ${activePlan.soil_benefit}
+বালাই দমন সুবিধা: ${activePlan.pest_benefit}
+
+এই শস্য আবর্তন পরিকল্পনা নিয়ে আপনার কোনো জিজ্ঞাসা থাকলে দয়া করে বলুন।` },
+        ...inlineChatMessages.slice(1)
+      ];
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: userMessageText,
+          history: hiddenHistory,
+          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.answer_bn) {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: data.answer_bn }
+        ]);
+      } else {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: 'দুঃখিত, উত্তর তৈরি করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।' }
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+      setInlineChatMessages([
+        ...newMessages,
+        { sender: 'bot', text: 'নেটওয়ার্ক সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট চেক করে আবার চেষ্টা করুন।' }
+      ]);
+    } finally {
+      setInlineChatLoading(false);
+    }
+  };
+
+  const chatboxElement = (
+    <div className="border-t border-green-primary/10 pt-6 space-y-4">
+      <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
+          <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+        </div>
+        
+        {/* Messages Stream */}
+        <div className="max-h-60 overflow-y-auto space-y-2 pr-1 text-xs md:text-sm">
+          {inlineChatMessages.map((msg, i) => (
+            <div
+              key={i}
+              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-2.5 font-semibold leading-relaxed ${
+                  msg.sender === 'user'
+                    ? 'bg-green-primary text-white rounded-br-none'
+                    : 'bg-white border border-green-primary/10 text-text-primary rounded-bl-none shadow-sm'
+                }`}
+              >
+                {formatChatMessageMarkdown(msg.text)}
+              </div>
+            </div>
+          ))}
+          
+          {inlineChatLoading && (
+            <div className="flex justify-start">
+              <div className="bg-white border border-green-primary/10 rounded-2xl rounded-bl-none px-4 py-2.5 text-text-secondary flex items-center gap-2 shadow-sm font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce" />
+                <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.2s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.4s]" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Message Input Form */}
+        <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+          <input
+            type="text"
+            value={inlineChatInput}
+            onChange={(e) => setInlineChatInput(e.target.value)}
+            placeholder="শস্য আবর্তন বা পরবর্তী ফসল নিয়ে গাছের ডাক্তারকে প্রশ্ন করুন..."
+            className="flex-1 px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
+          />
+          <button
+            type="submit"
+            disabled={inlineChatLoading || !inlineChatInput.trim()}
+            className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+          >
+            পাঠান
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
@@ -346,6 +505,9 @@ export default function CropRotationPage() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Mobile Chat Box */}
+                      {chatboxElement}
                     </div>
                   )}
                 </div>
@@ -409,6 +571,9 @@ export default function CropRotationPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Desktop Chat Box */}
+              {chatboxElement}
 
             </div>
           ) : (

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calculator, AlertTriangle, ShieldCheck, Info } from 'lucide-react';
+import { ArrowLeft, Calculator, AlertTriangle, ShieldCheck, Info, RefreshCw } from 'lucide-react';
 
 const CROPS_LIST = [
   { id: 'rice', name: 'ধান (Rice)' },
@@ -15,7 +15,7 @@ const CROPS_LIST = [
   { id: 'garlic', name: 'রসুন (Garlic)' },
   { id: 'ginger', name: 'আদা (Ginger)' },
   { id: 'turmeric', name: 'হলুদ (Turmeric)' },
-  { id: 'mustard', name: 'সরিষা (Mustard)' },
+  { id: 'mustard', name: 'sరిষা (Mustard)' },
   { id: 'maize', name: 'ভুট্টা (Maize)' },
   { id: 'jute', name: 'পাট (Jute)' },
   { id: 'mango', name: 'আম (Mango)' },
@@ -39,6 +39,33 @@ const CROPS_LIST = [
   { id: 'spinach', name: 'পালং শাক (Spinach)' },
 ];
 
+const formatChatMessageMarkdown = (text: any) => {
+  if (!text) return '';
+  const cleanText = Array.isArray(text) ? text.join('\n') : String(text);
+  return cleanText.split('\n').map((line, lineIdx) => {
+    let isBullet = false;
+    let cleanLine = line;
+    if (line.trim().startsWith('* ') || line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
+      isBullet = true;
+      cleanLine = line.trim().replace(/^[-*•]\s+/, '');
+    }
+    
+    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
+    const content = parts.map((part, partIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+
+    return (
+      <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
+        {content}
+      </p>
+    );
+  });
+};
+
 export default function PesticideCalculator() {
   const router = useRouter();
   const [selectedCrop, setSelectedCrop] = useState<string>('rice');
@@ -60,6 +87,11 @@ export default function PesticideCalculator() {
     totalTeaspoons: number;
     totalCaps?: number;
   } | null>(null);
+
+  // Inline Chat States
+  const [inlineChatMessages, setInlineChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([]);
+  const [inlineChatInput, setInlineChatInput] = useState('');
+  const [inlineChatLoading, setInlineChatLoading] = useState(false);
 
   const TREE_BASED_CROPS = ['mango', 'jackfruit', 'guava', 'coconut', 'citrus'];
   const isTreeBased = TREE_BASED_CROPS.includes(selectedCrop);
@@ -131,6 +163,13 @@ export default function PesticideCalculator() {
         totalCaps: totalCaps ? Math.round(totalCaps * 10) / 10 : undefined,
       });
 
+      setInlineChatMessages([
+        { 
+          sender: 'bot', 
+          text: `প্রিয় কৃষক ভাই, এই বালাইনাশক (স্প্রে) ডোজ হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+        }
+      ]);
+
       // Track pesticide calculation event
       try {
         const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
@@ -175,6 +214,66 @@ export default function PesticideCalculator() {
   };
 
   const currentCropName = CROPS_LIST.find(c => c.id === selectedCrop)?.name || '';
+
+  const handleSendInlineChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inlineChatInput.trim() || !result || inlineChatLoading) return;
+
+    const userMessageText = inlineChatInput;
+    setInlineChatInput('');
+    setInlineChatLoading(true);
+
+    const newMessages = [
+      ...inlineChatMessages,
+      { sender: 'user' as const, text: userMessageText }
+    ];
+    setInlineChatMessages(newMessages);
+
+    try {
+      const hiddenHistory = [
+        { sender: 'user' as const, text: `আমি আমার জমির বালাইনাশক ডোজ হিসাব করেছি। ফসল: ${currentCropName}, ওষুধের ক্যাটাগরি: ${pesticideClass}, ধরন: ${pesticideForm === 'liquid' ? 'তরল' : 'পাউডার'}, আক্রমণের তীব্রতা: ${severity === 'preventive' ? 'প্রতিরোধমূলক' : severity === 'mild' ? 'মাঝারি' : 'তীব্র'}, স্প্রে ট্যাঙ্কের সাইজ: ${tankSize} লিটার, জমির পরিমাণ/গাছের সংখ্যা: ${landArea} ${isTreeBased ? 'টি গাছ' : 'শতক'}।` },
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার ফসলের জন্য কীটনাশক স্প্রে ডোজের হিসাব নির্ধারণ করে দিয়েছি:
+প্রতি ড্রামে প্রয়োজনীয় ওষুধ: ${result.teaspoonsPerTank} চা চামচ ${pesticideForm === 'liquid' && result.capsPerTank ? `(বা ${result.capsPerTank} ছিপি)` : ''}
+পুরো জমির জন্য মোট ওষুধ: ${result.totalTeaspoons} চা চামচ ${pesticideForm === 'liquid' && result.totalCaps ? `(বা ${result.totalCaps} ছিপি)` : ''}
+প্রয়োজনীয় মোট পানি: ${result.totalWaterNeeded} লিটার
+প্রয়োজনীয় ড্রাম সংখ্যা: ${result.tanksNeeded} বার (ড্রাম)
+
+এই বালাইনাশক স্প্রে এর ডোজ বা সঠিক নিয়মে প্রয়োগ সম্পর্কিত কোনো প্রশ্ন থাকলে দয়া করে বলুন।` },
+        ...inlineChatMessages.slice(1)
+      ];
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: userMessageText,
+          history: hiddenHistory,
+          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.answer_bn) {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: data.answer_bn }
+        ]);
+      } else {
+        setInlineChatMessages([
+          ...newMessages,
+          { sender: 'bot', text: 'দুঃখিত, উত্তর তৈরি করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।' }
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+      setInlineChatMessages([
+        ...newMessages,
+        { sender: 'bot', text: 'নেটওয়ার্ক সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট চেক করে আবার চেষ্টা করুন।' }
+      ]);
+    } finally {
+      setInlineChatLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -429,6 +528,63 @@ export default function PesticideCalculator() {
                       <p className="font-medium leading-relaxed">{step}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* 💬 Context-Aware Inline Chat Panel */}
+              <div className="border-t border-green-primary/10 pt-6 space-y-4">
+                <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
+                    <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+                  </div>
+                  
+                  {/* Messages Stream */}
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1 text-xs md:text-sm">
+                    {inlineChatMessages.map((msg, i) => (
+                      <div
+                        key={i}
+                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 font-semibold leading-relaxed ${
+                            msg.sender === 'user'
+                              ? 'bg-green-primary text-white rounded-br-none'
+                              : 'bg-white border border-green-primary/10 text-text-primary rounded-bl-none shadow-sm'
+                          }`}
+                        >
+                          {formatChatMessageMarkdown(msg.text)}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {inlineChatLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-white border border-green-primary/10 rounded-2xl rounded-bl-none px-4 py-2.5 text-text-secondary flex items-center gap-2 shadow-sm font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.2s]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-primary animate-bounce [animation-delay:0.4s]" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Message Input Form */}
+                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={inlineChatInput}
+                      onChange={(e) => setInlineChatInput(e.target.value)}
+                      placeholder="বালাইনাশক বা সঠিক স্প্রে নিয়ে গাছের ডাক্তারকে প্রশ্ন করুন..."
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={inlineChatLoading || !inlineChatInput.trim()}
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                    >
+                      পাঠান
+                    </button>
+                  </form>
                 </div>
               </div>
 
