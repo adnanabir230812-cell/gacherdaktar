@@ -1034,7 +1034,7 @@ export default function AdminDashboard() {
                 { id: 'fertilizer', label: 'সার গণনা', count: fertilizerLogs.length, icon: Sprout },
                 { id: 'pesticide', label: 'কীটনাশক', count: pesticideLogs.length, icon: Wrench },
                 { id: 'seeds', label: 'বীজ বপন', count: seedLogs.length, icon: BookOpen },
-                { id: 'matchmaker', label: 'ফসল ম্যাচমেকার', count: matchmakerLogs.length, icon: Sprout },
+                { id: 'matchmaker', label: 'লাভজনক ফসল খুঁজুন', count: matchmakerLogs.length, icon: Sprout },
                 { id: 'rotation', label: 'শস্য পর্যায়', count: rotationLogs.length, icon: RefreshCw },
                 { id: 'prices', label: 'বাজার দর', count: priceLogs.length, icon: Coins },
                 { id: 'loans', label: 'কৃষি ঋণ', count: loanLogs.length, icon: Shield },
@@ -1751,7 +1751,7 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-slate-200">
                       {matchmakerLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো ফসল ম্যাচমেকার অনুসন্ধানের লগ পাওয়া যায়নি।</td>
+                          <td colSpan={6} className="p-10 text-center text-slate-400">কোনো লাভজনক ফসল অনুসন্ধানের লগ পাওয়া যায়নি।</td>
                         </tr>
                       ) : (
                         matchmakerLogs.map((log) => {
@@ -1794,7 +1794,7 @@ export default function AdminDashboard() {
                                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                                         <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
                                           <Sprout className="w-4 h-4 text-emerald-600" />
-                                          অনুকূল শস্য ম্যাচমেকার লগ
+                                          লাভজনক ফসল অনুসন্ধানের লগ
                                         </h4>
                                         <div className="flex items-center justify-between w-full border-b border-slate-100 pb-2 mb-2">
                                           <span className="text-[10px] text-slate-400 font-mono">আইডি: {log.id}</span>
