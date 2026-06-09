@@ -329,14 +329,14 @@ function CalculatorContent() {
           };
         } else {
           return {
-            advice: 'প্রিয় কৃষক ভাই, গাছের ডাক্তারের সাথে সংযোগ করতে কিছুটা সমস্যা হয়েছে। তবে আপনি নিচে উল্লেখিত সারের সরকারি মাত্রা ও প্রয়োগ নির্দেশিকা নিরাপদভাবে অনুসরণ করতে পারেন।',
+            advice: null,
             chatInit: []
           };
         }
       } catch (err) {
         console.error(err);
         return {
-          advice: 'প্রিয় কৃষক ভাই, নেটওয়ার্কের ধীরগতির কারণে গাছের ডাক্তার পরামর্শ লোড করতে পারেনি। আপনি নিচে উল্লেখিত সারের সঠিক পরিমাপ ও প্রয়োগের নিয়মগুলো অনুসরণ করতে পারেন।',
+          advice: null,
           chatInit: []
         };
       }
@@ -663,25 +663,27 @@ ${result.guidelines.join('\n')}
               )}
               
               {/* 👨‍🌾 AI Doctor Personalized Advice Card */}
-              <div className="bg-[#FAF8F2] border-2 border-[#B79400]/25 rounded-3xl p-6 shadow-md relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#E5B83B] to-[#B79400]" />
-                
-                <h3 className="font-bold text-text-primary mb-3 text-base flex items-center gap-2">
-                  গাছের ডাক্তারের ব্যক্তিগত পরামর্শ:
-                </h3>
-                
-                {loadingAdvice ? (
-                  <div className="space-y-3 animate-pulse py-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                  </div>
-                ) : (
-                  <div className="text-text-primary text-xs md:text-sm leading-relaxed whitespace-pre-line font-bold">
-                    {formatChatMessageMarkdown(personalizedAdvice)}
-                  </div>
-                )}
-              </div>
+              {(loadingAdvice || personalizedAdvice) && (
+                <div className="bg-[#FAF8F2] border-2 border-[#B79400]/25 rounded-3xl p-6 shadow-md relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#E5B83B] to-[#B79400]" />
+                  
+                  <h3 className="font-bold text-text-primary mb-3 text-base flex items-center gap-2">
+                    গাছের ডাক্তারের ব্যক্তিগত পরামর্শ:
+                  </h3>
+                  
+                  {loadingAdvice ? (
+                    <div className="space-y-3 animate-pulse py-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  ) : (
+                    <div className="text-text-primary text-xs md:text-sm leading-relaxed whitespace-pre-line font-bold">
+                      {formatChatMessageMarkdown(personalizedAdvice)}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Bags Visual Layout */}
               <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6">
