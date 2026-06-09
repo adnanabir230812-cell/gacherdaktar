@@ -823,7 +823,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     <div>
                       <h4 className="font-black text-text-primary text-sm md:text-base">পরীক্ষার বিবরণ পরিবর্তন করা হয়েছে</h4>
                       <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
-                        আপনি পরীক্ষার স্থান (জেলা) অথবা ছবি পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী মাটির রিপোর্ট ও ডাক্তারের পরামর্শ আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে <strong className="font-extrabold text-green-primary">"গাছের ডাক্তারকে দেখান"</strong> বোতামে ক্লিক করুন।
+                        আপনি পরীক্ষার স্থান (জেলা) অথবা ছবি পরিবর্তন করেছেন প্রিয় কৃষক ভাই। নতুন বিবরণ অনুযায়ী মাটির রিপোর্ট ও ডাক্তারের পরামর্শ আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে <strong className="font-extrabold text-green-primary">"গাছের ডাক্তারকে দেখান"</strong> বোতামে ক্লিক করুন।
                       </p>
                     </div>
                   </div>

@@ -45,9 +45,17 @@ export default function ScrollObserver() {
       subtree: true
     });
 
+    // Fallback: force-reveal all scroll-reveal elements after 400ms to guarantee no blank/invisible grids
+    const fallbackTimer = setTimeout(() => {
+      document.querySelectorAll('.scroll-reveal').forEach((el) => {
+        el.classList.add('active');
+      });
+    }, 400);
+
     return () => {
       observer.disconnect();
       mutationObserver.disconnect();
+      clearTimeout(fallbackTimer);
     };
   }, [pathname]);
 

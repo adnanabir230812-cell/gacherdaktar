@@ -126,7 +126,7 @@ function CropLibraryContent() {
       </div>
 
       {/* Crops Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 scroll-reveal scroll-reveal-grid">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 scroll-reveal scroll-reveal-grid active">
         {filteredCrops.map(crop => (
           <div
             key={crop.id}

@@ -383,7 +383,13 @@ export default function PesticideCalculator() {
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <button
                   type="button"
-                  onClick={() => setIsCropDropdownOpen(!isCropDropdownOpen)}
+                  onClick={() => {
+                    const nextOpen = !isCropDropdownOpen;
+                    setIsCropDropdownOpen(nextOpen);
+                    if (nextOpen) {
+                      setCropSearchQuery('');
+                    }
+                  }}
                   className="p-1 hover:bg-gray-100 rounded-full text-text-secondary hover:text-green-primary transition-colors cursor-pointer"
                 >
                   <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCropDropdownOpen ? 'rotate-180' : ''}`} />
@@ -395,8 +401,10 @@ export default function PesticideCalculator() {
             {isCropDropdownOpen && (
               <div className="absolute z-30 w-full mt-1 bg-white border border-green-primary/15 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-green-primary/5">
                 {(() => {
+                  const selectedCropItem = CROPS_LIST.find(c => c.id === selectedCrop);
+                  const selectedCropDisplayVal = selectedCropItem ? selectedCropItem.name : '';
                   const filtered = CROPS_LIST.filter(c => {
-                    if (!cropSearchQuery) return true;
+                    if (!cropSearchQuery || cropSearchQuery === selectedCropDisplayVal) return true;
                     return c.name.toLowerCase().includes(cropSearchQuery.toLowerCase());
                   });
                   if (filtered.length === 0) {
@@ -579,7 +587,7 @@ export default function PesticideCalculator() {
                     <div>
                       <h4 className="font-black text-text-primary text-sm md:text-base">চাষের বিবরণ পরিবর্তন করা হয়েছে</h4>
                       <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
-                        আপনি আক্রান্ত ফসল বা স্প্রে প্যারামিটার পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী ওষুধের ডোজ ও সঠিক পানির অনুপাত আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে <strong className="font-extrabold text-green-primary">"বালাইনাশক ডোজ হিসাব করুন"</strong> বোতামে ক্লিক করুন।
+                        আপনি আক্রান্ত ফসল বা স্প্রে প্যারামিটার পরিবর্তন করেছেন প্রিয় কৃষক ভাই। নতুন বিবরণ অনুযায়ী ওষুধের ডোজ ও সঠিক পানির অনুপাত আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে <strong className="font-extrabold text-green-primary">"বালাইনাশক ডোজ হিসাব করুন"</strong> বোতামে ক্লিক করুন।
                       </p>
                     </div>
                   </div>

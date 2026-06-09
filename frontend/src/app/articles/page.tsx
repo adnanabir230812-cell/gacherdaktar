@@ -199,7 +199,7 @@ export default function ArticlesPage() {
       </div>
 
       {/* Articles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 scroll-reveal scroll-reveal-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 scroll-reveal scroll-reveal-grid active">
         {loading ? (
           <div className="col-span-full text-center py-20 text-text-secondary">
             তথ্য ভান্ডার লোড হচ্ছে...
