@@ -25,7 +25,8 @@ import {
   BookOpen,
   RefreshCw,
   X,
-  ChevronDown
+  ChevronDown,
+  Search
 } from 'lucide-react';
 import LeafScanner from '@/components/LeafScanner';
 import { detectUserDistrict } from '@/lib/location';
@@ -698,7 +699,7 @@ export default function Home() {
                           <Droplets className="w-5 h-5 text-sky-500" /> {weather.advice.rain.title}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-xs font-black border ${getAlertBadgeStyles(weather.advice.rain.status)}`}>
-                          {weather.advice.rain.status === 'high_rain' ? '⚠️ অতিরিক্ত বৃষ্টি সতর্কবার্তা' : '✅ স্বাভাবিক সেচ সূচি'}
+                          {weather.advice.rain.status === 'high_rain' ? 'অতিরিক্ত বৃষ্টি সতর্কবার্তা' : 'স্বাভাবিক সেচ সূচি'}
                         </span>
                       </div>
                       <p className="text-base font-bold text-text-primary">
@@ -729,7 +730,7 @@ export default function Home() {
                           <ShieldAlert className="w-5 h-5 text-red-500" /> {weather.advice.disease_risk.title}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-xs font-black border ${getAlertBadgeStyles(weather.advice.disease_risk.status)}`}>
-                          {weather.advice.disease_risk.status === 'danger' ? '⚠️ উচ্চ সংক্রমণ ঝুঁকি' : '✅ কম বালাই ঝুঁকি'}
+                          {weather.advice.disease_risk.status === 'danger' ? 'উচ্চ সংক্রমণ ঝুঁকি' : 'কম বালাই ঝুঁকি'}
                         </span>
                       </div>
                       <p className="text-base font-bold text-text-primary">
@@ -760,7 +761,7 @@ export default function Home() {
                           <Wind className="w-5 h-5 text-green-700" /> {weather.advice.spray_window.title}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-xs font-black border ${getAlertBadgeStyles(weather.advice.spray_window.status)}`}>
-                          {weather.advice.spray_window.status === 'unsuitable' ? '⚠️ স্প্রে স্থগিত রাখুন' : '✅ স্প্রে করার অনুকূল দিন'}
+                          {weather.advice.spray_window.status === 'unsuitable' ? 'স্প্রে স্থগিত রাখুন' : 'স্প্রে করার অনুকূল দিন'}
                         </span>
                       </div>
                       <p className="text-base font-bold text-text-primary">
@@ -791,7 +792,7 @@ export default function Home() {
                           <Thermometer className="w-5 h-5 text-amber-700" /> {weather.advice.soil.title}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-xs font-black border ${getAlertBadgeStyles(weather.advice.soil.status)}`}>
-                          {weather.advice.soil.status === 'hot' ? '⚠️ উচ্চ তাপমাত্রা' : weather.advice.soil.status === 'cold' ? '⚠️ নিম্ন তাপমাত্রা' : '✅ অনুকূল মাটি উষ্ণতা'}
+                          {weather.advice.soil.status === 'hot' ? 'উচ্চ তাপমাত্রা' : weather.advice.soil.status === 'cold' ? 'নিম্ন তাপমাত্রা' : 'অনুকূল মাটি উষ্ণতা'}
                         </span>
                       </div>
                       <p className="text-base font-bold text-text-primary">
@@ -822,7 +823,7 @@ export default function Home() {
                           <Calendar className="w-5 h-5 text-yellow-600" /> {weather.advice.harvest.title}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-xs font-black border ${getAlertBadgeStyles(weather.advice.harvest.status)}`}>
-                          {weather.advice.harvest.status === 'wait' ? '⚠️ ফসল কাটা বন্ধ রাখুন' : '✅ ফসল কাটার চমৎকার সময়'}
+                          {weather.advice.harvest.status === 'wait' ? 'ফসল কাটা বন্ধ রাখুন' : 'ফসল কাটার চমৎকার সময়'}
                         </span>
                       </div>
                       <p className="text-base font-bold text-text-primary">
@@ -1260,8 +1261,8 @@ export default function Home() {
                 placeholder="জেলার নাম বাংলায় বা ইংরেজিতে খুঁজুন (যেমন: সাতক্ষীরা / Satkhira)..."
                 className="w-full pl-5 pr-12 py-3 rounded-2xl border-2 border-green-primary/20 bg-soft-white text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary focus:border-transparent font-bold text-sm shadow-sm"
               />
-              <div className="absolute inset-y-0 right-4 flex items-center text-green-primary">
-                🔍
+              <div className="absolute inset-y-0 right-4 flex items-center">
+                <Search className="w-5 h-5 text-green-primary" />
               </div>
             </div>
 

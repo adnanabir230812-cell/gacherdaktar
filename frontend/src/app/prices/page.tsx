@@ -237,7 +237,7 @@ export default function MarketPricesPage() {
             {prices.length > 0 && prices[0].market_date && (
               <div className="mt-2.5">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-primary/10 border border-green-primary/20 text-green-primary text-xs font-black rounded-full shadow-sm">
-                  🗓️ বাজার দরের তারিখ: {formatBengaliDate(prices[0].market_date)}
+                  বাজার দরের তারিখ: {formatBengaliDate(prices[0].market_date)}
                 </span>
               </div>
             )}

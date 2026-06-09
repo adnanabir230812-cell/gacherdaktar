@@ -70,13 +70,27 @@ const formatChatMessageMarkdown = (text: any) => {
       cleanLine = line.trim().replace(/^[-*•]\s+/, '');
     }
     
-    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
-    const content = parts.map((part, partIdx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+    const parts: (string | React.ReactNode)[] = [];
+    const regex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    let partIdx = 0;
+
+    while ((match = regex.exec(cleanLine)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, ''));
       }
-      return part;
-    });
+      parts.push(
+        <strong key={partIdx++} className="font-extrabold text-green-primary">
+          {match[1].replace(/\*\*/g, '')}
+        </strong>
+      );
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < cleanLine.length) {
+      parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, ''));
+    }
+    const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '')];
 
     return (
       <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
@@ -223,13 +237,13 @@ function CalculatorContent() {
       guidelines = [
         `১. গাছ/গর্ত প্রতি গড় বার্ষিক ডোজ: ইউরিয়া (${formatWeight(ureaPerTree)}), টিএসপি (${formatWeight(tspPerTree)}), এমওপি (${formatWeight(mopPerTree)}), জিপসাম (${formatWeight(gypsumPerTree)}) এবং দস্তা (${formatWeight(zincPerTree)})।`,
         ...rawSplits.map((s, i) => `${translateNumberToBangla(i + 2)}. ${s}`),
-        `💡 বিশেষ পরামর্শ: ${customRule?.specialNotes || 'চারা রোপণের ১০-১৫ দিন পূর্বে গর্তের মাটির সাথে প্রয়োজনীয় জৈব সার (গর্ত প্রতি প্রায় ' + fruitCompost + ') ভালোভাবে মিশিয়ে গর্ত ভরাট করে রাখুন।'}`
+        `বিশেষ পরামর্শ: ${customRule?.specialNotes || 'চারা রোপণের ১০-১৫ দিন পূর্বে গর্তের মাটির সাথে প্রয়োজনীয় জৈব সার (গর্ত প্রতি প্রায় ' + fruitCompost + ') ভালোভাবে মিশিয়ে গর্ত ভরাট করে রাখুন।'}`
       ];
     } else {
       if (customRule) {
         const compostKg = Math.round(customRule.compostRate * landInBigha);
         if (compostKg > 0) {
-          organicManure = `🌱 জমি তৈরির গোবর সার: জমি শেষ চাষের সময় প্রতি বিঘায় প্রায় ${translateNumberToBangla(compostKg)} কেজি পচা গোবর বা কম্পোস্ট সার মাটির সাথে ভালো করে মিশিয়ে দিন।`;
+          organicManure = `জমি তৈরির গোবর সার: জমি শেষ চাষের সময় প্রতি বিঘায় প্রায় ${translateNumberToBangla(compostKg)} কেজি পচা গোবর বা কম্পোস্ট সার মাটির সাথে ভালো করে মিশিয়ে দিন।`;
         }
 
         const rawSplits = customRule.splits.map(s => {
@@ -242,12 +256,12 @@ function CalculatorContent() {
         });
 
         guidelines = customRule.specialNotes 
-          ? [...rawSplits, `💡 বিশেষ পরামর্শ: ${customRule.specialNotes}`]
+          ? [...rawSplits, `বিশেষ পরামর্শ: ${customRule.specialNotes}`]
           : rawSplits;
       } else {
         // Fallback based on category
         const compostKg = Math.round(600 * landInBigha);
-        organicManure = `🌱 জমি তৈরির গোবর সার: জমি শেষ চাষের সময় প্রতি বিঘায় প্রায় ${translateNumberToBangla(compostKg)} কেজি পচা গোবর বা কম্পোস্ট সার মাটির সাথে ভালো করে মিশিয়ে দিন।`;
+        organicManure = `জমি তৈরির গোবর সার: জমি শেষ চাষের সময় প্রতি বিঘায় প্রায় ${translateNumberToBangla(compostKg)} কেজি পচা গোবর বা কম্পোস্ট সার মাটির সাথে ভালো করে মিশিয়ে দিন।`;
         guidelines = [
           `১. ইউরিয়া (${formatWeight(ureaTotal)}) ও এমওপি (${formatWeight(mopTotal)}) সার ৩টি সমান কিস্তিতে উপরি-প্রয়োগ করুন: চারা রোপণের ১০-১৫ দিন পর, ৩০-৩৫ দিন পর (ফুল আসার পূর্বে) এবং ফল সংগ্রহের শুরুতে।`,
           `২. জমি তৈরির সময়: সমস্ত টিএসপি (${formatWeight(tspTotal)}), জিপসাম (${formatWeight(gypsumTotal)}) and দস্তা (${formatWeight(zincTotal)}) সার মাটির সাথে ভালো করে মিশিয়ে দিন।`
@@ -413,8 +427,8 @@ ${result.guidelines.join('\n')}
   return (
     <div className="space-y-8 relative">
       <div className="border-b border-green-primary/10 pb-6">
-        <h1 className="text-3xl font-extrabold text-text-primary flex items-center gap-2">
-          🧪 স্মার্ট সার ক্যালকুলেটর
+        <h1 className="text-3xl font-extrabold text-text-primary">
+          সার ক্যালকুলেটর
         </h1>
         <p className="text-text-secondary text-sm">
           আপনার জমির পরিমাপ বা গাছের সংখ্যা অনুযায়ী প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ ও জিপসাম সারের সঠিক হিসাব।
@@ -527,7 +541,7 @@ ${result.guidelines.join('\n')}
               <div className="space-y-3">
                 <h4 className="font-extrabold text-text-primary text-base md:text-lg">সার সুপারিশ ও ডাক্তারী পরামর্শ মেলানো হচ্ছে</h4>
                 <div className="inline-block bg-green-primary/10 border border-green-primary/20 text-green-primary text-xs md:text-sm font-black px-4 py-2 rounded-full animate-pulse shadow-sm">
-                  ⚡ {LOADING_MESSAGES[loadingStep]}
+                  {LOADING_MESSAGES[loadingStep]}
                 </div>
                 <p className="text-[11px] md:text-xs text-text-secondary max-w-sm mx-auto mt-2 leading-relaxed">
                   প্রিয় কৃষক ভাইয়ের ফসল ({crop?.name_bn || ''}) এর সারের সরকারি মাত্রা এবং গাছের ডাক্তারের ব্যক্তিগত পরামর্শ একত্রিত করে সম্পূর্ণ প্রেসক্রিপশন লোড করা হচ্ছে।
@@ -558,7 +572,7 @@ ${result.guidelines.join('\n')}
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#E5B83B] to-[#B79400]" />
                 
                 <h3 className="font-bold text-text-primary mb-3 text-base flex items-center gap-2">
-                  <span>👨‍🌾</span> গাছের ডাক্তারের ব্যক্তিগত পরামর্শ:
+                  গাছের ডাক্তারের ব্যক্তিগত পরামর্শ:
                 </h3>
                 
                 {loadingAdvice ? (
@@ -576,7 +590,7 @@ ${result.guidelines.join('\n')}
 
               {/* Bags Visual Layout */}
               <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6">
-                <h3 className="font-bold text-text-primary mb-4 text-base">🛍️ প্রয়োজনীয় সারের বস্তা ও পরিমাপ:</h3>
+                <h3 className="font-bold text-text-primary mb-4 text-base">প্রয়োজনীয় সারের বস্তা ও পরিমাপ:</h3>
                 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {/* Urea Bag */}
@@ -693,7 +707,7 @@ ${result.guidelines.join('\n')}
               <div className="border-t border-green-primary/10 pt-6 space-y-4">
                 <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
                   <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
-                    <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+                    <span>গাছের ডাক্তারের লাইভ চ্যাট</span>
                   </div>
                   
                   {/* Messages Stream */}

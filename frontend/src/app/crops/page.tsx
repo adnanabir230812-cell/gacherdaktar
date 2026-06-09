@@ -87,8 +87,8 @@ function CropLibraryContent() {
     <div className="space-y-8 relative">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-green-primary/10 pb-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-text-primary flex items-center gap-2">
-            🌾 কৃষি ফসল লাইব্রেরি
+          <h1 className="text-3xl font-extrabold text-text-primary">
+            কৃষি ফসল লাইব্রেরি
           </h1>
           <p className="text-text-secondary text-sm">
             বাংলাদেশ কৃষি গবেষণা ইনস্টিটিউট (BARI) ও ধান গবেষণা ইনস্টিটিউট (BRRI) নির্দেশিকা।

@@ -558,13 +558,27 @@ function ChatContent() {
         cleanLine = trimmedLine.replace(/^[-*•]\s+/, '');
       }
 
-      const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
-      const content = parts.map((part, partIdx) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+      const parts: (string | React.ReactNode)[] = [];
+      const regex = /\*\*(.*?)\*\*/g;
+      let lastIndex = 0;
+      let match;
+      let partIdx = 0;
+
+      while ((match = regex.exec(cleanLine)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, ''));
         }
-        return part;
-      });
+        parts.push(
+          <strong key={partIdx++} className="font-extrabold text-green-primary">
+            {match[1].replace(/\*\*/g, '')}
+          </strong>
+        );
+        lastIndex = regex.lastIndex;
+      }
+      if (lastIndex < cleanLine.length) {
+        parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, ''));
+      }
+      const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '')];
 
       if (isBullet) {
         return (
@@ -638,7 +652,7 @@ function ChatContent() {
           <div>
             <h1 className="font-bold text-text-primary text-base md:text-lg flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-green-primary animate-pulse" />
-              গাছের ডাক্তার 🩺
+              গাছের ডাক্তার
             </h1>
             <p className="text-[10px] md:text-xs text-text-secondary">ফসল ও গাছের নির্ভরযোগ্য চিকিৎসা ও পরামর্শ কেন্দ্র</p>
           </div>

@@ -219,13 +219,27 @@ const formatChatMessageMarkdown = (text: any) => {
       cleanLine = line.trim().replace(/^[-*•]\s+/, '');
     }
     
-    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
-    const content = parts.map((part, partIdx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+    const parts: (string | React.ReactNode)[] = [];
+    const regex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    let partIdx = 0;
+
+    while ((match = regex.exec(cleanLine)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, ''));
       }
-      return part;
-    });
+      parts.push(
+        <strong key={partIdx++} className="font-extrabold text-green-primary">
+          {match[1].replace(/\*\*/g, '')}
+        </strong>
+      );
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < cleanLine.length) {
+      parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, ''));
+    }
+    const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '')];
 
     return (
       <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
@@ -627,8 +641,8 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
           
           {/* Custom Searchable Crop Dropdown */}
           <div ref={dropdownRef} className="relative space-y-2">
-            <label className="block text-xs md:text-sm font-black text-text-primary flex items-center gap-1.5">
-              🌾 ফসল নির্বাচন করুন (বাধ্যতামূলক):
+            <label className="block text-xs md:text-sm font-black text-text-primary">
+              ফসল নির্বাচন করুন (বাধ্যতামূলক):
             </label>
             <div className="relative">
               <input
@@ -725,8 +739,8 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
             <div className="p-4 bg-green-primary/5 border border-green-primary/10 rounded-2xl space-y-3 shadow-sm my-3">
               {isFieldCrop(selectedCrop) ? (
                 <div className="space-y-2">
-                  <label className="block text-xs md:text-sm font-black text-text-primary flex items-center gap-1.5">
-                    🌾 আপনার চাষকৃত মোট জমির পরিমাণ লিখুন (শতক/বিঘা/একর):
+                  <label className="block text-xs md:text-sm font-black text-text-primary">
+                    আপনার চাষকৃত মোট জমির পরিমাণ লিখুন (শতক/বিঘা/একর):
                   </label>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
@@ -754,8 +768,8 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <label className="block text-xs md:text-sm font-black text-text-primary flex items-center gap-1.5">
-                    🌳 আপনার আক্রান্ত মোট গাছের/চারার সংখ্যা কতটি?
+                  <label className="block text-xs md:text-sm font-black text-text-primary">
+                    আপনার আক্রান্ত মোট গাছের/চারার সংখ্যা কতটি?
                   </label>
                   <input
                     type="number"
@@ -1033,8 +1047,8 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                 </h2>
                 
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-secondary font-bold mt-2">
-                  <span>🌾 <strong>ফসল:</strong> {scannerResult.crop}</span>
-                  <span>🦠 <strong>জীবাণু/কারণ:</strong> {scannerResult.cause}</span>
+                  <span><strong>ফসল:</strong> {scannerResult.crop}</span>
+                  <span><strong>জীবাণু/কারণ:</strong> {scannerResult.cause}</span>
                 </div>
               </div>
 
@@ -1135,7 +1149,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               <div className="border-t border-green-primary/10 pt-6 space-y-4">
                 <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
                   <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
-                    <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+                    <span>গাছের ডাক্তারের লাইভ চ্যাট</span>
                   </div>
                   
                   {/* Messages Stream */}
@@ -1236,9 +1250,9 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
           {/* Details Table */}
           <div style={{ backgroundColor: '#E8F5E9', padding: '15px', borderRadius: '8px', marginBottom: '20px', borderLeft: '6px solid #1B4332' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '14px', fontWeight: 'bold', color: '#1B4332' }}>
-              <div>🌾 ফসল: <span style={{ color: '#1F2937' }}>{scannerResult?.crop}</span></div>
-              <div>🦠 চিহ্নিত রোগ: <span style={{ color: '#1F2937' }}>{scannerResult?.disease}</span></div>
-              <div style={{ gridColumn: 'span 2' }}>🔬 জীবাণু/কারণ: <span style={{ color: '#1F2937' }}>{scannerResult?.cause}</span></div>
+              <div>ফসল: <span style={{ color: '#1F2937' }}>{scannerResult?.crop}</span></div>
+              <div>চিহ্নিত রোগ: <span style={{ color: '#1F2937' }}>{scannerResult?.disease}</span></div>
+              <div style={{ gridColumn: 'span 2' }}>জীবাণু/কারণ: <span style={{ color: '#1F2937' }}>{scannerResult?.cause}</span></div>
             </div>
           </div>
 

@@ -31,13 +31,27 @@ const formatChatMessageMarkdown = (text: any) => {
       cleanLine = line.trim().replace(/^[-*•]\s+/, '');
     }
     
-    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
-    const content = parts.map((part, partIdx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+    const parts: (string | React.ReactNode)[] = [];
+    const regex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    let partIdx = 0;
+
+    while ((match = regex.exec(cleanLine)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, ''));
       }
-      return part;
-    });
+      parts.push(
+        <strong key={partIdx++} className="font-extrabold text-green-primary">
+          {match[1].replace(/\*\*/g, '')}
+        </strong>
+      );
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < cleanLine.length) {
+      parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, ''));
+    }
+    const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '')];
 
     return (
       <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
@@ -282,7 +296,7 @@ ${actionsStr}
                         ? 'bg-red-500/10 border-red-500/30 text-red-700'
                         : 'bg-green-primary/10 border-green-primary/30 text-green-700'
                     }`}>
-                      {weather.advice.rain.status === 'high_rain' ? '⚠️ অতিরিক্ত বৃষ্টি সতর্কবার্তা' : '✅ সেচ সূচি স্বাভাবিক'}
+                      {weather.advice.rain.status === 'high_rain' ? 'অতিরিক্ত বৃষ্টি সতর্কবার্তা' : 'সেচ সূচি স্বাভাবিক'}
                     </span>
                   </div>
                   <p className="text-base font-bold leading-relaxed">
@@ -313,7 +327,7 @@ ${actionsStr}
               <div className="border-t border-green-primary/10 pt-6 space-y-4">
                 <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
                   <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
-                    <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+                    <span>গাছের ডাক্তারের লাইভ চ্যাট</span>
                   </div>
                   
                   {/* Messages Stream */}

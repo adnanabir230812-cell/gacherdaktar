@@ -25,13 +25,27 @@ const formatChatMessageMarkdown = (text: any) => {
       cleanLine = line.trim().replace(/^[-*•]\s+/, '');
     }
     
-    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/g);
-    const content = parts.map((part, partIdx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={partIdx} className="font-extrabold text-green-primary">{part.slice(2, -2)}</strong>;
+    const parts: (string | React.ReactNode)[] = [];
+    const regex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    let partIdx = 0;
+
+    while ((match = regex.exec(cleanLine)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, ''));
       }
-      return part;
-    });
+      parts.push(
+        <strong key={partIdx++} className="font-extrabold text-green-primary">
+          {match[1].replace(/\*\*/g, '')}
+        </strong>
+      );
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < cleanLine.length) {
+      parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, ''));
+    }
+    const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '')];
 
     return (
       <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>
@@ -116,9 +130,9 @@ export default function SoilCropMatchmaker() {
         // Accurate and specific details of each crop
         const details = [
           crop.cultivation_method_bn || `${crop.name_bn} চাষের জন্য উপযোগী জলবায়ু ও মাটি নির্বাচন করা হয়েছে।`,
-          crop.spacing_info_bn ? `📏 **রোপণের দূরত্ব:** ${crop.spacing_info_bn}` : null,
-          crop.harvest_duration_bn ? `🌾 **সংগ্রহকাল ও পরিপক্বতা:** ${crop.harvest_duration_bn}` : null,
-          `💧 **পানির চাহিদা:** ${crop.water_requirement === 'low' ? 'কম' : crop.water_requirement === 'medium' ? 'মাঝারি' : 'উচ্চ'}`
+          crop.spacing_info_bn ? `**রোপণের দূরত্ব:** ${crop.spacing_info_bn}` : null,
+          crop.harvest_duration_bn ? `**সংগ্রহকাল ও পরিপক্বতা:** ${crop.harvest_duration_bn}` : null,
+          `**পানির চাহিদা:** ${crop.water_requirement === 'low' ? 'কম' : crop.water_requirement === 'medium' ? 'মাঝারি' : 'উচ্চ'}`
         ].filter(Boolean).join('\n\n');
 
         return {
@@ -369,7 +383,7 @@ export default function SoilCropMatchmaker() {
                   <div className="border-t border-green-primary/10 pt-6 space-y-4">
                     <div className="bg-green-primary/5 border border-green-primary/10 rounded-2xl p-4 space-y-3">
                       <div className="flex items-center gap-2 text-green-primary font-black text-xs md:text-sm uppercase tracking-wider">
-                        <span>💬 গাছের ডাক্তারের লাইভ চ্যাট</span>
+                        <span>গাছের ডাক্তারের লাইভ চ্যাট</span>
                       </div>
                       
                       {/* Messages Stream */}
