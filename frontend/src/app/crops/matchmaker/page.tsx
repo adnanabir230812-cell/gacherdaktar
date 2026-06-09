@@ -142,7 +142,7 @@ export default function SoilCropMatchmaker() {
       setInlineChatMessages([
         { 
           sender: 'bot', 
-          text: `ভাই শুনুন, আপনার অঞ্চল ও মাটির উপযোগী লাভজনক ফসলের তালিকার ওপর কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+          text: `প্রিয় কৃষক ভাই, আপনার অঞ্চল ও মাটির উপযোগী লাভজনক ফসলের তালিকার ওপর কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
         }
       ]);
 
@@ -192,7 +192,7 @@ export default function SoilCropMatchmaker() {
       const topCropsStr = recommendations.slice(0, 3).map(r => `${r.crop_name} (মুনাফা: ${r.profit_avg_bn}, ফলন: ${r.yield_avg_bn})`).join(', ');
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার অঞ্চলের জন্য লাভজনক ফসল খুঁজছি। জেলা: ${district}, মাটির ধরন: ${soilType === 'loam' ? 'দোআঁশ' : soilType === 'sandy' ? 'বেলে দোআঁশ' : soilType === 'clay' ? 'এটেল' : 'লাল/অম্লীয়'}, মৌসুম: ${season === 'robi' ? 'রবি' : season === 'kharif1' ? 'খরিপ-১' : 'খরিপ-২'}।` },
-        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার অঞ্চলের জন্য সেরা প্রস্তাবিত লাভজনক ফসলগুলোর তালিকা তৈরি করেছি।
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার অঞ্চলের জন্য সেরা প্রস্তাবিত লাভজনক ফসলগুলোর তালিকা তৈরি করেছি।
 সবচেয়ে উপযুক্ত ৩টি ফসল হলো: ${topCropsStr}।
 
 এই প্রস্তাবিত ফসলগুলোর চাষ পদ্ধতি, বীজ বা সার নিয়ে আপনার কোনো জিজ্ঞাসা থাকলে দয়া করে বলুন।` },

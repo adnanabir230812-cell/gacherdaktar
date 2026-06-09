@@ -212,7 +212,7 @@ export default function PesticideCalculator() {
       setInlineChatMessages([
         { 
           sender: 'bot', 
-          text: `ভাই শুনুন, এই বালাইনাশক (স্প্রে) ডোজ হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+          text: `প্রিয় কৃষক ভাই, এই বালাইনাশক (স্প্রে) ডোজ হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
         }
       ]);
 
@@ -290,7 +290,7 @@ export default function PesticideCalculator() {
     try {
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার জমির বালাইনাশক ডোজ হিসাব করেছি। ফসল: ${currentCropName}, ওষুধের ক্যাটাগরি: ${pesticideClass}, ধরন: ${pesticideForm === 'liquid' ? 'তরল' : 'পাউডার'}, আক্রমণের তীব্রতা: ${severity === 'preventive' ? 'প্রতিরোধমূলক' : severity === 'mild' ? 'মাঝারি' : 'তীব্র'}, স্প্রে ট্যাঙ্কের সাইজ: ${tankSize} লিটার, জমির পরিমাণ/গাছের সংখ্যা: ${landArea} ${isTreeBased ? 'টি গাছ' : 'শতক'}।` },
-        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার ফসলের জন্য কীটনাশক স্প্রে ডোজের হিসাব নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার ফসলের জন্য কীটনাশক স্প্রে ডোজের হিসাব নির্ধারণ করে দিয়েছি:
 প্রতি ড্রামে প্রয়োজনীয় ওষুধ: ${result.teaspoonsPerTank} চা চামচ ${pesticideForm === 'liquid' && result.capsPerTank ? `(বা ${result.capsPerTank} ছিপি)` : ''}
 পুরো জমির জন্য মোট ওষুধ: ${result.totalTeaspoons} চা চামচ ${pesticideForm === 'liquid' && result.totalCaps ? `(বা ${result.totalCaps} ছিপি)` : ''}
 প্রয়োজনীয় মোট পানি: ${result.totalWaterNeeded} লিটার

@@ -497,7 +497,7 @@ export default function LeafScanner() {
           setInlineChatMessages([
             { 
               sender: 'bot', 
-              text: `ভাই শুনুন, এই "${data.result.disease}" এর ওপর আরও কোনো প্রশ্ন থাকলে করুন।` 
+              text: `প্রিয় কৃষক ভাই, এই "${data.result.disease}" এর ওপর আরও কোনো প্রশ্ন থাকলে করুন।` 
             }
           ]);
         }
@@ -542,7 +542,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
 
       const hiddenHistory = [
         { sender: 'user' as const, text: 'আমি আমার আক্রান্ত গাছের পাতা পরীক্ষা করেছি। আমাকে এর রিপোর্ট ও সমাধান দাও।' },
-        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার পাতা পরীক্ষার রিপোর্ট নিচে তৈরি করে দিলাম:
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার পাতা পরীক্ষার রিপোর্ট নিচে তৈরি করে দিলাম:
 ফসল: ${scannerResult.crop}
 চিহ্নিত রোগ: ${scannerResult.disease}
 কারণ: ${scannerResult.cause}

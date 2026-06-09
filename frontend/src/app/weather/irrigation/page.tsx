@@ -84,7 +84,7 @@ export default function IrrigationAdvisor() {
           setInlineChatMessages([
             { 
               sender: 'bot', 
-              text: `ভাই শুনুন, ${selectedDistrict} জেলার বর্তমান আবহাওয়া ও সেচ সতর্কবার্তা নিয়ে কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+              text: `প্রিয় কৃষক ভাই, ${selectedDistrict} জেলার বর্তমান আবহাওয়া ও সেচ সতর্কবার্তা নিয়ে কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
             }
           ]);
         } else {
@@ -126,7 +126,7 @@ export default function IrrigationAdvisor() {
       const actionsStr = weather.advice.rain.actions.join('\n');
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার এলাকার জন্য সেচ ও আবহাওয়া এডভাইজরি জানতে চাই। জেলা: ${selectedDistrict}।` },
-        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার এলাকার জন্য আবহাওয়া উপাত্ত ও সেচ পরামর্শ নিচে নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার এলাকার জন্য আবহাওয়া উপাত্ত ও সেচ পরামর্শ নিচে নির্ধারণ করে দিয়েছি:
 জেলা: ${selectedDistrict}
 বর্তমান তাপমাত্রা: ${weather.temp}°C
 আবহাওয়ার অবস্থা: ${weather.condition}

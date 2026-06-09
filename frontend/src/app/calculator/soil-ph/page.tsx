@@ -392,7 +392,7 @@ ${Array.isArray(scannerResult.chemical_advice) ? scannerResult.chemical_advice.j
 ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_measures.join('\n') : scannerResult.preventive_measures}`;
 
       const hiddenHistory = [
-        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার মাটি পরীক্ষার রিপোর্ট নিচে তৈরি করে দিলাম:
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার মাটি পরীক্ষার রিপোর্ট নিচে তৈরি করে দিলাম:
 মাটির ধরন: ${scannerResult.soil_type}
 আনুমানিক pH মান: ${scannerResult.estimated_ph} (${getPhStatusBangla(scannerResult.estimated_ph)})
 মাটির কণার গঠন ও বৈশিষ্ট্য:
@@ -497,7 +497,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
           setInlineChatMessages([
             { 
               sender: 'bot', 
-              text: `ভাই শুনুন, এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` 
+              text: `প্রিয় কৃষক ভাই, এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` 
             }
           ]);
           setIsInputsChanged(false);

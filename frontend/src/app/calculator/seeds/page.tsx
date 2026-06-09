@@ -248,7 +248,7 @@ export default function SeedCalculator() {
       setInlineChatMessages([
         { 
           sender: 'bot', 
-          text: `ভাই শুনুন, এই বীজ বপন ও শোধনের হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+          text: `প্রিয় কৃষক ভাই, এই বীজ বপন ও শোধনের হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
         }
       ]);
 
@@ -332,7 +332,7 @@ export default function SeedCalculator() {
     try {
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার জমির জন্য বীজ বপনের প্রয়োজনীয় ওজন ও গাইডলাইন হিসাব করেছি। ফসল: ${result.cropName}, জমির পরিমাণ: ${landSize} ${landUnit === 'bigha' ? 'বিঘা' : landUnit === 'decimal' ? 'শতক' : 'একর'}।` },
-        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার জমির জন্য বীজ ও চারা বপনের হিসাব নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার জমির জন্য বীজ ও চারা বপনের হিসাব নির্ধারণ করে দিয়েছি:
 প্রয়োজনীয় বীজ: ${formatSeedWeight(result.totalSeedWeight)}
 আদর্শ রোপণ দূরত্ব (Spacing): ${result.spacing}
 বপনের গভীরতা (Depth): ${result.depth}
