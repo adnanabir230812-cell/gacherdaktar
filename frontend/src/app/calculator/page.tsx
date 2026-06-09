@@ -292,61 +292,11 @@ function CalculatorContent() {
       setLoadingStep((prev) => (prev + 1) % LOADING_MESSAGES.length);
     }, 450);
 
-    // Call API for personalized advisor chat text
-    const apiFetchPromise = (async () => {
-      try {
-        const promptQuery = `আমি আমার জমিতে ${crop.name_bn} চাষ করছি। আমার চাষের বিবরণ:
-মৌসুম: ${selectedSeason}
-জমির পরিমাপ/গাছের সংখ্যা: ${landSize} ${landUnit === 'decimal' ? 'শতক' : landUnit === 'bigha' ? 'বিঘা' : landUnit === 'acre' ? 'একর' : 'টি'}।
-এই চাষের জন্য প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ, জিপসাম ও দস্তা সারের প্রয়োগ পদ্ধতি, কোনো বিশেষ মাটির পরামর্শ বা উপরি-প্রয়োগের কিস্তি বিভাজন অত্যন্ত নম্র ও বিনয়ী ভাষায় মানুষের মতো আমাকে সুন্দর করে বুঝিয়ে বলুন।`;
-
-        // AbortController for a 25-second timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000);
-
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: promptQuery,
-            history: [],
-            district: localStorage.getItem("krishisathi_user_district") || "ঢাকা"
-          }),
-          signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-        const data = await res.json();
-        if (res.ok && data.answer_bn) {
-          return {
-            advice: data.answer_bn,
-            chatInit: [
-              { 
-                sender: 'bot' as const, 
-                text: `প্রিয় কৃষক ভাই, আপনার সারের মাত্রা ও প্রয়োগ নিয়ে অতিরিক্ত কোনো জিজ্ঞাসা থাকলে আমাকে বলতে পারেন।` 
-              }
-            ]
-          };
-        } else {
-          return {
-            advice: null,
-            chatInit: []
-          };
-        }
-      } catch (err) {
-        console.error(err);
-        return {
-          advice: null,
-          chatInit: []
-        };
-      }
-    })();
-
-    // Minimum delay promise of 1400ms for a smooth visual experience
-    const delayPromise = new Promise(resolve => setTimeout(resolve, 1400));
+    // Minimum delay promise of 1200ms for a smooth visual experience
+    const delayPromise = new Promise(resolve => setTimeout(resolve, 1200));
 
     try {
-      const [apiResult] = await Promise.all([apiFetchPromise, delayPromise]);
+      await delayPromise;
       
       // Update everything in one unified state update!
       setResult({
@@ -357,12 +307,13 @@ function CalculatorContent() {
         zinc: zincTotal,
         guidelines
       });
-      setPersonalizedAdvice(apiResult.advice);
-      if (apiResult.chatInit.length > 0) {
-        setInlineChatMessages(apiResult.chatInit);
-      } else {
-        setInlineChatMessages([]);
-      }
+      setPersonalizedAdvice(null);
+      setInlineChatMessages([
+        { 
+          sender: 'bot' as const, 
+          text: `ভাই শুনুন, আপনার সারের মাত্রা ও প্রয়োগ নিয়ে অতিরিক্ত কোনো জিজ্ঞাসা থাকলে আমাকে বলতে পারেন।` 
+        }
+      ]);
       setIsInputsChanged(false);
     } catch (err) {
       console.error(err);
@@ -634,12 +585,12 @@ ${result.guidelines.join('\n')}
                 <Sprout className="w-8 h-8 text-green-primary absolute animate-bounce" />
               </div>
               <div className="space-y-3">
-                <h4 className="font-extrabold text-text-primary text-base md:text-lg">সার সুপারিশ ও ডাক্তারী পরামর্শ মেলানো হচ্ছে</h4>
+                <h4 className="font-extrabold text-text-primary text-base md:text-lg">সারের হিসেব মেলানো হচ্ছে</h4>
                 <div className="inline-block bg-green-primary/10 border border-green-primary/20 text-green-primary text-xs md:text-sm font-black px-4 py-2 rounded-full animate-pulse shadow-sm">
                   {LOADING_MESSAGES[loadingStep]}
                 </div>
                 <p className="text-[11px] md:text-xs text-text-secondary max-w-sm mx-auto mt-2 leading-relaxed">
-                  প্রিয় কৃষক ভাইয়ের ফসল ({crop?.name_bn || ''}) এর সারের সরকারি মাত্রা এবং গাছের ডাক্তারের ব্যক্তিগত পরামর্শ একত্রিত করে সম্পূর্ণ প্রেসক্রিপশন লোড করা হচ্ছে।
+                  ফসল ({crop?.name_bn || ''}) এর সারের সরকারি মাত্রা এবং সারের সম্পূর্ণ পরিমাপ লোড করা হচ্ছে ভাই শুনুন।
                 </p>
               </div>
             </div>
@@ -655,35 +606,14 @@ ${result.guidelines.join('\n')}
                     <div>
                       <h4 className="font-black text-text-primary text-sm md:text-base">চাষের বিবরণ পরিবর্তন করা হয়েছে</h4>
                       <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
-                        আপনি ফসল, মৌসুম বা জমির সাইজ পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী সারের মাত্রা ও ডাক্তারের ব্যক্তিগত পরামর্শ আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'সারের হিসেব করুন'** বোতামে ক্লিক করুন।
+                        আপনি ফসল, মৌসুম বা জমির সাইজ পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী সারের মাত্রা আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'সারের হিসেব করুন'** বোতামে ক্লিক করুন।
                       </p>
                     </div>
                   </div>
                 </div>
               )}
               
-              {/* 👨‍🌾 AI Doctor Personalized Advice Card */}
-              {(loadingAdvice || personalizedAdvice) && (
-                <div className="bg-[#FAF8F2] border-2 border-[#B79400]/25 rounded-3xl p-6 shadow-md relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#E5B83B] to-[#B79400]" />
-                  
-                  <h3 className="font-bold text-text-primary mb-3 text-base flex items-center gap-2">
-                    গাছের ডাক্তারের ব্যক্তিগত পরামর্শ:
-                  </h3>
-                  
-                  {loadingAdvice ? (
-                    <div className="space-y-3 animate-pulse py-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                    </div>
-                  ) : (
-                    <div className="text-text-primary text-xs md:text-sm leading-relaxed whitespace-pre-line font-bold">
-                      {formatChatMessageMarkdown(personalizedAdvice)}
-                    </div>
-                  )}
-                </div>
-              )}
+
 
               {/* Bags Visual Layout */}
               <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6">
