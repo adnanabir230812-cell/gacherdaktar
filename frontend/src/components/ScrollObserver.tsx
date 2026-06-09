@@ -7,27 +7,48 @@ export default function ScrollObserver() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Small delay to ensure DOM is fully rendered on page transitions
-    const timer = setTimeout(() => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('active');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      },
+      {
+        threshold: 0.05,
+        rootMargin: '0px 0px -30px 0px'
+      }
+    );
+
+    // Observe already existing scroll-reveal elements
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach((el) => observer.observe(el));
+
+    // Watch for dynamic DOM updates (e.g. from Suspense, state loads, page loads)
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            if (node.classList.contains('scroll-reveal')) {
+              observer.observe(node);
             }
-          });
-        },
-        {
-          threshold: 0.05,
-          rootMargin: '0px 0px -30px 0px'
-        }
-      );
+            const descendants = node.querySelectorAll('.scroll-reveal');
+            descendants.forEach((desc) => observer.observe(desc));
+          }
+        });
+      });
+    });
 
-      const elements = document.querySelectorAll('.scroll-reveal');
-      elements.forEach((el) => observer.observe(el));
-    }, 100);
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
 
-    return () => clearTimeout(timer);
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
   }, [pathname]);
 
   return null;
