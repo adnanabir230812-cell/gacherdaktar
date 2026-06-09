@@ -451,7 +451,7 @@ export default function CropRotationPage() {
                 <div key={idx} className="flex flex-col gap-2.5">
                   <div
                     onClick={() => setActivePlan(plan)}
-                    className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-32 ${
+                    className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between h-auto min-h-[8rem] py-4 ${
                       isActive
                         ? 'bg-green-primary/5 border-green-primary shadow-md'
                         : 'bg-soft-white border-green-primary/10 hover:border-green-primary/20 shadow-sm'

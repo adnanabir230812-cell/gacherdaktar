@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Calculator, Sprout, Landmark, ArrowRight, HelpCircle, ClipboardList, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Calculator, Sprout, Landmark, ArrowRight, HelpCircle, ClipboardList, RefreshCw, AlertTriangle, X, ChevronDown } from 'lucide-react';
 import { Crop, CROPS } from '../api/data';
 import { CROP_GUIDELINES_DB } from '../api/cropGuidelines';
 
@@ -118,6 +118,9 @@ function CalculatorContent() {
   // Inline Chat States
   const [inlineChatMessages, setInlineChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([]);
   const [inlineChatInput, setInlineChatInput] = useState('');
+  const [isCropDropdownOpen, setIsCropDropdownOpen] = useState(false);
+  const [cropSearchQuery, setCropSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [inlineChatLoading, setInlineChatLoading] = useState(false);
 
   const crop = CROPS.find(c => c.id === selectedCropId);
@@ -133,6 +136,17 @@ function CalculatorContent() {
       setSelectedCropId(CROPS[0].id);
     }
   }, [searchParams]);
+
+  // Click outside to close custom dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCropDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Adjust unit automatically when crop changes
   useEffect(() => {
@@ -286,9 +300,9 @@ function CalculatorContent() {
 জমির পরিমাপ/গাছের সংখ্যা: ${landSize} ${landUnit === 'decimal' ? 'শতক' : landUnit === 'bigha' ? 'বিঘা' : landUnit === 'acre' ? 'একর' : 'টি'}।
 এই চাষের জন্য প্রয়োজনীয় ইউরিয়া, টিএসপি, পটাশ, জিপসাম ও দস্তা সারের প্রয়োগ পদ্ধতি, কোনো বিশেষ মাটির পরামর্শ বা উপরি-প্রয়োগের কিস্তি বিভাজন অত্যন্ত নম্র ও বিনয়ী ভাষায় মানুষের মতো আমাকে সুন্দর করে বুঝিয়ে বলুন।`;
 
-        // AbortController for a 6-second timeout
+        // AbortController for a 25-second timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
 
         const res = await fetch('/api/chat', {
           method: 'POST',
@@ -444,17 +458,98 @@ ${result.guidelines.join('\n')}
           </h3>
 
           {/* Crop Selector */}
-          <div className="space-y-2">
+          <div ref={dropdownRef} className="relative space-y-2">
             <label className="text-sm font-semibold text-text-primary">ফসল নির্বাচন করুন:</label>
-            <select
-              value={selectedCropId}
-              onChange={(e) => setSelectedCropId(e.target.value)}
-              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold"
-            >
-              {crops.map(c => (
-                <option key={c.id} value={c.id}>{c.name_bn}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                value={isCropDropdownOpen ? cropSearchQuery : (crops.find(c => c.id === selectedCropId)?.name_bn || '')}
+                onChange={(e) => {
+                  setCropSearchQuery(e.target.value);
+                  setIsCropDropdownOpen(true);
+                }}
+                onFocus={() => {
+                  const currentCrop = crops.find(c => c.id === selectedCropId);
+                  setCropSearchQuery(currentCrop ? currentCrop.name_bn : '');
+                  setIsCropDropdownOpen(true);
+                }}
+                placeholder="ফসলের নাম লিখুন বা খুঁজুন..."
+                className="w-full bg-soft-white border border-green-primary/20 rounded-xl pl-4 pr-10 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold shadow-sm"
+              />
+              <div className="absolute inset-y-0 right-3.5 flex items-center gap-1.5">
+                {cropSearchQuery && isCropDropdownOpen && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCropSearchQuery('');
+                    }}
+                    className="p-0.5 hover:bg-gray-100 rounded-full text-text-secondary hover:text-green-primary transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const nextOpen = !isCropDropdownOpen;
+                    setIsCropDropdownOpen(nextOpen);
+                    if (nextOpen) {
+                      const currentCrop = crops.find(c => c.id === selectedCropId);
+                      setCropSearchQuery(currentCrop ? currentCrop.name_bn : '');
+                    }
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-full text-text-secondary hover:text-green-primary transition-colors cursor-pointer"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCropDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Dropdown List Overlay (Always opens downwards!) */}
+            {isCropDropdownOpen && (
+              <div className="absolute z-30 w-full mt-1 bg-white border border-green-primary/15 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-green-primary/5">
+                {(() => {
+                  const selectedCropItem = crops.find(c => c.id === selectedCropId);
+                  const selectedCropDisplayVal = selectedCropItem ? selectedCropItem.name_bn : '';
+                  const filtered = crops.filter(c => {
+                    if (!cropSearchQuery || cropSearchQuery === selectedCropDisplayVal) return true;
+                    return c.name_bn.toLowerCase().includes(cropSearchQuery.toLowerCase());
+                  });
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="px-4 py-3 text-xs text-text-secondary font-medium">
+                        কোনো ফসল খুঁজে পাওয়া যায়নি
+                      </div>
+                    );
+                  }
+                  return filtered.map((c) => {
+                    const isSelected = selectedCropId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCropId(c.id);
+                          setCropSearchQuery(c.name_bn);
+                          setIsCropDropdownOpen(false);
+                          setIsInputsChanged(true);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-xs md:text-sm font-bold transition-colors flex items-center justify-between cursor-pointer ${
+                          isSelected 
+                            ? 'bg-green-primary/10 text-green-primary' 
+                            : 'text-text-primary hover:bg-green-primary/5'
+                        }`}
+                      >
+                        <span>{c.name_bn}</span>
+                        {isSelected && <span className="text-xs text-green-primary">✓</span>}
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
 
           {/* Season Selector */}
@@ -597,7 +692,7 @@ ${result.guidelines.join('\n')}
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-green-primary/5 space-y-3 flex flex-col justify-between items-center shadow-sm">
                     <div className="w-16 h-20 relative overflow-hidden rounded-lg shadow-sm border border-green-primary/10">
                       <img 
-                        src="/images/fertilizers/urea.png" 
+                        src="/images/fertilizers/urea_grains.png?v=2" 
                         alt="ইউরিয়া সার" 
                         className="w-full h-full object-cover"
                       />
@@ -615,7 +710,7 @@ ${result.guidelines.join('\n')}
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-soil-brown/5 space-y-3 flex flex-col justify-between items-center shadow-sm">
                     <div className="w-16 h-20 relative overflow-hidden rounded-lg shadow-sm border border-[#B79400]/10">
                       <img 
-                        src="/images/fertilizers/tsp.png" 
+                        src="/images/fertilizers/tsp_grains.png?v=2" 
                         alt="টিএসপি সার" 
                         className="w-full h-full object-cover"
                       />
@@ -633,7 +728,7 @@ ${result.guidelines.join('\n')}
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-orange-500/5 space-y-3 flex flex-col justify-between items-center shadow-sm">
                     <div className="w-16 h-20 relative overflow-hidden rounded-lg shadow-sm border border-orange-500/10">
                       <img 
-                        src="/images/fertilizers/mop.png" 
+                        src="/images/fertilizers/mop_grains.png?v=2" 
                         alt="এমওপি পটাশ সার" 
                         className="w-full h-full object-cover"
                       />
@@ -651,7 +746,7 @@ ${result.guidelines.join('\n')}
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-slate-500/5 space-y-3 flex flex-col justify-between items-center shadow-sm">
                     <div className="w-16 h-20 relative overflow-hidden rounded-lg shadow-sm border border-slate-500/10">
                       <img 
-                        src="/images/fertilizers/gypsum.png" 
+                        src="/images/fertilizers/gypsum_grains.png?v=2" 
                         alt="জিপসাম সার" 
                         className="w-full h-full object-cover"
                       />
@@ -669,7 +764,7 @@ ${result.guidelines.join('\n')}
                   <div className="border border-green-primary/10 rounded-2xl p-4 text-center bg-sky-500/5 space-y-3 flex flex-col justify-between items-center shadow-sm">
                     <div className="w-16 h-20 relative overflow-hidden rounded-lg shadow-sm border border-sky-500/10">
                       <img 
-                        src="/images/fertilizers/zinc.png" 
+                        src="/images/fertilizers/zinc_grains.png?v=2" 
                         alt="দস্তা সার" 
                         className="w-full h-full object-cover"
                       />
