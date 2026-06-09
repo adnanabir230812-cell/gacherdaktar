@@ -142,7 +142,7 @@ export default function SoilCropMatchmaker() {
       setInlineChatMessages([
         { 
           sender: 'bot', 
-          text: `প্রিয় কৃষক ভাই, আপনার অঞ্চল ও মাটির উপযোগী লাভজনক ফসলের তালিকার ওপর কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+          text: `ভাই শুনুন, আপনার অঞ্চল ও মাটির উপযোগী লাভজনক ফসলের তালিকার ওপর কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
         }
       ]);
 
@@ -192,7 +192,7 @@ export default function SoilCropMatchmaker() {
       const topCropsStr = recommendations.slice(0, 3).map(r => `${r.crop_name} (মুনাফা: ${r.profit_avg_bn}, ফলন: ${r.yield_avg_bn})`).join(', ');
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার অঞ্চলের জন্য লাভজনক ফসল খুঁজছি। জেলা: ${district}, মাটির ধরন: ${soilType === 'loam' ? 'দোআঁশ' : soilType === 'sandy' ? 'বেলে দোআঁশ' : soilType === 'clay' ? 'এটেল' : 'লাল/অম্লীয়'}, মৌসুম: ${season === 'robi' ? 'রবি' : season === 'kharif1' ? 'খরিপ-১' : 'খরিপ-২'}।` },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার অঞ্চলের জন্য সেরা প্রস্তাবিত লাভজনক ফসলগুলোর তালিকা তৈরি করেছি।
+        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার অঞ্চলের জন্য সেরা প্রস্তাবিত লাভজনক ফসলগুলোর তালিকা তৈরি করেছি।
 সবচেয়ে উপযুক্ত ৩টি ফসল হলো: ${topCropsStr}।
 
 এই প্রস্তাবিত ফসলগুলোর চাষ পদ্ধতি, বীজ বা সার নিয়ে আপনার কোনো জিজ্ঞাসা থাকলে দয়া করে বলুন।` },
@@ -245,10 +245,10 @@ export default function SoilCropMatchmaker() {
         </button>
         <div>
           <h1 className="text-3xl font-extrabold text-text-primary">
-            লাভজনক ফসল ম্যাচমেকার (Soil-Crop Matchmaker)
+            লাভজনক ফসল খুঁজুন
           </h1>
           <p className="text-text-secondary text-sm font-semibold">
-            Your অঞ্চলের ভৌগোলিক অবস্থান, মাটির টেক্সচার এবং চাষের মৌসুম অনুযায়ী সবচেয়ে লাভজনক ফসলের বৈজ্ঞানিক পরামর্শ।
+            আপনার এলাকার ভৌগোলিক অবস্থান, মাটির ধরন এবং চাষের মৌসুম অনুযায়ী সবচেয়ে লাভজনক ও উপযোগী ফসলের বৈজ্ঞানিক পরামর্শ।
           </p>
         </div>
       </div>
@@ -358,7 +358,7 @@ export default function SoilCropMatchmaker() {
                       <div className="flex gap-3 text-xs text-text-primary bg-white/40 p-4 rounded-xl border border-green-primary/5 font-semibold leading-relaxed">
                         <Info className="w-5 h-5 text-green-primary shrink-0" />
                         <div className="whitespace-pre-line">
-                          <span className="block text-[10px] text-text-secondary uppercase mb-1.5">কেন উপযুক্ত (Reasoning):</span>
+                          <span className="block text-[10px] text-text-secondary uppercase mb-1.5">কেন এই ফসলটি আপনার জমির জন্য উপযোগী:</span>
                           {rec.reason}
                         </div>
                       </div>
@@ -403,7 +403,7 @@ export default function SoilCropMatchmaker() {
                       </div>
 
                       {/* Message Input Form */}
-                      <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                      <form onSubmit={handleSendInlineChatMessage} className="flex flex-col sm:flex-row gap-2 pt-1">
                         <input
                           type="text"
                           value={inlineChatInput}

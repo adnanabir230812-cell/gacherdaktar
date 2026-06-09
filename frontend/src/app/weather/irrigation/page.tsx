@@ -84,7 +84,7 @@ export default function IrrigationAdvisor() {
           setInlineChatMessages([
             { 
               sender: 'bot', 
-              text: `প্রিয় কৃষক ভাই, ${selectedDistrict} জেলার বর্তমান আবহাওয়া ও সেচ সতর্কবার্তা নিয়ে কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+              text: `ভাই শুনুন, ${selectedDistrict} জেলার বর্তমান আবহাওয়া ও সেচ সতর্কবার্তা নিয়ে কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
             }
           ]);
         } else {
@@ -126,7 +126,7 @@ export default function IrrigationAdvisor() {
       const actionsStr = weather.advice.rain.actions.join('\n');
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার এলাকার জন্য সেচ ও আবহাওয়া এডভাইজরি জানতে চাই। জেলা: ${selectedDistrict}।` },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার এলাকার জন্য আবহাওয়া উপাত্ত ও সেচ পরামর্শ নিচে নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার এলাকার জন্য আবহাওয়া উপাত্ত ও সেচ পরামর্শ নিচে নির্ধারণ করে দিয়েছি:
 জেলা: ${selectedDistrict}
 বর্তমান তাপমাত্রা: ${weather.temp}°C
 আবহাওয়ার অবস্থা: ${weather.condition}
@@ -347,7 +347,7 @@ ${actionsStr}
                   </div>
 
                   {/* Message Input Form */}
-                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                  <form onSubmit={handleSendInlineChatMessage} className="flex flex-col sm:flex-row gap-2 pt-1">
                     <input
                       type="text"
                       value={inlineChatInput}
@@ -358,7 +358,7 @@ ${actionsStr}
                     <button
                       type="submit"
                       disabled={inlineChatLoading || !inlineChatInput.trim()}
-                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200 w-full sm:w-auto"
                     >
                       পাঠান
                     </button>

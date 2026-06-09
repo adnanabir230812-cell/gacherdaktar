@@ -364,7 +364,7 @@ export default function Home() {
   const getTickerText = () => {
     // Fallback if client-side date is not loaded yet
     if (!marqueeDatePrefix) {
-      return "স্বাগতম প্রিয় কৃষক ভাই! আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...";
+      return "স্বাগতম ভাই! আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...";
     }
     
     // Select greeting & time-based countrywide warning based on current hour
@@ -373,17 +373,17 @@ export default function Home() {
     const isNight = hour >= 18 || hour < 5;
     const countrywideSummary = getCountrywideSummary(isNight);
     
-    let timeGreeting = 'স্বাগতম প্রিয় কৃষক ভাই!';
+    let timeGreeting = 'স্বাগতম ভাই!';
     let timeAdvisory = '';
     
     if (hour >= 5 && hour < 12) {
-      timeGreeting = 'শুভ সকাল কৃষক ভাই!';
+      timeGreeting = 'শুভ সকাল ভাই!';
       timeAdvisory = 'সকালের শান্ত বাতাসে ফসলে সেচ ও বালাইনাশক স্প্রে করার কাজ সম্পন্ন করুন এবং দুপুরের কড়া রোদে মাঠে কাজ করা থেকে বিরত থাকুন।';
     } else if (hour >= 12 && hour < 18) {
-      timeGreeting = 'শুভ অপরাহ্ন কৃষক ভাই!';
+      timeGreeting = 'শুভ অপরাহ্ন ভাই!';
       timeAdvisory = 'দুপুরের কড়া রোদে ফসলে সেচ দেওয়া বা সার ছিটানো থেকে বিরত থাকুন। কিছু অঞ্চলে বিকালের দিকে ঝড়-বৃষ্টি ও বজ্রপাতের সম্ভাবনা রয়েছে, তাই সতর্ক থাকুন।';
     } else {
-      timeGreeting = 'শুভ রাত্রি কৃষক ভাই!';
+      timeGreeting = 'শুভ রাত্রি ভাই!';
       timeAdvisory = 'আজ রাতে দেশের কোথাও কোথাও গুঁড়ি গুঁড়ি বৃষ্টি বা তাপমাত্রা কিছুটা হ্রাস পেতে পারে। রাতের অতিরিক্ত আর্দ্রতার কারণে ছত্রাকের আক্রমণ ঠেকাতে সজাগ থাকুন এবং আগামীকাল সকালের কৃষি কাজের প্রস্তুতি নিন।';
     }
     
@@ -1207,15 +1207,15 @@ export default function Home() {
               <Compass className="w-6 h-6 text-green-primary group-hover:text-green-soft transition-colors" />
               <div className="space-y-1">
                 <h3 className="text-base font-extrabold text-text-primary group-hover:text-green-primary transition-colors">
-                  লাভজনক ফসল নির্বাচন
+                  লাভজনক ফসল খুঁজুন
                 </h3>
                 <p className="text-xs text-text-secondary leading-relaxed font-semibold">
-                  আপনার জেলা, মাটির গঠন ও চলতি আবহাওয়া বিশ্লেষণ করে সর্বোচ্চ লাভজনক ফসল নির্বাচনের গাইড।
+                  আপনার জেলা, মাটির গঠন ও চলতি আবহাওয়া বিশ্লেষণ করে সর্বোচ্চ লাভজনক ফসল খোঁজার গাইড।
                 </p>
               </div>
             </div>
             <div className="text-xs font-black text-green-primary group-hover:underline flex items-center gap-1 pt-4 uppercase tracking-wider">
-              ফসল নির্বাচন করুন →
+              লাভজনক ফসল খুঁজুন →
             </div>
           </div>
 

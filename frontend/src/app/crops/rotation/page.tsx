@@ -260,7 +260,7 @@ export default function CropRotationPage() {
     setInlineChatMessages([
       { 
         sender: 'bot', 
-        text: `প্রিয় কৃষক ভাই, ${activePlan.crop_name} এর পর পর্যায়ক্রমিক ফসল চাষ বা শস্য পর্যায় পরিকল্পনা নিয়ে কোনো প্রশ্ন থাকলে বলুন।` 
+        text: `ভাই শুনুন, ${activePlan.crop_name} এর পর পর্যায়ক্রমিক ফসল চাষ বা শস্য পর্যায় পরিকল্পনা নিয়ে কোনো প্রশ্ন থাকলে বলুন।` 
       }
     ]);
 
@@ -303,7 +303,7 @@ export default function CropRotationPage() {
       const followersStr = activePlan.ideal_followers.map(f => f.name).join(', ');
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার জমিতে বর্তমানে ${activePlan.crop_name} চাষ করছি। এর পর কোন ফসল আবর্তন করে চাষ করা ভালো হবে?` },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, ${activePlan.crop_name} এর পর চাষের জন্য আদর্শ শস্য পর্যায়ক্রম নিচে নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `ভাই শুনুন, ${activePlan.crop_name} এর পর চাষের জন্য আদর্শ শস্য পর্যায়ক্রম নিচে নির্ধারণ করে দিয়েছি:
 প্রস্তাবিত পরবর্তী ফসল: ${followersStr}
 
 মাটির গুণাগুণ বৃদ্ধি: ${activePlan.soil_benefit}
@@ -384,7 +384,7 @@ export default function CropRotationPage() {
         </div>
 
         {/* Message Input Form */}
-        <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+        <form onSubmit={handleSendInlineChatMessage} className="flex flex-col sm:flex-row gap-2 pt-1">
           <input
             type="text"
             value={inlineChatInput}
@@ -395,7 +395,7 @@ export default function CropRotationPage() {
           <button
             type="submit"
             disabled={inlineChatLoading || !inlineChatInput.trim()}
-            className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+            className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200 w-full sm:w-auto"
           >
             পাঠান
           </button>

@@ -45,7 +45,7 @@ export default function MaintenancePage() {
           
           <div className="text-slate-300 font-semibold text-sm leading-relaxed space-y-4">
             <p className="text-white text-base font-bold">
-              প্রিয় কৃষক ভাই ও শুভানুধ্যায়ী,
+              সম্মানিত ভাই ও শুভানুধ্যায়ী,
             </p>
             <p>
               আপনাদের কৃষি সংক্রান্ত সমস্যার আরও সহজ ও দ্রুত সমাধান দিতে <strong className="text-emerald-400">"গাছের ডাক্তার"</strong> এখন মোবাইল অ্যাপ্লিকেশনে রূপান্তর হচ্ছে!

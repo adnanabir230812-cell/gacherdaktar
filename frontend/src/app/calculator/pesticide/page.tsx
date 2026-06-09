@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Calculator, AlertTriangle, ShieldCheck, Info, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calculator, AlertTriangle, ShieldCheck, Info, RefreshCw, ChevronDown } from 'lucide-react';
 
 
 const LOADING_MESSAGES = [
@@ -77,6 +77,22 @@ const formatChatMessageMarkdown = (text: any) => {
 export default function PesticideCalculator() {
   const router = useRouter();
   const [selectedCrop, setSelectedCrop] = useState<string>('rice');
+  const [isCropDropdownOpen, setIsCropDropdownOpen] = useState(false);
+  const [cropSearchQuery, setCropSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCropDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const [tankSize, setTankSize] = useState<number>(16); // Sprayer size in Litres
   const [pesticideClass, setPesticideClass] = useState<'insecticide' | 'fungicide' | 'herbicide' | 'pgr'>('insecticide');
   const [pesticideForm, setPesticideForm] = useState<'liquid' | 'powder'>('liquid');
@@ -196,7 +212,7 @@ export default function PesticideCalculator() {
       setInlineChatMessages([
         { 
           sender: 'bot', 
-          text: `প্রিয় কৃষক ভাই, এই বালাইনাশক (স্প্রে) ডোজ হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+          text: `ভাই শুনুন, এই বালাইনাশক (স্প্রে) ডোজ হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
         }
       ]);
 
@@ -274,7 +290,7 @@ export default function PesticideCalculator() {
     try {
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার জমির বালাইনাশক ডোজ হিসাব করেছি। ফসল: ${currentCropName}, ওষুধের ক্যাটাগরি: ${pesticideClass}, ধরন: ${pesticideForm === 'liquid' ? 'তরল' : 'পাউডার'}, আক্রমণের তীব্রতা: ${severity === 'preventive' ? 'প্রতিরোধমূলক' : severity === 'mild' ? 'মাঝারি' : 'তীব্র'}, স্প্রে ট্যাঙ্কের সাইজ: ${tankSize} লিটার, জমির পরিমাণ/গাছের সংখ্যা: ${landArea} ${isTreeBased ? 'টি গাছ' : 'শতক'}।` },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার ফসলের জন্য কীটনাশক স্প্রে ডোজের হিসাব নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার ফসলের জন্য কীটনাশক স্প্রে ডোজের হিসাব নির্ধারণ করে দিয়েছি:
 প্রতি ড্রামে প্রয়োজনীয় ওষুধ: ${result.teaspoonsPerTank} চা চামচ ${pesticideForm === 'liquid' && result.capsPerTank ? `(বা ${result.capsPerTank} ছিপি)` : ''}
 পুরো জমির জন্য মোট ওষুধ: ${result.totalTeaspoons} চা চামচ ${pesticideForm === 'liquid' && result.totalCaps ? `(বা ${result.totalCaps} ছিপি)` : ''}
 প্রয়োজনীয় মোট পানি: ${result.totalWaterNeeded} লিটার
@@ -347,19 +363,72 @@ export default function PesticideCalculator() {
           </h3>
 
           {/* Crop Selection */}
-          <div className="space-y-2">
+          <div ref={dropdownRef} className="relative space-y-2">
             <label className="text-sm font-bold text-text-primary">আক্রান্ত ফসল:</label>
-            <select
-              value={selectedCrop}
-              onChange={(e) => setSelectedCrop(e.target.value)}
-              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary cursor-pointer font-bold"
-            >
-              {CROPS_LIST.map((crop) => (
-                <option key={crop.id} value={crop.id}>
-                  {crop.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                value={isCropDropdownOpen ? cropSearchQuery : (CROPS_LIST.find(c => c.id === selectedCrop)?.name || '')}
+                onFocus={(e) => {
+                  setIsCropDropdownOpen(true);
+                  setCropSearchQuery('');
+                }}
+                onChange={(e) => {
+                  setCropSearchQuery(e.target.value);
+                  setIsCropDropdownOpen(true);
+                }}
+                placeholder="ফসলের নাম লিখুন..."
+                className="w-full bg-soft-white border border-green-primary/20 rounded-xl pl-4 pr-10 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold shadow-sm cursor-pointer"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setIsCropDropdownOpen(!isCropDropdownOpen)}
+                  className="p-1 hover:bg-gray-100 rounded-full text-text-secondary hover:text-green-primary transition-colors cursor-pointer"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCropDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Dropdown List Overlay */}
+            {isCropDropdownOpen && (
+              <div className="absolute z-30 w-full mt-1 bg-white border border-green-primary/15 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-green-primary/5">
+                {(() => {
+                  const filtered = CROPS_LIST.filter(c => {
+                    if (!cropSearchQuery) return true;
+                    return c.name.toLowerCase().includes(cropSearchQuery.toLowerCase());
+                  });
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="px-4 py-3 text-xs text-text-secondary font-medium">
+                        কোনো ফসল খুঁজে পাওয়া যায়নি
+                      </div>
+                    );
+                  }
+                  return filtered.map((c) => {
+                    const isSelected = selectedCrop === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCrop(c.id);
+                          setCropSearchQuery(c.name);
+                          setIsCropDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-2.5 text-left text-xs md:text-sm font-bold transition-colors hover:bg-green-primary/5 flex items-center justify-between cursor-pointer ${
+                          isSelected ? 'bg-green-primary/10 text-green-primary' : 'text-text-primary'
+                        }`}
+                      >
+                        <span>{c.name}</span>
+                        {isSelected && <span className="text-green-primary font-bold">✓</span>}
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
 
           {/* Pesticide Class Selection */}
@@ -510,7 +579,7 @@ export default function PesticideCalculator() {
                     <div>
                       <h4 className="font-black text-text-primary text-sm md:text-base">চাষের বিবরণ পরিবর্তন করা হয়েছে</h4>
                       <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
-                        আপনি আক্রান্ত ফসল বা স্প্রে প্যারামিটার পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী ওষুধের ডোজ ও সঠিক পানির অনুপাত আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'বালাইনাশক ডোজ হিসাব করুন'** বোতামে ক্লিক করুন।
+                        আপনি আক্রান্ত ফসল বা স্প্রে প্যারামিটার পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী ওষুধের ডোজ ও সঠিক পানির অনুপাত আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে <strong className="font-extrabold text-green-primary">"বালাইনাশক ডোজ হিসাব করুন"</strong> বোতামে ক্লিক করুন।
                       </p>
                     </div>
                   </div>
@@ -648,7 +717,7 @@ export default function PesticideCalculator() {
                   </div>
 
                   {/* Message Input Form */}
-                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                  <form onSubmit={handleSendInlineChatMessage} className="flex flex-col sm:flex-row gap-2 pt-1">
                     <input
                       type="text"
                       value={inlineChatInput}
@@ -659,7 +728,7 @@ export default function PesticideCalculator() {
                     <button
                       type="submit"
                       disabled={inlineChatLoading || !inlineChatInput.trim()}
-                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200 w-full sm:w-auto"
                     >
                       পাঠান
                     </button>
@@ -674,7 +743,7 @@ export default function PesticideCalculator() {
               <div>
                 <h4 className="font-bold text-text-primary">বালাইনাশক ডোজ গণনার ফলাফল</h4>
                 <p className="text-xs text-text-secondary max-w-xs mt-1 font-semibold">
-                  বামদিকের বক্সে আপনার আক্রান্ত ফসল, কীটনাশকের রূপ, আক্রমণের তীব্রতা ও জমির পরিমাণ সিলেক্ট করে **'বালাইনাশক ডোজ হিসাব করুন'** বোতামে ক্লিক করুন। সঠিক স্প্রে ডোজ হিসাব হয়ে যাবে।
+                  বামদিকের বক্সে আপনার আক্রান্ত ফসল, কীটনাশকের রূপ, আক্রমণের তীব্রতা ও জমির পরিমাণ সিলেক্ট করে <strong className="font-extrabold text-green-primary">"বালাইনাশক ডোজ হিসাব করুন"</strong> বোতামে ক্লিক করুন। সঠিক স্প্রে ডোজ হিসাব হয়ে যাবে।
                 </p>
               </div>
             </div>

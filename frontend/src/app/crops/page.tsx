@@ -8,14 +8,13 @@ import { Crop, CROPS } from '../api/data';
 function CropLibraryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [crops, setCrops] = useState<Crop[]>([]);
+  const [crops, setCrops] = useState<Crop[]>(CROPS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeCrop, setActiveCrop] = useState<Crop | null>(null);
 
   // Load crops list
   useEffect(() => {
-    setCrops(CROPS);
     const initialCropId = searchParams.get('c');
     if (initialCropId) {
       const crop = CROPS.find(c => c.id === initialCropId);

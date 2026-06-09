@@ -95,7 +95,7 @@ export default function Header() {
     },
     { 
       href: '/crops/matchmaker', 
-      label: 'লাভজনক ফসল নির্বাচন', 
+      label: 'লাভজনক ফসল খুঁজুন', 
       desc: 'জেলা ও মাটি অনুযায়ী কোন ফসল চাষে বেশি লাভ তা দেখুন', 
       icon: Compass 
     },

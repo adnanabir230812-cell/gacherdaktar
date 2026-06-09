@@ -392,8 +392,7 @@ ${Array.isArray(scannerResult.chemical_advice) ? scannerResult.chemical_advice.j
 ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_measures.join('\n') : scannerResult.preventive_measures}`;
 
       const hiddenHistory = [
-        { sender: 'user' as const, text: 'আমি আমার মাটির একটি ছবি পরীক্ষা করেছি। আমাকে এই পরীক্ষার রিপোর্ট এবং এর সমাধান দিন।' },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার মাটি পরীক্ষার রিপোর্ট নিচে তৈরি করে দিলাম:
+        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার মাটি পরীক্ষার রিপোর্ট নিচে তৈরি করে দিলাম:
 মাটির ধরন: ${scannerResult.soil_type}
 আনুমানিক pH মান: ${scannerResult.estimated_ph} (${getPhStatusBangla(scannerResult.estimated_ph)})
 মাটির কণার গঠন ও বৈশিষ্ট্য:
@@ -498,7 +497,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
           setInlineChatMessages([
             { 
               sender: 'bot', 
-              text: `প্রিয় কৃষক ভাই, এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` 
+              text: `ভাই শুনুন, এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` 
             }
           ]);
           setIsInputsChanged(false);
@@ -742,7 +741,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                   ⚡ {LOADING_MESSAGES[loadingStep]}
                 </div>
                 <p className="text-xs text-text-secondary mt-0.5 font-semibold">
-                  গাছের এআই ডাক্তার মাটির কণা ও আনুমানিক পিএইচ পরীক্ষা করছেন। অনুগ্রহ করে অপেক্ষা করুন...
+                  গাছের ডাক্তার মাটির কণা ও আনুমানিক পিএইচ পরীক্ষা করছেন। অনুগ্রহ করে অপেক্ষা করুন...
                 </p>
               </div>
             </div>
@@ -824,7 +823,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     <div>
                       <h4 className="font-black text-text-primary text-sm md:text-base">পরীক্ষার বিবরণ পরিবর্তন করা হয়েছে</h4>
                       <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
-                        আপনি পরীক্ষার স্থান (জেলা) অথবা ছবি পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী মাটির রিপোর্ট ও ডাক্তারের পরামর্শ আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'গাছের ডাক্তারকে দেখান'** বোতামে ক্লিক করুন।
+                        আপনি পরীক্ষার স্থান (জেলা) অথবা ছবি পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী মাটির রিপোর্ট ও ডাক্তারের পরামর্শ আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে <strong className="font-extrabold text-green-primary">"গাছের ডাক্তারকে দেখান"</strong> বোতামে ক্লিক করুন।
                       </p>
                     </div>
                   </div>
@@ -893,7 +892,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     onClick={() => setActiveAccordion(activeAccordion === 'type' ? null : 'type')}
                     className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-text-primary bg-warm-bg/15 hover:bg-warm-bg/25 transition-all cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">🔍 মাটির কণার গঠন ও বৈশিষ্ট্য</span>
+                    <span className="flex items-center gap-2">মাটির কণার গঠন ও বৈশিষ্ট্য</span>
                     <ChevronDown className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${activeAccordion === 'type' ? 'rotate-180' : ''}`} />
                   </button>
                   {activeAccordion === 'type' && (
@@ -910,7 +909,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     onClick={() => setActiveAccordion(activeAccordion === 'crops' ? null : 'crops')}
                     className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-green-primary bg-green-primary/10 hover:bg-green-primary/15 transition-all cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">🌾 ১. চাষের উপযোগী লাভজনক ফসলসমূহ</span>
+                    <span className="flex items-center gap-2">১. চাষের উপযোগী লাভজনক ফসলসমূহ</span>
                     <ChevronDown className={`w-4 h-4 text-green-primary transition-transform duration-200 ${activeAccordion === 'crops' ? 'rotate-180' : ''}`} />
                   </button>
                   {activeAccordion === 'crops' && (
@@ -927,7 +926,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     onClick={() => setActiveAccordion(activeAccordion === 'organic' ? null : 'organic')}
                     className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/15 transition-all cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">🌿 ২. জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি</span>
+                    <span className="flex items-center gap-2">২. জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি</span>
                     <ChevronDown className={`w-4 h-4 text-emerald-700 transition-transform duration-200 ${activeAccordion === 'organic' ? 'rotate-180' : ''}`} />
                   </button>
                   {activeAccordion === 'organic' && (
@@ -944,7 +943,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     onClick={() => setActiveAccordion(activeAccordion === 'chemical' ? null : 'chemical')}
                     className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-amber-700 bg-amber-500/10 hover:bg-amber-500/15 transition-all cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">🧪 ৩. অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার</span>
+                    <span className="flex items-center gap-2">৩. অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার</span>
                     <ChevronDown className={`w-4 h-4 text-amber-700 transition-transform duration-200 ${activeAccordion === 'chemical' ? 'rotate-180' : ''}`} />
                   </button>
                   {activeAccordion === 'chemical' && (
@@ -962,7 +961,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                       onClick={() => setActiveAccordion(activeAccordion === 'preventive' ? null : 'preventive')}
                       className="w-full px-5 py-4 flex items-center justify-between text-left font-black text-sm text-orange-700 bg-orange-500/10 hover:bg-orange-500/15 transition-all cursor-pointer"
                     >
-                      <span className="flex items-center gap-2">🛡️ ৪. মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন</span>
+                      <span className="flex items-center gap-2">৪. মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন</span>
                       <ChevronDown className={`w-4 h-4 text-orange-700 transition-transform duration-200 ${activeAccordion === 'preventive' ? 'rotate-180' : ''}`} />
                     </button>
                     {activeAccordion === 'preventive' && (
@@ -1031,7 +1030,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                   </div>
 
                   {/* Message Input Form */}
-                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                  <form onSubmit={handleSendInlineChatMessage} className="flex flex-col sm:flex-row gap-2 pt-1">
                     <input
                       type="text"
                       value={inlineChatInput}
@@ -1042,7 +1041,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     <button
                       type="submit"
                       disabled={inlineChatLoading || !inlineChatInput.trim()}
-                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200 w-full sm:w-auto"
                     >
                       পাঠান
                     </button>
@@ -1113,10 +1112,10 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
           {/* Details Table */}
           <div style={{ backgroundColor: '#E8F5E9', padding: '15px', borderRadius: '8px', marginBottom: '20px', borderLeft: '6px solid #1B4332' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '14px', fontWeight: 'bold', color: '#1B4332' }}>
-              <div>🌾 মাটির ধরন: <span style={{ color: '#1F2937' }}>{scannerResult?.soil_type}</span></div>
-              <div>📍 স্থান: <span style={{ color: '#1F2937' }}>{location} জেলা</span></div>
-              <div>💧 আনুমানিক pH মান: <span style={{ color: '#1F2937' }}>{scannerResult ? translateToBanglaDigits(scannerResult.estimated_ph) : ''}</span></div>
-              <div>🧪 অবস্থা: <span style={{ color: '#1F2937' }}>{scannerResult ? getPhStatusBangla(scannerResult.estimated_ph) : ''}</span></div>
+              <div>মাটির ধরন: <span style={{ color: '#1F2937' }}>{scannerResult?.soil_type}</span></div>
+              <div>স্থান: <span style={{ color: '#1F2937' }}>{location} জেলা</span></div>
+              <div>আনুমানিক pH মান: <span style={{ color: '#1F2937' }}>{scannerResult ? translateToBanglaDigits(scannerResult.estimated_ph) : ''}</span></div>
+              <div>অবস্থা: <span style={{ color: '#1F2937' }}>{scannerResult ? getPhStatusBangla(scannerResult.estimated_ph) : ''}</span></div>
             </div>
           </div>
 
@@ -1173,7 +1172,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
             {/* Bottom Row: Full-width Details */}
             <div style={{ width: '100%' }}>
               <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🔍 মাটির কণার গঠন ও বৈশিষ্ট্য</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>মাটির কণার গঠন ও বৈশিষ্ট্য</h3>
                 <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.color_texture && String(scannerResult.color_texture).split('\n').map((line, idx) => (
                     <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
@@ -1182,7 +1181,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌾 চাষের উপযোগী লাভজনক ফসলসমূহ</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>চাষের উপযোগী লাভজনক ফসলসমূহ</h3>
                 <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.suitable_crops && String(scannerResult.suitable_crops).split('\n').map((line, idx) => (
                     <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
@@ -1191,7 +1190,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🌿 জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>জৈব সার ও প্রাকৃতিক উর্বরতা বৃদ্ধি</h3>
                 <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.organic_advice && String(scannerResult.organic_advice).split('\n').map((line, idx) => (
                     <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
@@ -1200,7 +1199,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🧪 অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার সুপারিশ</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>অম্লত্ব/ক্ষারত্ব সংশোধন ও সুষম সার সুপারিশ</h3>
                 <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                   {scannerResult?.chemical_advice && String(scannerResult.chemical_advice).split('\n').map((line, idx) => (
                     <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
@@ -1210,7 +1209,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
 
               {scannerResult?.preventive_measures && (
                 <div>
-                  <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>🛡️ মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন</h3>
+                  <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>মাটি সংরক্ষণ ও দীর্ঘমেয়াদী যত্ন</h3>
                   <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
                     {String(scannerResult.preventive_measures).split('\n').map((line, idx) => (
                       <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
@@ -1227,7 +1226,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               কৃষকের পাশে গাছের ডাক্তার — www.gacherdoctor.site
             </p>
             <p style={{ margin: 0, fontSize: '9px', color: '#9CA3AF' }}>
-              * এটি একটি এআই ভিত্তিক পরামর্শ রিপোর্ট। মাঠে ব্যবহারের পূর্বে বিশদ নির্দেশিকা ভালোভাবে জেনে নিন।
+              * এটি গাছের ডাক্তারের পরামর্শ রিপোর্ট। মাঠে ব্যবহারের পূর্বে বিশদ নির্দেশিকা ভালোভাবে জেনে নিন।
             </p>
           </div>
         </div>

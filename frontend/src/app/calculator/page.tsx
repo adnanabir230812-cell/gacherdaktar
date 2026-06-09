@@ -33,7 +33,7 @@ const LOADING_MESSAGES = [
   'আপনার শস্য ও চাষের বিবরণ বিশ্লেষণ করা হচ্ছে...',
   'DAE গাইডলাইন অনুযায়ী সারের সুনির্দিষ্ট মাত্রা হিসাব করা হচ্ছে...',
   'গাছের ডাক্তারের ডাটাবেজ থেকে মাটির পুষ্টি উপাদান মেলানো হচ্ছে...',
-  'প্রিয় কৃষক ভাইয়ের জন্য বিশেষ পরামর্শ ও কিস্তির বিবরণ প্রস্তুত করা হচ্ছে...'
+  'আপনার জন্য বিশেষ পরামর্শ ও কিস্তির বিবরণ প্রস্তুত করা হচ্ছে...'
 ];
 
 const translateNumberToBangla = (num: number | string): string => {
@@ -295,20 +295,20 @@ function CalculatorContent() {
             chatInit: [
               { 
                 sender: 'bot' as const, 
-                text: `প্রিয় কৃষক ভাই, আপনার সারের মাত্রা ও প্রয়োগ নিয়ে অতিরিক্ত কোনো জিজ্ঞাসা থাকলে আমাকে বলতে পারেন।` 
+                text: `ভাই শুনুন, আপনার সারের মাত্রা ও প্রয়োগ নিয়ে অতিরিক্ত কোনো জিজ্ঞাসা থাকলে আমাকে বলতে পারেন।` 
               }
             ]
           };
         } else {
           return {
-            advice: 'প্রিয় কৃষক ভাই, এআই ডাক্তারের সাথে সংযোগ করতে কিছুটা সমস্যা হয়েছে। তবে আপনি নিচে উল্লেখিত সারের সরকারি মাত্রা ও প্রয়োগ নির্দেশিকা নিরাপদভাবে অনুসরণ করতে পারেন।',
+            advice: 'ভাই শুনুন, গাছের ডাক্তারের সাথে সংযোগ করতে কিছুটা সমস্যা হয়েছে। তবে আপনি নিচে উল্লেখিত সারের সরকারি মাত্রা ও প্রয়োগ নির্দেশিকা নিরাপদভাবে অনুসরণ করতে পারেন।',
             chatInit: []
           };
         }
       } catch (err) {
         console.error(err);
         return {
-          advice: 'প্রিয় কৃষক ভাই, নেটওয়ার্কের ধীরগতির কারণে এআই ডাক্তার পরামর্শ লোড করতে পারেনি। আপনি নিচে উল্লেখিত সারের সঠিক পরিমাপ ও প্রয়োগের নিয়মগুলো অনুসরণ করতে পারেন।',
+          advice: 'ভাই শুনুন, নেটওয়ার্কের ধীরগতির কারণে গাছের ডাক্তার পরামর্শ লোড করতে পারেনি। আপনি নিচে উল্লেখিত সারের সঠিক পরিমাপ ও প্রয়োগের নিয়মগুলো অনুসরণ করতে পারেন।',
           chatInit: []
         };
       }
@@ -363,7 +363,7 @@ function CalculatorContent() {
       const crop = CROPS.find(c => c.id === selectedCropId);
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার জমির জন্য সার হিসাব করেছি। ফসল: ${crop?.name_bn || ''}, মৌসুম: ${selectedSeason}, জমির পরিমাণ: ${landSize} ${landUnit === 'decimal' ? 'শতক' : landUnit === 'bigha' ? 'বিঘা' : landUnit === 'acre' ? 'একর' : 'টি'}।` },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার জমির জন্য সারের হিসাব ও প্রয়োগের কিস্তি নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার জমির জন্য সারের হিসাব ও প্রয়োগের কিস্তি নির্ধারণ করে দিয়েছি:
 ইউরিয়া: ${formatWeight(result.urea)}
 টিএসপি: ${formatWeight(result.tsp)}
 এমওপি: ${formatWeight(result.mop)}
@@ -530,7 +530,7 @@ ${result.guidelines.join('\n')}
                   ⚡ {LOADING_MESSAGES[loadingStep]}
                 </div>
                 <p className="text-[11px] md:text-xs text-text-secondary max-w-sm mx-auto mt-2 leading-relaxed">
-                  প্রিয় কৃষক ভাইয়ের ফসল ({crop?.name_bn || ''}) এর সারের সরকারি মাত্রা এবং এআই ডাক্তারের ব্যক্তিগত পরামর্শ একত্রিত করে সম্পূর্ণ প্রেসক্রিপশন লোড করা হচ্ছে।
+                  আপনার ফসল ({crop?.name_bn || ''}) এর সারের সরকারি মাত্রা এবং গাছের ডাক্তারের ব্যক্তিগত পরামর্শ একত্রিত করে সম্পূর্ণ প্রেসক্রিপশন লোড করা হচ্ছে।
                 </p>
               </div>
             </div>
@@ -727,7 +727,7 @@ ${result.guidelines.join('\n')}
                   </div>
 
                   {/* Message Input Form */}
-                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                  <form onSubmit={handleSendInlineChatMessage} className="flex flex-col sm:flex-row gap-2 pt-1">
                     <input
                       type="text"
                       value={inlineChatInput}
@@ -738,7 +738,7 @@ ${result.guidelines.join('\n')}
                     <button
                       type="submit"
                       disabled={inlineChatLoading || !inlineChatInput.trim()}
-                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200 w-full sm:w-auto"
                     >
                       পাঠান
                     </button>

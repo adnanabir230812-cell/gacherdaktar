@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calculator, ShieldCheck, ClipboardList, Info, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Calculator, ShieldCheck, ClipboardList, Info, RefreshCw, AlertTriangle, ChevronDown } from 'lucide-react';
 
 const LOADING_MESSAGES = [
   'আপনার ফসলের জাত ও বীজ বপন নির্দেশিকা বিশ্লেষণ করা হচ্ছে...',
@@ -155,6 +155,21 @@ const formatChatMessageMarkdown = (text: any) => {
 export default function SeedCalculator() {
   const router = useRouter();
   const [selectedCropId, setSelectedCropId] = useState<string>('rice_transplant');
+  const [isCropDropdownOpen, setIsCropDropdownOpen] = useState(false);
+  const [cropSearchQuery, setCropSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCropDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   const [landSize, setLandSize] = useState<number>(1);
   const [landUnit, setLandUnit] = useState<string>('bigha'); // bigha or decimal
   const [result, setResult] = useState<{
@@ -233,7 +248,7 @@ export default function SeedCalculator() {
       setInlineChatMessages([
         { 
           sender: 'bot', 
-          text: `প্রিয় কৃষক ভাই, এই বীজ বপন ও শোধনের হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+          text: `ভাই শুনুন, এই বীজ বপন ও শোধনের হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
         }
       ]);
 
@@ -317,7 +332,7 @@ export default function SeedCalculator() {
     try {
       const hiddenHistory = [
         { sender: 'user' as const, text: `আমি আমার জমির জন্য বীজ বপনের প্রয়োজনীয় ওজন ও গাইডলাইন হিসাব করেছি। ফসল: ${result.cropName}, জমির পরিমাণ: ${landSize} ${landUnit === 'bigha' ? 'বিঘা' : landUnit === 'decimal' ? 'শতক' : 'একর'}।` },
-        { sender: 'bot' as const, text: `প্রিয় কৃষক ভাই, আমি আপনার জমির জন্য বীজ ও চারা বপনের হিসাব নির্ধারণ করে দিয়েছি:
+        { sender: 'bot' as const, text: `ভাই শুনুন, আমি আপনার জমির জন্য বীজ ও চারা বপনের হিসাব নির্ধারণ করে দিয়েছি:
 প্রয়োজনীয় বীজ: ${formatSeedWeight(result.totalSeedWeight)}
 আদর্শ রোপণ দূরত্ব (Spacing): ${result.spacing}
 বপনের গভীরতা (Depth): ${result.depth}
@@ -392,17 +407,72 @@ export default function SeedCalculator() {
           </h3>
 
           {/* Crop Selector */}
-          <div className="space-y-2">
+          <div ref={dropdownRef} className="relative space-y-2">
             <label className="text-sm font-bold text-text-primary">ফসল নির্বাচন করুন:</label>
-            <select
-              value={selectedCropId}
-              onChange={(e) => setSelectedCropId(e.target.value)}
-              className="w-full bg-soft-white border border-green-primary/20 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold cursor-pointer"
-            >
-              {SEED_DATABASE.map(c => (
-                <option key={c.id} value={c.id}>{c.name_bn}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                value={isCropDropdownOpen ? cropSearchQuery : (SEED_DATABASE.find(c => c.id === selectedCropId)?.name_bn || '')}
+                onFocus={(e) => {
+                  setIsCropDropdownOpen(true);
+                  setCropSearchQuery('');
+                }}
+                onChange={(e) => {
+                  setCropSearchQuery(e.target.value);
+                  setIsCropDropdownOpen(true);
+                }}
+                placeholder="ফসলের নাম লিখুন..."
+                className="w-full bg-soft-white border border-green-primary/20 rounded-xl pl-4 pr-10 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-green-primary font-bold shadow-sm cursor-pointer"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setIsCropDropdownOpen(!isCropDropdownOpen)}
+                  className="p-1 hover:bg-gray-100 rounded-full text-text-secondary hover:text-green-primary transition-colors cursor-pointer"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCropDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Dropdown List Overlay */}
+            {isCropDropdownOpen && (
+              <div className="absolute z-30 w-full mt-1 bg-white border border-green-primary/15 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-green-primary/5">
+                {(() => {
+                  const filtered = SEED_DATABASE.filter(c => {
+                    if (!cropSearchQuery) return true;
+                    return c.name_bn.toLowerCase().includes(cropSearchQuery.toLowerCase());
+                  });
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="px-4 py-3 text-xs text-text-secondary font-medium">
+                        কোনো ফসল খুঁজে পাওয়া যায়নি
+                      </div>
+                    );
+                  }
+                  return filtered.map((c) => {
+                    const isSelected = selectedCropId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCropId(c.id);
+                          setCropSearchQuery(c.name_bn);
+                          setIsCropDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-2.5 text-left text-xs md:text-sm font-bold transition-colors hover:bg-green-primary/5 flex items-center justify-between cursor-pointer ${
+                          isSelected ? 'bg-green-primary/10 text-green-primary' : 'text-text-primary'
+                        }`}
+                      >
+                        <span>{c.name_bn}</span>
+                        {isSelected && <span className="text-green-primary font-bold">✓</span>}
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
 
           {/* Land Size Input */}
@@ -479,7 +549,7 @@ export default function SeedCalculator() {
                     <div>
                       <h4 className="font-black text-text-primary text-sm md:text-base">চাষের বিবরণ পরিবর্তন করা হয়েছে</h4>
                       <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
-                        আপনি ফসল বা জমির পরিমাপ পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী বীজ গণনার তথ্য আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'বীজের পরিমাপ হিসাব করুন'** বোতামে ক্লিক করুন।
+                        আপনি ফসল বা জমির পরিমাপ পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী বীজ গণনার তথ্য আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে <strong className="font-extrabold text-green-primary">"বীজের পরিমাপ হিসাব করুন"</strong> বোতামে ক্লিক করুন।
                       </p>
                     </div>
                   </div>
@@ -585,7 +655,7 @@ export default function SeedCalculator() {
                   </div>
 
                   {/* Message Input Form */}
-                  <form onSubmit={handleSendInlineChatMessage} className="flex gap-2 pt-1">
+                  <form onSubmit={handleSendInlineChatMessage} className="flex flex-col sm:flex-row gap-2 pt-1">
                     <input
                       type="text"
                       value={inlineChatInput}
@@ -596,7 +666,7 @@ export default function SeedCalculator() {
                     <button
                       type="submit"
                       disabled={inlineChatLoading || !inlineChatInput.trim()}
-                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200"
+                      className="px-4 py-2.5 bg-green-primary hover:bg-[#153526] disabled:opacity-50 text-white font-extrabold text-xs md:text-sm rounded-xl cursor-pointer transition-all duration-200 w-full sm:w-auto"
                     >
                       পাঠান
                     </button>
@@ -611,7 +681,7 @@ export default function SeedCalculator() {
               <div>
                 <h4 className="font-bold text-text-primary">বীজ পরিমাপের ফলাফল দেখতে</h4>
                 <p className="text-xs text-text-secondary max-w-xs mt-1 font-semibold">
-                  বামদিকের বক্সে আপনার টার্গেট ফসল ও জমির পরিমাপ নির্বাচন করুন এবং **'বীজের পরিমাপ হিসাব করুন'** বোতামে ক্লিক করুন। বপনের বিস্তারিত ম্যাট্রিক্স তৈরি হয়ে যাবে।
+                  বামদিকের বক্সে আপনার টার্গেট ফসল ও জমির পরিমাপ নির্বাচন করুন এবং <strong className="font-extrabold text-green-primary">"বীজের পরিমাপ হিসাব করুন"</strong> বোতামে ক্লিক করুন। বপনের বিস্তারিত ম্যাট্রিক্স তৈরি হয়ে যাবে।
                 </p>
               </div>
             </div>
