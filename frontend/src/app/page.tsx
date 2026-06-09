@@ -343,15 +343,21 @@ export default function Home() {
     }
   };
 
-  const getCountrywideSummary = () => {
+  const getCountrywideSummary = (isNight: boolean) => {
     const now = new Date();
     const month = now.getMonth(); // 0 is January, 4 is May, 5 is June
     if (month >= 10 || month <= 1) { // Nov, Dec, Jan, Feb (Winter)
-      return "কুয়াশাচ্ছন্ন আবহাওয়া ও মৃদু ঠাণ্ডা পরিবেশ বিরাজ করতে পারে। রবি শস্যের চারা রক্ষা করতে রাতে বীজতলা পলিথিন দিয়ে ঢেকে রাখুন এবং কুয়াশাজনিত বালাই দমনে বালাইনাশক স্প্রে করতে পারেন।";
+      return isNight 
+        ? "কুয়াশা বৃদ্ধি পাবে ও মৃদু ঠাণ্ডা পড়তে পারে এবং আগামীকালও একই আবহাওয়া বিরাজ করতে পারে। রবি শস্যের চারা রক্ষা করতে রাতে বীজতলা পলিথিন দিয়ে ঢেকে রাখুন।"
+        : "কুয়াশাচ্ছন্ন আবহাওয়া ও মৃদু ঠাণ্ডা পরিবেশ বিরাজ করতে পারে। রবি শস্যের চারা রক্ষা করতে রাতে বীজতলা পলিথিন দিয়ে ঢেকে রাখুন এবং কুয়াশাজনিত বালাই দমনে বালাইনাশক স্প্রে করতে পারেন।";
     } else if (month >= 2 && month <= 4) { // Mar, Apr, May (Summer/Pre-monsoon)
-      return "তীব্র রোদ ও ভ্যাপসা গরম থাকতে পারে এবং কিছু অঞ্চলে বজ্রবিদ্যুৎসহ ঝড়ো হাওয়া ও কালবৈশাখী ঝড়ের সম্ভাবনা রয়েছে। খরা পরিস্থিতি নিয়ন্ত্রণে নিয়মিত সেচ দিন এবং ঝড়ের সময় মাঠে অবস্থান করা থেকে বিরত থাকুন।";
+      return isNight
+        ? "ভ্যাপসা গরম কমতে পারে এবং আগামীকাল তীব্র রোদ ও গরম পড়ার সম্ভাবনা রয়েছে। কালবৈশাখী ঝড়ের ঝুঁকি থাকায় সন্ধ্যার পর মাঠে দীর্ঘক্ষণ অবস্থান করা থেকে বিরত থাকুন।"
+        : "তীব্র রোদ ও ভ্যাপসা গরম থাকতে পারে এবং কিছু অঞ্চলে বজ্রবিদ্যুৎসহ ঝড়ো হাওয়া ও কালবৈশাখী ঝড়ের সম্ভাবনা রয়েছে। খরা পরিস্থিতি নিয়ন্ত্রণে নিয়মিত সেচ দিন এবং ঝড়ের সময় মাঠে অবস্থান করা থেকে বিরত থাকুন।";
     } else { // Jun, Jul, Aug, Sep, Oct (Monsoon/Rainy)
-      return "মাঝারি থেকে ভারী বৃষ্টিপাত এবং আকাশ মেঘলা থাকার সম্ভাবনা রয়েছে। নিচু জমিতে অতিরিক্ত পানি জমে ফসল যাতে পচে না যায় সেজন্য পানি নিষ্কাশন নালাগুলো পরিষ্কার ও উন্মুক্ত রাখুন এবং বৃষ্টির সময় কীটনাশক স্প্রে করা বন্ধ রাখুন।";
+      return isNight
+        ? "হালকা থেকে মাঝারি বৃষ্টি এবং আগামীকালও আকাশ মেঘলাসহ দেশের কোথাও কোথাও মাঝারি থেকে ভারী বৃষ্টিপাতের সম্ভাবনা রয়েছে। নিচু জমির ড্রেনেজ নালাগুলো উন্মুক্ত রাখুন।"
+        : "মাঝারি থেকে ভারী বৃষ্টিপাত এবং আকাশ মেঘলা থাকার সম্ভাবনা রয়েছে। নিচু জমিতে অতিরিক্ত পানি জমে ফসল যাতে পচে না যায় সেজন্য পানি নিষ্কাশন নালাগুলো পরিষ্কার ও উন্মুক্ত রাখুন এবং বৃষ্টির সময় কীটনাশক স্প্রে করা বন্ধ রাখুন।";
     }
   };
 
@@ -361,11 +367,12 @@ export default function Home() {
       return "স্বাগতম প্রিয় কৃষক ভাই! আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...";
     }
     
-    const countrywideSummary = getCountrywideSummary();
-    
     // Select greeting & time-based countrywide warning based on current hour
     const now = new Date();
     const hour = now.getHours();
+    const isNight = hour >= 18 || hour < 5;
+    const countrywideSummary = getCountrywideSummary(isNight);
+    
     let timeGreeting = 'স্বাগতম প্রিয় কৃষক ভাই!';
     let timeAdvisory = '';
     
@@ -380,7 +387,9 @@ export default function Home() {
       timeAdvisory = 'আজ রাতে দেশের কোথাও কোথাও গুঁড়ি গুঁড়ি বৃষ্টি বা তাপমাত্রা কিছুটা হ্রাস পেতে পারে। রাতের অতিরিক্ত আর্দ্রতার কারণে ছত্রাকের আক্রমণ ঠেকাতে সজাগ থাকুন এবং আগামীকাল সকালের কৃষি কাজের প্রস্তুতি নিন।';
     }
     
-    const timeBasedCountrywideText = `${marqueeDatePrefix}${timeGreeting} আজ সারাদেশে ${countrywideSummary} ${timeAdvisory}`;
+    const timeBasedCountrywideText = isNight
+      ? `${marqueeDatePrefix}${timeGreeting} আজ রাতে ও আগামীকাল ${countrywideSummary} ${timeAdvisory}`
+      : `${marqueeDatePrefix}${timeGreeting} আজ সারাদেশে ${countrywideSummary} ${timeAdvisory}`;
     
     if (loadingWeather) {
       return timeBasedCountrywideText + " (আজকের আবহাওয়া ফোরকাস্ট ও নির্দিষ্ট জেলার কৃষি পরামর্শ লোড হচ্ছে...)";

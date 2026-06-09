@@ -22,6 +22,14 @@ import {
 } from 'lucide-react';
 import { detectUserDistrict } from '@/lib/location';
 
+
+const LOADING_MESSAGES = [
+  'আপনার মাটির নমুনা ছবি ও কণার বিন্যাস বিশ্লেষণ করা হচ্ছে...',
+  'মাটির আনুমানিক পিএইচ (pH) মান ও অম্লতা/ক্ষারত্ব নির্ণয় করা হচ্ছে...',
+  'উপযুক্ত লাভজনক ফসল ও জৈব সারের ডোজ হিসাব করা হচ্ছে...',
+  'গাছের ডাক্তারের প্রেসক্রিপশন ও মাটি সংশোধন গাইড প্রস্তুত করা হচ্ছে...'
+];
+
 const DISTRICTS = [
   // ঢাকা বিভাগ (Dhaka Division)
   "ঢাকা", "গাজীপুর", "নারায়ণগঞ্জ", "নরসিংদী", "টাঙ্গাইল", "মানিকগঞ্জ", "মুন্সিগঞ্জ", "ফরিদপুর", "গোপালগঞ্জ", "মাদারীপুর", "শরীয়তপুর", "রাজবাড়ী",
@@ -201,10 +209,20 @@ export default function SoilPHCalculator() {
   const [inlineChatMessages, setInlineChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([]);
   const [inlineChatInput, setInlineChatInput] = useState('');
   const [inlineChatLoading, setInlineChatLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [isInputsChanged, setIsInputsChanged] = useState(false);
+  const [hasCalculated, setHasCalculated] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  
+  useEffect(() => {
+    if (hasCalculated) {
+      setIsInputsChanged(true);
+    }
+  }, [location, imgUrl]);
 
   // Clean up camera stream on unmount
   useEffect(() => {
@@ -227,6 +245,8 @@ export default function SoilPHCalculator() {
     setCameraError(null);
     setImgUrl(null);
     setScannerResult(null);
+    setHasCalculated(false);
+    setIsInputsChanged(false);
     setIsCameraActive(true);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -427,6 +447,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
   const runSoilClassification = async (userAnswers: Record<string, string> = {}) => {
     if (!imgUrl) return;
     setScanning(true);
+    setLoadingStep(0);
     
     // Only clear result if not submitting clarifications
     if (Object.keys(userAnswers).length === 0) {
@@ -434,29 +455,45 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
       setClarifyingQuestions(null);
       setAnswers({});
     }
+
+    const loadingInterval = setInterval(() => {
+      setLoadingStep((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 450);
+
+    const apiFetchPromise = (async () => {
+      try {
+        const response = await fetch('/api/classify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            image: imgUrl,
+            type: 'soil',
+            location: location,
+            answers: userAnswers
+          })
+        });
+        const data = await response.json();
+        return { ok: response.ok, data };
+      } catch (err) {
+        console.error(err);
+        return { ok: false, error: 'network_error' };
+      }
+    })();
+
+    const delayPromise = new Promise(resolve => setTimeout(resolve, 1400)); // Minimum 1.4s delay for premium visual loader
     
     try {
-      const response = await fetch('/api/classify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          image: imgUrl,
-          type: 'soil',
-          location: location,
-          answers: userAnswers
-        })
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        if (data.result && data.result.is_valid === false) {
-          alert(data.result.error_message || 'এটি মাটির কোনো ছবি নয়। দয়া করে পরীক্ষার জন্য মাটির একটি স্পষ্ট ছবি আপলোড করুন।');
-        } else if (data.result && data.result.need_clarification === true) {
-          setClarifyingQuestions(data.result.questions);
+      const [res] = await Promise.all([apiFetchPromise, delayPromise]);
+      if (res.ok && res.data.success) {
+        if (res.data.result && res.data.result.is_valid === false) {
+          alert(res.data.result.error_message || 'এটি মাটির কোনো ছবি নয়। দয়া করে পরীক্ষার জন্য মাটির একটি স্পষ্ট ছবি আপলোড করুন।');
+        } else if (res.data.result && res.data.result.need_clarification === true) {
+          setClarifyingQuestions(res.data.result.questions);
           setScannerResult(null);
         } else {
-          setScannerResult(data.result);
+          setScannerResult(res.data.result);
           setClarifyingQuestions(null);
           setInlineChatMessages([
             { 
@@ -464,14 +501,17 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               text: `প্রিয় কৃষক ভাই, এই মাটি পরীক্ষার ফলাফলের ওপর আপনার আরও কোনো প্রশ্ন থাকলে করুন।` 
             }
           ]);
+          setIsInputsChanged(false);
+          setHasCalculated(true);
         }
       } else {
-        alert(data.error || 'গাছের ডাক্তার মাটি পরীক্ষা করতে ব্যর্থ হয়েছেন। দয়া করে একটু পরিষ্কার ছবি নিয়ে পুনরায় চেষ্টা করুন।');
+        alert(res.data?.error || 'গাছের ডাক্তার মাটি পরীক্ষা করতে ব্যর্থ হয়েছেন। দয়া করে একটু পরিষ্কার ছবি নিয়ে পুনরায় চেষ্টা করুন।');
       }
     } catch (err) {
       console.error(err);
       alert('নেটওয়ার্ক সংযোগে সমস্যা। অনুগ্রহ করে ইন্টারনেট কানেকশন চেক করে আবার চেষ্টা করুন।');
     } finally {
+      clearInterval(loadingInterval);
       setScanning(false);
     }
   };
@@ -609,6 +649,9 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white text-xs font-bold gap-3">
                       <RefreshCw className="w-8 h-8 animate-spin text-green-400" />
                       <span className="text-sm font-extrabold tracking-wide">গাছের ডাক্তার মাটি পরীক্ষা করছেন...</span>
+                      <div className="inline-block bg-green-primary/80 border border-green-primary text-white text-[10px] font-black px-3 py-1 rounded-full animate-pulse shadow-sm">
+                        ⚡ {LOADING_MESSAGES[loadingStep]}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -695,6 +738,9 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               <RefreshCw className="w-8 h-8 text-green-primary animate-spin" />
               <div>
                 <h4 className="font-bold text-text-primary text-sm">মাটি পরীক্ষা করা হচ্ছে...</h4>
+                <div className="inline-block bg-green-primary/10 border border-green-primary/20 text-green-primary text-xs font-black px-4 py-2 rounded-full animate-pulse shadow-sm my-1">
+                  ⚡ {LOADING_MESSAGES[loadingStep]}
+                </div>
                 <p className="text-xs text-text-secondary mt-0.5 font-semibold">
                   গাছের এআই ডাক্তার মাটির কণা ও আনুমানিক পিএইচ পরীক্ষা করছেন। অনুগ্রহ করে অপেক্ষা করুন...
                 </p>
@@ -767,7 +813,23 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
         {/* Diagnostic Soil Report Output (Right 3 Columns) - Only visible when result is ready */}
         {scannerResult && (
           <div className="lg:col-span-3">
-            <div className="bg-white border border-green-primary/15 rounded-3xl p-6 shadow-sm space-y-6 animate-fade-in">
+            <div className="bg-white border border-green-primary/15 rounded-3xl p-6 shadow-sm space-y-6 animate-fade-in relative">
+              {/* inputs changed overlay */}
+              {isInputsChanged && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-[3px] z-20 flex flex-col items-center justify-center p-6 text-center rounded-3xl border-2 border-dashed border-amber-500/20 shadow-md">
+                  <div className="bg-[#FAF8F2] border-2 border-[#B79400]/25 text-[#B79400] rounded-2xl p-6 max-w-sm shadow-xl flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 text-xl font-bold">
+                      <AlertTriangle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-text-primary text-sm md:text-base">পরীক্ষার বিবরণ পরিবর্তন করা হয়েছে</h4>
+                      <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
+                        আপনি পরীক্ষার স্থান (জেলা) অথবা ছবি পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী মাটির রিপোর্ট ও ডাক্তারের পরামর্শ আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'গাছের ডাক্তারকে দেখান'** বোতামে ক্লিক করুন।
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Report Header */}
               <div className="border-b border-green-primary/10 pb-4">

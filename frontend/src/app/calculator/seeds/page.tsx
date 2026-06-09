@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calculator, ShieldCheck, ClipboardList, Info, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Calculator, ShieldCheck, ClipboardList, Info, RefreshCw, AlertTriangle } from 'lucide-react';
+
+const LOADING_MESSAGES = [
+  'আপনার ফসলের জাত ও বীজ বপন নির্দেশিকা বিশ্লেষণ করা হচ্ছে...',
+  'জমির পরিমাপ অনুযায়ী বীজের সঠিক ওজন গণনা করা হচ্ছে...',
+  'বারি (BARI) ও ব্রি (BRRI) গাইডলাইন অনুযায়ী আদর্শ রোপণ দূরত্ব নির্ধারণ করা হচ্ছে...',
+  'গাছের ডাক্তারের ডাটাবেস থেকে বীজ শোধন নিয়ম প্রস্তুত করা হচ্ছে...'
+];
 
 interface CropSeedData {
   id: string;
@@ -165,64 +172,109 @@ export default function SeedCalculator() {
   const [inlineChatInput, setInlineChatInput] = useState('');
   const [inlineChatLoading, setInlineChatLoading] = useState(false);
 
-  useEffect(() => {
-    if (!selectedCropId || landSize <= 0) {
-      setResult(null);
+  const [calculating, setCalculating] = useState(false);
+  const [hasCalculated, setHasCalculated] = useState(false);
+  const [isInputsChanged, setIsInputsChanged] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+
+  const handleCalculate = async () => {
+    if (landSize <= 0) {
+      alert('দয়া করে সঠিক জমির পরিমাণ দিন।');
       return;
     }
 
-    const crop = SEED_DATABASE.find(c => c.id === selectedCropId);
-    if (!crop) return;
+    setCalculating(true);
+    setLoadingStep(0);
 
-    // 1 bigha = 33 decimals, 1 acre = 100 decimals = 3.0303 bighas
-    const landInBigha = landUnit === 'decimal' 
-      ? (Number(landSize) / 33) 
-      : (landUnit === 'acre' 
-          ? (Number(landSize) * (100 / 33)) 
-          : Number(landSize));
-    const totalWeight = crop.seed_rate_per_bigha_kg * landInBigha;
+    const loadingInterval = setInterval(() => {
+      setLoadingStep((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 450);
 
-    setResult({
-      cropName: crop.name_bn,
-      totalSeedWeight: totalWeight, // Keep full precision
-      spacing: crop.spacing_bn,
-      depth: crop.depth_bn,
-      method: crop.sowing_method_bn,
-      treatment: crop.treatment_bn,
-      lineSowing: crop.line_sowing_bn
+    const calculatePromise = new Promise<{
+      resultObj: any;
+      totalWeight: number;
+      crop: CropSeedData;
+    }>((resolve, reject) => {
+      setTimeout(() => {
+        const crop = SEED_DATABASE.find(c => c.id === selectedCropId);
+        if (!crop) {
+          reject(new Error('Crop not found'));
+          return;
+        }
+
+        // 1 bigha = 33 decimals, 1 acre = 100 decimals = 3.0303 bighas
+        const landInBigha = landUnit === 'decimal' 
+          ? (Number(landSize) / 33) 
+          : (landUnit === 'acre' 
+              ? (Number(landSize) * (100 / 33)) 
+              : Number(landSize));
+        const totalWeight = crop.seed_rate_per_bigha_kg * landInBigha;
+
+        resolve({
+          resultObj: {
+            cropName: crop.name_bn,
+            totalSeedWeight: totalWeight, // Keep full precision
+            spacing: crop.spacing_bn,
+            depth: crop.depth_bn,
+            method: crop.sowing_method_bn,
+            treatment: crop.treatment_bn,
+            lineSowing: crop.line_sowing_bn
+          },
+          totalWeight,
+          crop
+        });
+      }, 1400); // 1.4s smooth delay
     });
 
-    setInlineChatMessages([
-      { 
-        sender: 'bot', 
-        text: `প্রিয় কৃষক ভাই, এই বীজ বপন ও শোধনের হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
-      }
-    ]);
-
-    // Track seed calculation event
     try {
-      const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
-      fetch("/api/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          pageVisited: "/calculator/seeds",
-          action: "seed_calc",
-          location: localStorage.getItem("krishisathi_user_district") || "Unknown",
-          metadata: {
-            cropId: selectedCropId,
-            cropName: crop.name_bn,
-            landSize: landSize,
-            landUnit: landUnit,
-            totalSeedWeight: Math.round(totalWeight * 100) / 100
-          }
-        })
-      });
-    } catch (err) {
-      console.error("Tracking error:", err);
-    }
+      const { resultObj, totalWeight, crop } = await calculatePromise;
+      setResult(resultObj);
 
+      setInlineChatMessages([
+        { 
+          sender: 'bot', 
+          text: `প্রিয় কৃষক ভাই, এই বীজ বপন ও শোধনের হিসাবের ওপর আপনার কোনো অতিরিক্ত প্রশ্ন থাকলে দয়া করে বলুন।` 
+        }
+      ]);
+
+      // Track seed calculation event
+      try {
+        const sessionId = localStorage.getItem("krishisathi_session_id") || "sess_unknown";
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            pageVisited: "/calculator/seeds",
+            action: "seed_calc",
+            location: localStorage.getItem("krishisathi_user_district") || "Unknown",
+            metadata: {
+              cropId: selectedCropId,
+              cropName: crop.name_bn,
+              landSize: landSize,
+              landUnit: landUnit,
+              totalSeedWeight: Math.round(totalWeight * 100) / 100
+            }
+          })
+        });
+      } catch (err) {
+        console.error("Tracking error:", err);
+      }
+
+      setIsInputsChanged(false);
+      setHasCalculated(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      clearInterval(loadingInterval);
+      setCalculating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (hasCalculated) {
+      setIsInputsChanged(true);
+    }
   }, [selectedCropId, landSize, landUnit]);
 
   const translateToBanglaDigits = (num: number | string): string => {
@@ -377,12 +429,62 @@ export default function SeedCalculator() {
             </div>
             <p className="text-[10px] text-text-secondary font-semibold">নোট: ১ বিঘা = ৩৩ শতক।</p>
           </div>
+
+          {/* Calculate Button */}
+          <button
+            onClick={handleCalculate}
+            disabled={calculating}
+            className="w-full py-3.5 bg-green-primary hover:bg-[#153526] active:scale-95 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl cursor-pointer shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            {calculating ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                হিসাব করা হচ্ছে...
+              </>
+            ) : (
+              <>
+                বীজের পরিমাপ হিসাব করুন <Calculator className="w-4 h-4" />
+              </>
+            )}
+          </button>
         </div>
 
         {/* Calculation Result (Right 2 Columns) */}
         <div className="lg:col-span-2 space-y-6">
-          {result ? (
-            <div className="space-y-6">
+          {calculating ? (
+            <div className="h-full min-h-[300px] border border-green-primary/10 rounded-3xl flex flex-col items-center justify-center text-center p-8 space-y-4 bg-soft-white/60 backdrop-blur-md shadow-md">
+              <div className="relative flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-4 border-green-primary/20 border-t-green-primary animate-spin" />
+                <ShieldCheck className="w-6 h-6 text-green-primary absolute animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-bold text-text-primary">বীজ পরিমাপের হিসাব করা হচ্ছে...</h4>
+                <div className="inline-block bg-green-primary/10 border border-green-primary/20 text-green-primary text-xs font-black px-4 py-2 rounded-full animate-pulse shadow-sm">
+                  ⚡ {LOADING_MESSAGES[loadingStep]}
+                </div>
+                <p className="text-xs text-text-secondary max-w-sm mx-auto mt-2">
+                  আপনার নির্বাচিত ফসল ({SEED_DATABASE.find(c => c.id === selectedCropId)?.name_bn || ''}) এর জন্য বীজ বপনের আদর্শ মাত্রা ও শোধন বিধি নির্ধারণ করা হচ্ছে।
+                </p>
+              </div>
+            </div>
+          ) : result ? (
+            <div className="space-y-6 relative">
+              {/* inputs changed overlay */}
+              {isInputsChanged && (
+                <div className="absolute inset-0 bg-soft-white/80 backdrop-blur-[3px] z-20 flex flex-col items-center justify-center p-6 text-center rounded-3xl border-2 border-dashed border-amber-500/20 shadow-md">
+                  <div className="bg-[#FAF8F2] border-2 border-[#B79400]/25 text-[#B79400] rounded-2xl p-6 max-w-sm shadow-xl flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 text-xl font-bold">
+                      <AlertTriangle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-text-primary text-sm md:text-base">চাষের বিবরণ পরিবর্তন করা হয়েছে</h4>
+                      <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
+                        আপনি ফসল বা জমির পরিমাপ পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী বীজ গণনার তথ্য আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'বীজের পরিমাপ হিসাব করুন'** বোতামে ক্লিক করুন।
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Seed Weight Card */}
               <div className="bg-soft-white border border-green-primary/10 rounded-3xl p-6 shadow-sm">
@@ -394,7 +496,7 @@ export default function SeedCalculator() {
                       {formatSeedWeight(result.totalSeedWeight)}
                     </p>
                     <span className="text-xs text-text-secondary block font-bold">
-                      {result.cropName} এর জন্য ({translateToBanglaDigits(landSize)} {landUnit === 'bigha' ? 'বিঘা' : 'শতক'} জমি)
+                      {result.cropName} এর জন্য ({translateToBanglaDigits(landSize)} {landUnit === 'bigha' ? 'বিঘা' : landUnit === 'decimal' ? 'শতক' : 'একর'} জমি)
                     </span>
                   </div>
                 </div>
@@ -509,7 +611,7 @@ export default function SeedCalculator() {
               <div>
                 <h4 className="font-bold text-text-primary">বীজ পরিমাপের ফলাফল দেখতে</h4>
                 <p className="text-xs text-text-secondary max-w-xs mt-1 font-semibold">
-                  বামদিকের বক্সে আপনার টার্গেট ফসল ও জমির পরিমাপ নির্বাচন করুন। বপনের বিস্তারিত ম্যাট্রিক্স তৈরি হয়ে যাবে।
+                  বামদিকের বক্সে আপনার টার্গেট ফসল ও জমির পরিমাপ নির্বাচন করুন এবং **'বীজের পরিমাপ হিসাব করুন'** বোতামে ক্লিক করুন। বপনের বিস্তারিত ম্যাট্রিক্স তৈরি হয়ে যাবে।
                 </p>
               </div>
             </div>
