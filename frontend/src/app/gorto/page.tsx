@@ -342,12 +342,13 @@ export default function AdminDashboard() {
     setIpDetails(null);
     setIpDetailsLoading(true);
     try {
-      const res = await fetch(`http://ip-api.com/json/${ip}`);
+      const res = await fetch(`/api/admin/ip-info?ip=${ip}`);
       if (res.ok) {
         const data = await res.json();
         setIpDetails(data);
       } else {
-        setIpDetails({ error: 'Failed to retrieve IP details' });
+        const errData = await res.json().catch(() => ({}));
+        setIpDetails({ error: errData.error || 'Failed to retrieve IP details' });
       }
     } catch (err) {
       console.error(err);
