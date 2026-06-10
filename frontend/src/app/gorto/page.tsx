@@ -124,6 +124,15 @@ export default function AdminDashboard() {
   // Lightbox Modal for Scan Images
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // On-demand IP details states
+  const [selectedIpForDetails, setSelectedIpForDetails] = useState<string | null>(null);
+  const [ipDetails, setIpDetails] = useState<any | null>(null);
+  const [ipDetailsLoading, setIpDetailsLoading] = useState(false);
+
+  // Sync historical IPs states
+  const [syncingHistory, setSyncingHistory] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
   // Location Details Modal States
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationModalTitle, setLocationModalTitle] = useState('');
@@ -328,6 +337,51 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleShowIpDetails = async (ip: string) => {
+    setSelectedIpForDetails(ip);
+    setIpDetails(null);
+    setIpDetailsLoading(true);
+    try {
+      const res = await fetch(`https://api.iplocation.net/?ip=${ip}`);
+      if (res.ok) {
+        const data = await res.json();
+        setIpDetails(data);
+      } else {
+        setIpDetails({ error: 'Failed to retrieve IP details' });
+      }
+    } catch (err) {
+      console.error(err);
+      setIpDetails({ error: 'Network error occurred' });
+    } finally {
+      setIpDetailsLoading(false);
+    }
+  };
+
+  const handleSyncHistoricalIps = async () => {
+    setSyncingHistory(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch('/api/admin/sync-historical-ips', {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSyncMessage(data.message);
+        alert(data.message);
+        fetchDashboardData();
+      } else {
+        setSyncMessage(data.error || 'সিঙ্ক ব্যর্থ হয়েছে।');
+        alert(data.error || 'সিঙ্ক ব্যর্থ হয়েছে।');
+      }
+    } catch (err) {
+      console.error(err);
+      setSyncMessage('সার্ভার কানেকশন এরর!');
+      alert('সার্ভার কানেকশন এরর!');
+    } finally {
+      setSyncingHistory(false);
+    }
+  };
+
   const getIpForSession = (sessionId: string | undefined) => {
     if (!sessionId) return undefined;
     const activity = activities.find(a => a.session_id === sessionId);
@@ -366,6 +420,12 @@ export default function AdminDashboard() {
             {blockingIp === ipAddress ? '...' : isBlocked ? 'আনব্লক' : 'ব্লক'}
           </button>
         )}
+        <button
+          onClick={() => handleShowIpDetails(ipAddress)}
+          className="px-1.5 py-0.5 rounded text-[10px] font-bold border bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-250 transition-all active:scale-95 cursor-pointer"
+        >
+          IP Details
+        </button>
       </div>
     );
   };
@@ -795,6 +855,74 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* 🔍 On-demand IP Geolocation Details Modal */}
+      {selectedIpForDetails && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-50 transition-opacity animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 relative shadow-2xl border border-slate-100 flex flex-col space-y-4">
+            <button 
+              onClick={() => setSelectedIpForDetails(null)}
+              className="absolute right-4 top-4 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-700 transition-colors z-10 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full">
+                আইপি Geolocation বিবরণ
+              </span>
+              <h3 className="text-lg font-black text-slate-900 font-mono select-all mt-2">{selectedIpForDetails}</h3>
+            </div>
+
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-inner space-y-3.5 text-xs text-left">
+              {ipDetailsLoading ? (
+                <div className="py-8 flex flex-col items-center justify-center gap-2">
+                  <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
+                  <span className="font-bold text-slate-400">এপিআই থেকে লোকেশন খোঁজা হচ্ছে...</span>
+                </div>
+              ) : ipDetails?.error ? (
+                <div className="text-center text-rose-500 font-bold py-4">
+                  {ipDetails.error}
+                </div>
+              ) : ipDetails ? (
+                <div className="space-y-3 font-semibold text-slate-700">
+                  <div className="flex justify-between border-b border-slate-150 pb-2">
+                    <span className="text-slate-400 font-bold">দেশ (Country):</span>
+                    <span className="text-slate-800 font-bold">{ipDetails.country_name || 'N/A'} ({ipDetails.country_code2 || 'N/A'})</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-150 pb-2">
+                    <span className="text-slate-400 font-bold">ইন্টারনেট লাইন (ISP):</span>
+                    <span className="text-slate-800 font-bold text-right max-w-[200px] truncate" title={ipDetails.isp}>{ipDetails.isp || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-150 pb-2">
+                    <span className="text-slate-400 font-bold">আইপি নাম্বার (IP Num):</span>
+                    <span className="text-slate-800 font-mono">{ipDetails.ip_number || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-150 pb-2">
+                    <span className="text-slate-400 font-bold">আইপি ভার্সন (Version):</span>
+                    <span className="text-slate-800 font-mono">IPv{ipDetails.ip_version || '4'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 font-bold">এপিআই স্ট্যাটাস:</span>
+                    <span className="text-emerald-650 font-bold">{ipDetails.response_message || 'Success'}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-slate-400 font-bold py-4">কোনো তথ্য নেই।</div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button 
+                onClick={() => setSelectedIpForDetails(null)}
+                className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Header Panel */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b border-slate-200 pb-6 bg-white p-6 rounded-3xl shadow-sm border">
         <div className="space-y-1">
@@ -831,6 +959,14 @@ export default function AdminDashboard() {
               {autoRefreshEnabled ? 'পজ' : 'অটো রান'}
             </button>
 
+            <button 
+              onClick={handleSyncHistoricalIps}
+              disabled={syncingHistory}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 border border-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncingHistory ? 'animate-spin' : ''}`} />
+              {syncingHistory ? 'সিঙ্ক হচ্ছে...' : 'পুরনো আইপি সিঙ্ক'}
+            </button>
             <button 
               onClick={fetchDashboardData}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-800 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
@@ -2212,12 +2348,33 @@ export default function AdminDashboard() {
                                 <td className="p-4 text-xs font-mono text-emerald-600">{log.session_id.substring(0, 15)}...</td>
                                 <td className="p-4 text-xs font-mono font-semibold text-slate-800">{log.page_visited}</td>
                                 <td className="p-4 text-xs text-slate-500 font-semibold">
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                    {log.location || 'ঢাকা'}
-                                  </span>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                      {log.location || 'ঢাকা'}
+                                    </span>
+                                    {log.metadata?.country_name && (
+                                      <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                                        🌍 {log.metadata.country_name}
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
-                                <td className="p-4 font-mono text-xs text-slate-500">{log.ip_address}</td>
+                                <td className="p-4 font-mono text-xs text-slate-500">
+                                  <div className="flex flex-col gap-0.5">
+                                    {renderIpAndBlockButton(log.ip_address)}
+                                    {log.metadata?.isp && (
+                                      <span className="text-[10px] text-slate-400 max-w-[150px] truncate animate-pulse" title={log.metadata.isp}>
+                                        📡 {log.metadata.isp}
+                                      </span>
+                                    )}
+                                    {log.metadata?.is_spam && (
+                                      <span className="inline-flex items-center w-fit px-1.5 py-0.5 rounded bg-rose-50 text-rose-650 text-[9px] font-black border border-rose-100 mt-0.5" title={log.metadata.spam_reason}>
+                                        🚨 Spam ({log.metadata.spam_reason})
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
                                 <td className="p-4 text-xs text-slate-500 max-w-[200px] truncate" title={log.user_agent}>
                                   {log.user_agent}
                                 </td>
@@ -2256,7 +2413,27 @@ export default function AdminDashboard() {
                                         <div>
                                           <span className="font-bold block text-slate-400 mb-0.5">আইপি অ্যাড্রেস:</span>
                                            {renderIpAndBlockButton(log.ip_address)}
-                                         </div>
+                                        </div>
+                                        {log.metadata?.country_name && (
+                                          <div>
+                                            <span className="font-bold block text-slate-400 mb-0.5">ভৌগোলিক অবস্থান:</span>
+                                            <span className="font-bold text-slate-850">🌍 {log.metadata.country_name} ({log.metadata.country_code || ''})</span>
+                                          </div>
+                                        )}
+                                        {log.metadata?.isp && (
+                                          <div>
+                                            <span className="font-bold block text-slate-400 mb-0.5">ইন্টারনেট প্রোভাইডার (ISP):</span>
+                                            <span className="font-mono text-slate-800">{log.metadata.isp}</span>
+                                          </div>
+                                        )}
+                                        {log.metadata?.is_spam && (
+                                          <div>
+                                            <span className="font-bold block text-slate-400 mb-0.5">স্প্যাম স্ট্যাটাস:</span>
+                                            <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-600 font-bold border border-rose-100">
+                                              সন্দেহজনক কার্যক্রম ({log.metadata.spam_reason})
+                                            </span>
+                                          </div>
+                                        )}
                                         <div>
                                           <span className="font-bold block text-slate-400 mb-0.5">ভিজিটেড পাথ:</span>
                                           <span className="font-mono text-slate-800">{log.page_visited}</span>

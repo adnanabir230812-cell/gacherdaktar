@@ -26,6 +26,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, bypassed: true });
     }
 
+    const mergedMetadata = { ...(metadata || {}) };
+
+    // Fetch Geo & ISP details for a new visitor action only to conserve api.iplocation.net limits
+    if ((action === 'visit' || !action) && ip && ip !== '127.0.0.1' && ip !== '::1' && !ip.startsWith('sess_')) {
+      try {
+        const geoRes = await fetch(`https://api.iplocation.net/?ip=${ip}`);
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.country_name) {
+            mergedMetadata.country_name = geoData.country_name;
+            mergedMetadata.country_code = geoData.country_code2;
+            mergedMetadata.isp = geoData.isp;
+
+            // Flag Hosting Providers / Datacenters / Proxies as potential spam bots
+            const ispLower = (geoData.isp || '').toLowerCase();
+            const isSpamIsp = ['amazon', 'digitalocean', 'google', 'microsoft', 'linode', 'hetzner', 'ovh', 'cloudflare', 'm247', 'colocrossing', 'leaseweb'].some(provider => ispLower.includes(provider));
+            
+            if (isSpamIsp) {
+              mergedMetadata.is_spam = true;
+              mergedMetadata.spam_reason = 'Hosting Provider/Proxy Network';
+            }
+          }
+        }
+      } catch (geoErr) {
+        console.error("Tracking API Geo-Lookup Error:", geoErr);
+      }
+    }
+
     // Insert analytics log bypassing RLS using admin client
     const { error } = await supabaseAdmin
       .from('usage_analytics')
@@ -36,7 +64,7 @@ export async function POST(request: Request) {
         location: location || null,
         page_visited: pageVisited,
         action: action || 'visit',
-        metadata: metadata || {},
+        metadata: mergedMetadata,
         created_at: new Date().toISOString()
       });
 
