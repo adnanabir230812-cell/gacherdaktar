@@ -48,31 +48,33 @@ export async function POST(request: Request) {
       // Skip system or internal IPs
       if (!ip || ip.startsWith('sess_') || ip === 'SYSTEM_BLOCKED_IP' || ip === 'SYSTEM_OWNER_IP' || ip === '127.0.0.1' || ip === '::1') continue;
 
-      // Skip if metadata already has geolocated info
+      // Skip if metadata already has both country & city geolocated info
       const meta = rec.metadata || {};
-      if (meta.country_name || meta.isp) continue;
+      if (meta.country_name && meta.city_name) continue;
 
       let geo = ipCache.get(ip);
       if (!geo) {
         try {
-          const res = await fetch(`https://api.iplocation.net/?ip=${ip}`);
+          const res = await fetch(`http://ip-api.com/json/${ip}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.country_name) {
+            if (data.status === 'success') {
               const ispLower = (data.isp || '').toLowerCase();
               const isSpam = ['amazon', 'digitalocean', 'google', 'microsoft', 'linode', 'hetzner', 'ovh', 'cloudflare', 'm247', 'colocrossing', 'leaseweb'].some(provider => ispLower.includes(provider));
               
               geo = {
-                country_name: data.country_name,
-                country_code: data.country_code2,
+                country_name: data.country,
+                country_code: data.countryCode,
+                region_name: data.regionName,
+                city_name: data.city,
                 isp: data.isp,
                 is_spam: isSpam,
                 spam_reason: isSpam ? 'Hosting Provider/Proxy Network' : null
               };
               ipCache.set(ip, geo);
               
-              // Respect API guidelines by introducing a 150ms sleep
-              await new Promise(resolve => setTimeout(resolve, 150));
+              // Respect ip-api.com rate limits (45 req/min) by introducing a 1500ms sleep
+              await new Promise(resolve => setTimeout(resolve, 1500));
             }
           }
         } catch (err) {

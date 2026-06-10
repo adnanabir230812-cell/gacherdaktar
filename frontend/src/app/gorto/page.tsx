@@ -342,7 +342,7 @@ export default function AdminDashboard() {
     setIpDetails(null);
     setIpDetailsLoading(true);
     try {
-      const res = await fetch(`https://api.iplocation.net/?ip=${ip}`);
+      const res = await fetch(`http://ip-api.com/json/${ip}`);
       if (res.ok) {
         const data = await res.json();
         setIpDetails(data);
@@ -887,23 +887,41 @@ export default function AdminDashboard() {
                 <div className="space-y-3 font-semibold text-slate-700">
                   <div className="flex justify-between border-b border-slate-150 pb-2">
                     <span className="text-slate-400 font-bold">দেশ (Country):</span>
-                    <span className="text-slate-800 font-bold">{ipDetails.country_name || 'N/A'} ({ipDetails.country_code2 || 'N/A'})</span>
+                    <span className="text-slate-800 font-bold">{ipDetails.country || 'N/A'} ({ipDetails.countryCode || 'N/A'})</span>
                   </div>
+                  {ipDetails.city && (
+                    <div className="flex justify-between border-b border-slate-150 pb-2">
+                      <span className="text-slate-400 font-bold">শহর ও অঞ্চল (City):</span>
+                      <span className="text-slate-800 font-bold">{ipDetails.city || 'N/A'} ({ipDetails.regionName || 'N/A'})</span>
+                    </div>
+                  )}
+                  {ipDetails.zip && (
+                    <div className="flex justify-between border-b border-slate-150 pb-2">
+                      <span className="text-slate-400 font-bold">পোস্টাল কোড (ZIP):</span>
+                      <span className="text-slate-850 font-mono">{ipDetails.zip || 'N/A'}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-b border-slate-150 pb-2">
                     <span className="text-slate-400 font-bold">ইন্টারনেট লাইন (ISP):</span>
                     <span className="text-slate-800 font-bold text-right max-w-[200px] truncate" title={ipDetails.isp}>{ipDetails.isp || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between border-b border-slate-150 pb-2">
-                    <span className="text-slate-400 font-bold">আইপি নাম্বার (IP Num):</span>
-                    <span className="text-slate-800 font-mono">{ipDetails.ip_number || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-150 pb-2">
-                    <span className="text-slate-400 font-bold">আইপি ভার্সন (Version):</span>
-                    <span className="text-slate-800 font-mono">IPv{ipDetails.ip_version || '4'}</span>
-                  </div>
+                  {ipDetails.timezone && (
+                    <div className="flex justify-between border-b border-slate-150 pb-2">
+                      <span className="text-slate-400 font-bold">টাইমজোন (Timezone):</span>
+                      <span className="text-slate-800 font-mono">{ipDetails.timezone}</span>
+                    </div>
+                  )}
+                  {ipDetails.lat !== undefined && (
+                    <div className="flex justify-between border-b border-slate-150 pb-2">
+                      <span className="text-slate-400 font-bold">অক্ষাংশ/দ্রাঘিমাংশ:</span>
+                      <span className="text-slate-800 font-mono">{ipDetails.lat}, {ipDetails.lon}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-slate-400 font-bold">এপিআই স্ট্যাটাস:</span>
-                    <span className="text-emerald-650 font-bold">{ipDetails.response_message || 'Success'}</span>
+                    <span className={`font-bold ${ipDetails.status === 'success' ? 'text-emerald-650' : 'text-rose-500'}`}>
+                      {ipDetails.status === 'success' ? 'সফল (Success)' : 'ব্যর্থ (Fail)'}
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -2351,7 +2369,9 @@ export default function AdminDashboard() {
                                   <div className="flex flex-col gap-0.5">
                                     <span className="flex items-center gap-1">
                                       <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                      {log.location || 'ঢাকা'}
+                                      {log.metadata?.city_name 
+                                        ? `${log.metadata.city_name}${log.metadata.region_name ? `, ${log.metadata.region_name}` : ''}`
+                                        : (log.location || 'ঢাকা')}
                                     </span>
                                     {log.metadata?.country_name && (
                                       <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
@@ -2417,7 +2437,11 @@ export default function AdminDashboard() {
                                         {log.metadata?.country_name && (
                                           <div>
                                             <span className="font-bold block text-slate-400 mb-0.5">ভৌগোলিক অবস্থান:</span>
-                                            <span className="font-bold text-slate-850">🌍 {log.metadata.country_name} ({log.metadata.country_code || ''})</span>
+                                            <span className="font-bold text-slate-850">
+                                              🌍 {log.metadata.country_name} ({log.metadata.country_code || ''})
+                                              {log.metadata.city_name && ` - ${log.metadata.city_name}`}
+                                              {log.metadata.region_name && `, ${log.metadata.region_name}`}
+                                            </span>
                                           </div>
                                         )}
                                         {log.metadata?.isp && (

@@ -28,15 +28,17 @@ export async function POST(request: Request) {
 
     const mergedMetadata = { ...(metadata || {}) };
 
-    // Fetch Geo & ISP details for a new visitor action only to conserve api.iplocation.net limits
+    // Fetch Geo & ISP details for a new visitor action only to conserve API rate limits
     if ((action === 'visit' || !action) && ip && ip !== '127.0.0.1' && ip !== '::1' && !ip.startsWith('sess_')) {
       try {
-        const geoRes = await fetch(`https://api.iplocation.net/?ip=${ip}`);
+        const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
         if (geoRes.ok) {
           const geoData = await geoRes.json();
-          if (geoData.country_name) {
-            mergedMetadata.country_name = geoData.country_name;
-            mergedMetadata.country_code = geoData.country_code2;
+          if (geoData.status === 'success') {
+            mergedMetadata.country_name = geoData.country;
+            mergedMetadata.country_code = geoData.countryCode;
+            mergedMetadata.region_name = geoData.regionName;
+            mergedMetadata.city_name = geoData.city;
             mergedMetadata.isp = geoData.isp;
 
             // Flag Hosting Providers / Datacenters / Proxies as potential spam bots
