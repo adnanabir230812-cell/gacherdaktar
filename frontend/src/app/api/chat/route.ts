@@ -401,7 +401,7 @@ ${context || 'No specific crop matching the query.'}
       try {
         const mimoUrl = (process.env.MIMO_API_URL || 'https://platform.xiaomimimo.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
         const mimoKey = process.env.MIMO_API_KEY.trim();
-        const mimoModel = (process.env.MIMO_API_MODEL || 'gemini-2.5-flash').trim();
+        const mimoModel = (process.env.MIMO_API_MODEL || 'mimo-v2.5').trim();
 
         console.log(`[Chat API] Routing text-only query to MiMoAPI using model: ${mimoModel}`);
 
@@ -416,7 +416,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(3000, getRemainingTime(8500));
+        const timeLimit = Math.min(8000, getRemainingTime(25000));
         const res = await postWithTimeout(
           mimoUrl,
           {
@@ -467,7 +467,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(3000, getRemainingTime(8500));
+        const timeLimit = Math.min(2000, getRemainingTime(25000));
         const res = await postWithTimeout(
           freeLlmUrl,
           {
@@ -505,8 +505,8 @@ ${context || 'No specific crop matching the query.'}
       for (let i = 0; i < shuffledKeys.length; i++) {
         const activeKey = shuffledKeys[i];
         try {
-          const timeLimit = Math.min(2500, getRemainingTime(8500));
-          if (timeLimit < 2000) {
+          const timeLimit = Math.min(8000, getRemainingTime(25000));
+          if (timeLimit < 1000) {
             console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
             break;
           }
