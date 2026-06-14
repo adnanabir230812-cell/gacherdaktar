@@ -399,9 +399,9 @@ ${context || 'No specific crop matching the query.'}
     if (!isImageQuery) {
       // Try FreeLLMAPI first for text/voice queries
       try {
-        const freeLlmUrl = (process.env.FREE_LLM_API_URL || 'https://freellmapi.onrender.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
-        const freeLlmKey = (process.env.FREE_LLM_API_KEY || 'freellmapi-d5c6db74de65d76f3a7ac1b1d0b6ba6aa2c1df6716faa9d2').trim();
-        const freeLlmModel = (process.env.FREE_LLM_MODEL || 'llama-3.1-8b-instant').trim();
+        const freeLlmUrl = (process.env.FREE_LLM_API_URL || process.env.NEXT_PUBLIC_FREELLM_API_URL || 'https://freellmapi.onrender.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
+        const freeLlmKey = (process.env.FREE_LLM_API_KEY || process.env.NEXT_PUBLIC_FREELLM_API_KEY || 'freellmapi-d5c6db74de65d76f3a7ac1b1d0b6ba6aa2c1df6716faa9d2').trim();
+        const freeLlmModel = (process.env.FREE_LLM_MODEL || 'gemini-2.5-flash').trim();
 
         console.log(`[Chat API] Routing text-only query to FreeLLMAPI using model: ${freeLlmModel}`);
 
