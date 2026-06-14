@@ -417,7 +417,7 @@ ${context || 'No specific crop matching the query.'}
         messages.push({ role: 'user', content: userPrompt });
 
         const timeLimit = Math.min(15000, getRemainingTime(55000));
-        const res = await httpsPostWithTimeout(
+        const res = await postWithTimeout(
           mimoUrl,
           {
             'Content-Type': 'application/json',
@@ -468,7 +468,7 @@ ${context || 'No specific crop matching the query.'}
         messages.push({ role: 'user', content: userPrompt });
 
         const timeLimit = Math.min(15000, getRemainingTime(55000));
-        const res = await httpsPostWithTimeout(
+        const res = await postWithTimeout(
           freeLlmUrl,
           {
             'Content-Type': 'application/json',
@@ -512,7 +512,7 @@ ${context || 'No specific crop matching the query.'}
           }
 
           const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-          const res = await httpsPostWithTimeout(
+          const res = await postWithTimeout(
             geminiUrl,
             { 'Content-Type': 'application/json' },
             JSON.stringify({
