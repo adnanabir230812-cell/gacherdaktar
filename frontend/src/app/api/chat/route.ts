@@ -396,7 +396,58 @@ ${context || 'No specific crop matching the query.'}
 
     const isImageQuery = !!image;
 
-    if (!isImageQuery) {
+    // 1. Try MiMoAPI if configured (for text/voice queries)
+    if (!isImageQuery && process.env.MIMO_API_KEY) {
+      try {
+        const mimoUrl = (process.env.MIMO_API_URL || 'https://platform.xiaomimimo.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
+        const mimoKey = process.env.MIMO_API_KEY.trim();
+        const mimoModel = (process.env.MIMO_API_MODEL || 'gemini-2.5-flash').trim();
+
+        console.log(`[Chat API] Routing text-only query to MiMoAPI using model: ${mimoModel}`);
+
+        const messages = [{ role: 'system', content: systemPrompt }];
+        if (history && Array.isArray(history)) {
+          history.forEach((turn: { sender: 'user' | 'bot'; text: string }) => {
+            messages.push({
+              role: turn.sender === 'user' ? 'user' : 'assistant',
+              content: turn.text
+            });
+          });
+        }
+        messages.push({ role: 'user', content: userPrompt });
+
+        const timeLimit = Math.min(15000, getRemainingTime(55000));
+        const res = await httpsPostWithTimeout(
+          mimoUrl,
+          {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${mimoKey}`
+          },
+          JSON.stringify({
+            model: mimoModel,
+            messages: messages,
+            response_format: { type: "json_object" }
+          }),
+          timeLimit
+        );
+
+        if (res.ok) {
+          const data = JSON.parse(res.text);
+          const text = data.choices?.[0]?.message?.content;
+          if (text) {
+            responseText = text;
+            llmSuccess = true;
+            usedLlmProvider = 'MiMoAPI';
+          }
+        } else {
+          console.error(`[Chat API] MiMoAPI failed with status ${res.status}: ${res.text}`);
+        }
+      } catch (err: any) {
+        console.error(`[Chat API] MiMoAPI call failed:`, err.message);
+      }
+    }
+
+    if (!isImageQuery && !llmSuccess) {
       // Try FreeLLMAPI first for text/voice queries
       try {
         const freeLlmUrl = (process.env.FREE_LLM_API_URL || process.env.NEXT_PUBLIC_FREELLM_API_URL || 'https://freellmapi.onrender.com/v1').trim().replace(/\/$/, '') + '/chat/completions';

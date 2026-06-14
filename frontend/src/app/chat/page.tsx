@@ -115,6 +115,7 @@ function ChatContent() {
   const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Suggested Prompts
   const welcomeSuggestions = [
@@ -349,73 +350,73 @@ function ChatContent() {
       .trim();
   };
 
-  // Text to Speech Function
-  const speakText = (text: string, messageId: string) => {
-    if (typeof window === 'undefined' || !window.speechSynthesis) {
-      alert('দুঃখিত, আপনার ব্রাউজারটি ভয়েস রিডিং সমর্থন করে না।');
-      return;
-    }
-
+  // Text to Speech Function using backend TTS API
+  const speakText = async (text: string, messageId: string) => {
     if (isSpeaking && currentlySpeakingId === messageId) {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       setIsSpeaking(false);
       setCurrentlySpeakingId(null);
       return;
     }
 
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
     setIsSpeaking(false);
     setCurrentlySpeakingId(null);
 
-    // iOS and Chrome require a tiny timeout after cancel() before speaking a new text
-    setTimeout(() => {
-      try {
-        const cleaned = cleanForSpeech(text);
-        const utterance = new SpeechSynthesisUtterance(cleaned);
-        
-        // Find the best available Bengali voice (bn-BD, bn-IN, or containing bengali/bangla)
-        const voices = window.speechSynthesis.getVoices();
-        const bengaliVoice = voices.find(v => 
-          v.lang === 'bn-BD' || 
-          v.lang === 'bn-IN' || 
-          v.lang.startsWith('bn') || 
-          v.name.toLowerCase().includes('bengali') || 
-          v.name.toLowerCase().includes('bangla')
-        );
+    try {
+      const cleaned = cleanForSpeech(text);
+      setCurrentlySpeakingId(messageId);
+      setIsSpeaking(true); // Shows a loading/active playing indicator
 
-        if (bengaliVoice) {
-          utterance.voice = bengaliVoice;
-          utterance.lang = bengaliVoice.lang;
-        } else {
-          utterance.lang = 'bn-BD';
-        }
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: cleaned })
+      });
 
-        utterance.rate = 0.95; // Slightly slower for natural reading
+      if (!res.ok) {
+        throw new Error('TTS API failed');
+      }
 
-        utterance.onstart = () => {
-          setIsSpeaking(true);
-          setCurrentlySpeakingId(messageId);
-        };
+      const audioBlob = await res.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
 
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          setCurrentlySpeakingId(null);
-        };
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
 
-        utterance.onerror = (err) => {
-          console.error('Speech synthesis error:', err);
-          setIsSpeaking(false);
-          setCurrentlySpeakingId(null);
-        };
+      audio.onplay = () => {
+        setIsSpeaking(true);
+        setCurrentlySpeakingId(messageId);
+      };
 
-        window.speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.error('Speech Synthesis failed:', err);
+      audio.onended = () => {
         setIsSpeaking(false);
         setCurrentlySpeakingId(null);
-      }
-    }, 100);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = () => {
+        console.error('Audio playback error');
+        setIsSpeaking(false);
+        setCurrentlySpeakingId(null);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.play();
+    } catch (err) {
+      console.error('Speech synthesis failed:', err);
+      setIsSpeaking(false);
+      setCurrentlySpeakingId(null);
+    }
   };
 
   // Toggle voice recognition
