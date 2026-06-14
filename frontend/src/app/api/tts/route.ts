@@ -9,56 +9,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
     }
 
-    const mimoKey = process.env.MIMO_API_KEY;
-    if (!mimoKey) {
-      return NextResponse.json({ error: 'MIMO_API_KEY is not configured' }, { status: 500 });
-    }
+    // Use Google Translate TTS for high-quality free Bengali speech
+    const encodedText = encodeURIComponent(text);
+    const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=bn&client=tw-ob&q=${encodedText}`;
 
-    const mimoBaseUrl = (process.env.MIMO_API_URL || 'https://api.xiaomimimo.com/v1').trim().replace(/\/$/, '');
-    const mimoUrl = `${mimoBaseUrl}/chat/completions`;
+    console.log(`[TTS API] Fetching high-quality Bengali TTS from Google: ${googleTtsUrl}`);
 
-    console.log(`[TTS API] Sending request to MiMo TTS URL: ${mimoUrl}`);
-
-    const res = await fetch(mimoUrl, {
-      method: 'POST',
+    const res = await fetch(googleTtsUrl, {
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${mimoKey.trim()}`
-      },
-      body: JSON.stringify({
-        model: 'mimo-v2.5-tts',
-        messages: [
-          {
-            role: 'user',
-            content: 'Please speak the following Bengali text clearly.'
-          },
-          {
-            role: 'assistant',
-            content: text
-          }
-        ],
-        audio: {
-          format: 'mp3',
-          voice: 'mimo_default'
-        }
-      })
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
     });
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error(`[TTS API] MiMo speech failed with status ${res.status}: ${errText}`);
-      return NextResponse.json({ error: `MiMo TTS failed: ${errText}` }, { status: res.status });
+      console.error(`[TTS API] Google TTS failed with status ${res.status}: ${errText}`);
+      return NextResponse.json({ error: `Google TTS failed: ${errText}` }, { status: res.status });
     }
 
-    const data = await res.json();
-    const audioDataB64 = data.choices?.[0]?.message?.audio?.data;
-
-    if (!audioDataB64) {
-      console.error('[TTS API] Audio data block not found in MiMo response:', JSON.stringify(data).substring(0, 500));
-      return NextResponse.json({ error: 'Audio data not returned by MiMo' }, { status: 500 });
-    }
-
-    const audioBuffer = Buffer.from(audioDataB64, 'base64');
+    const audioBuffer = await res.arrayBuffer();
 
     return new Response(audioBuffer, {
       headers: {
