@@ -351,7 +351,7 @@ function ChatContent() {
   };
 
   // Text to Speech Function using backend TTS API
-  const speakText = async (text: string, messageId: string) => {
+  const speakText = (text: string, messageId: string) => {
     if (isSpeaking && currentlySpeakingId === messageId) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -373,23 +373,9 @@ function ChatContent() {
     try {
       const cleaned = cleanForSpeech(text);
       setCurrentlySpeakingId(messageId);
-      setIsSpeaking(true); // Shows a loading/active playing indicator
+      setIsSpeaking(true); // Shows playing indicator
 
-      const res = await fetch('/api/tts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: cleaned })
-      });
-
-      if (!res.ok) {
-        throw new Error('TTS API failed');
-      }
-
-      const audioBlob = await res.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-
+      const audioUrl = `/api/tts?text=${encodeURIComponent(cleaned)}`;
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
@@ -401,14 +387,12 @@ function ChatContent() {
       audio.onended = () => {
         setIsSpeaking(false);
         setCurrentlySpeakingId(null);
-        URL.revokeObjectURL(audioUrl);
       };
 
-      audio.onerror = () => {
-        console.error('Audio playback error');
+      audio.onerror = (err) => {
+        console.error('Audio playback error:', err);
         setIsSpeaking(false);
         setCurrentlySpeakingId(null);
-        URL.revokeObjectURL(audioUrl);
       };
 
       audio.play();
