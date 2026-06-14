@@ -316,7 +316,7 @@ function CalculatorContent() {
       setInlineChatMessages([
         { 
           sender: 'bot' as const, 
-          text: `ভাই শুনুন, আপনার সারের মাত্রা ও প্রয়োগ নিয়ে অতিরিক্ত কোনো জিজ্ঞাসা থাকলে আমাকে বলতে পারেন।` 
+          text: `প্রিয় কৃষক ভাই, আপনার সারের মাত্রা ও প্রয়োগ নিয়ে অতিরিক্ত কোনো জিজ্ঞাসা থাকলে আমাকে বলতে পারেন।` 
         }
       ]);
       setIsInputsChanged(false);
@@ -595,7 +595,7 @@ ${result.guidelines.join('\n')}
                   {LOADING_MESSAGES[loadingStep]}
                 </div>
                 <p className="text-[11px] md:text-xs text-text-secondary max-w-sm mx-auto mt-2 leading-relaxed">
-                  ফসল ({crop?.name_bn || ''}) এর সারের সরকারি মাত্রা এবং সারের সম্পূর্ণ পরিমাপ লোড করা হচ্ছে ভাই শুনুন।
+                  ফসল ({crop?.name_bn || ''}) এর সারের সরকারি মাত্রা এবং সারের সম্পূর্ণ পরিমাপ লোড করা হচ্ছে প্রিয় কৃষক ভাই।
                 </p>
               </div>
             </div>
@@ -611,7 +611,7 @@ ${result.guidelines.join('\n')}
                     <div>
                       <h4 className="font-black text-text-primary text-sm md:text-base">চাষের বিবরণ পরিবর্তন করা হয়েছে</h4>
                       <p className="text-xs text-text-secondary mt-1.5 leading-relaxed font-semibold">
-                        আপনি ফসল, মৌসুম বা জমির সাইজ পরিবর্তন করেছেন ভাই। নতুন বিবরণ অনুযায়ী সারের মাত্রা আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'সারের হিসেব করুন'** বোতামে ক্লিক করুন।
+                        আপনি ফসল, মৌসুম বা জমির সাইজ পরিবর্তন করেছেন প্রিয় কৃষক ভাই। নতুন বিবরণ অনুযায়ী সারের মাত্রা আপডেট করতে অনুগ্রহ করে বামের প্যানেল থেকে **'সারের হিসেব করুন'** বোতামে ক্লিক করুন।
                       </p>
                     </div>
                   </div>
