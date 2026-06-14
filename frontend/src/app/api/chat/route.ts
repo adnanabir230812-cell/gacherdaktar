@@ -387,58 +387,120 @@ ${context || 'No specific crop matching the query.'}
     const geminiKeys = getGeminiApiKeys();
     const shuffledKeys = [...geminiKeys].sort(() => Math.random() - 0.5);
 
+    let llmSuccess = false;
     let geminiSuccess = false;
     let geminiError = '';
     let responseText = '';
     let usedKeyIndex = -1;
+    let usedLlmProvider = '';
 
-    // Try each key in randomized order until one succeeds
-    for (let i = 0; i < shuffledKeys.length; i++) {
-      const activeKey = shuffledKeys[i];
+    const isImageQuery = !!image;
+
+    if (!isImageQuery) {
+      // Try FreeLLMAPI first for text/voice queries
       try {
-        const timeLimit = Math.min(15000, getRemainingTime(55000));
-        if (timeLimit < 2000) {
-          console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
-          break;
-        }
+        const freeLlmUrl = (process.env.FREE_LLM_API_URL || 'https://freellmapi.onrender.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
+        const freeLlmKey = (process.env.FREE_LLM_API_KEY || 'freellmapi-d5c6db74de65d76f3a7ac1b1d0b6ba6aa2c1df6716faa9d2').trim();
+        const freeLlmModel = (process.env.FREE_LLM_MODEL || 'llama-3.1-8b-instant').trim();
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+        console.log(`[Chat API] Routing text-only query to FreeLLMAPI using model: ${freeLlmModel}`);
+
+        const messages = [{ role: 'system', content: systemPrompt }];
+        if (history && Array.isArray(history)) {
+          history.forEach((turn: { sender: 'user' | 'bot'; text: string }) => {
+            messages.push({
+              role: turn.sender === 'user' ? 'user' : 'assistant',
+              content: turn.text
+            });
+          });
+        }
+        messages.push({ role: 'user', content: userPrompt });
+
+        const timeLimit = Math.min(15000, getRemainingTime(55000));
         const res = await httpsPostWithTimeout(
-          geminiUrl,
-          { 'Content-Type': 'application/json' },
+          freeLlmUrl,
+          {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${freeLlmKey}`
+          },
           JSON.stringify({
-            contents: contents,
-            systemInstruction: {
-              parts: [
-                { text: systemPrompt }
-              ]
-            },
-            generationConfig: {
-              responseMimeType: "application/json",
-              maxOutputTokens: 4000 // Increased limit to prevent cutoff
-            }
+            model: freeLlmModel,
+            messages: messages,
+            response_format: { type: "json_object" }
           }),
           timeLimit
         );
 
         if (res.ok) {
           const data = JSON.parse(res.text);
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const text = data.choices?.[0]?.message?.content;
           if (text) {
             responseText = text;
-            geminiSuccess = true;
-            usedKeyIndex = i;
-            break;
+            llmSuccess = true;
+            usedLlmProvider = 'FreeLLMAPI';
           }
         } else {
-          geminiError += `[Key ${i} failed: Status ${res.status}] `;
-          console.error(`Gemini API key ${i} returned status ${res.status}: ${res.text}`);
+          console.error(`[Chat API] FreeLLMAPI failed with status ${res.status}: ${res.text}`);
         }
       } catch (err: any) {
-        geminiError += `[Key ${i} error: ${err.message}] `;
-        console.error(`Gemini API key ${i} call failed:`, err.message);
+        console.error(`[Chat API] FreeLLMAPI call failed:`, err.message);
       }
     }
+
+    // Fallback to direct Gemini API if FreeLLMAPI failed/skipped or if it is an image query
+    if (!llmSuccess) {
+      console.log(`[Chat API] Routing to direct Gemini API (Reason: ${isImageQuery ? 'Image query' : 'FreeLLMAPI failed/skipped'})`);
+
+      for (let i = 0; i < shuffledKeys.length; i++) {
+        const activeKey = shuffledKeys[i];
+        try {
+          const timeLimit = Math.min(15000, getRemainingTime(55000));
+          if (timeLimit < 2000) {
+            console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
+            break;
+          }
+
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+          const res = await httpsPostWithTimeout(
+            geminiUrl,
+            { 'Content-Type': 'application/json' },
+            JSON.stringify({
+              contents: contents,
+              systemInstruction: {
+                parts: [
+                  { text: systemPrompt }
+                ]
+              },
+              generationConfig: {
+                responseMimeType: "application/json",
+                maxOutputTokens: 4000
+              }
+            }),
+            timeLimit
+          );
+
+          if (res.ok) {
+            const data = JSON.parse(res.text);
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              responseText = text;
+              llmSuccess = true;
+              usedKeyIndex = i;
+              usedLlmProvider = 'GeminiDirect';
+              break;
+            }
+          } else {
+            geminiError += `[Key ${i} failed: Status ${res.status}] `;
+            console.error(`Gemini API key ${i} returned status ${res.status}: ${res.text}`);
+          }
+        } catch (err: any) {
+          geminiError += `[Key ${i} error: ${err.message}] `;
+          console.error(`Gemini API key ${i} call failed:`, err.message);
+        }
+      }
+    }
+
+    geminiSuccess = llmSuccess;
 
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || '127.0.0.1';
     const userAgent = request.headers.get('user-agent') || 'Unknown';

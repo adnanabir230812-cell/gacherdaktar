@@ -335,7 +335,7 @@ function CropLibraryContent() {
                 }}
                 className="flex-1 py-3 text-center bg-green-primary hover:bg-green-soft text-soft-white rounded-xl text-sm font-semibold shadow-md transition-all cursor-pointer"
               >
-                গাছের ডাক্তারের পরামর্শ নিন 🩺
+                গাছের ডাক্তারের পরামর্শ নিন
               </button>
               <button
                 onClick={() => setActiveCrop(null)}

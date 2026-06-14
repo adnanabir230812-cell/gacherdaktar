@@ -119,11 +119,16 @@ const formatChatMessageMarkdown = (text: any) => {
   if (!text) return '';
   const cleanText = Array.isArray(text) ? text.join('\n') : String(text);
   return cleanText.split('\n').map((line, lineIdx) => {
+    let cleanLine = line.trim();
     let isBullet = false;
-    let cleanLine = line;
-    if (line.trim().startsWith('* ') || line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
+    
+    if ((cleanLine.startsWith('* ') || cleanLine.startsWith('- ') || cleanLine.startsWith('• ')) && !cleanLine.startsWith('**')) {
       isBullet = true;
-      cleanLine = line.trim().replace(/^[-*•]\s+/, '');
+      cleanLine = cleanLine.replace(/^[-*•]\s+/, '');
+    }
+
+    if (cleanLine.startsWith('#')) {
+      cleanLine = cleanLine.replace(/^#+\s*/, '');
     }
     
     const parts: (string | React.ReactNode)[] = [];
@@ -134,19 +139,19 @@ const formatChatMessageMarkdown = (text: any) => {
 
     while ((match = regex.exec(cleanLine)) !== null) {
       if (match.index > lastIndex) {
-        parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, ''));
+        parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, '').replace(/\*/g, ''));
       }
       parts.push(
         <strong key={partIdx++} className="font-extrabold text-green-primary">
-          {match[1].replace(/\*\*/g, '')}
+          {match[1].replace(/\*\*/g, '').replace(/\*/g, '')}
         </strong>
       );
       lastIndex = regex.lastIndex;
     }
     if (lastIndex < cleanLine.length) {
-      parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, ''));
+      parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, '').replace(/\*/g, ''));
     }
-    const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '')];
+    const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '').replace(/\*/g, '')];
 
     return (
       <p key={lineIdx} className={`mb-1 leading-relaxed text-xs md:text-sm ${isBullet ? 'pl-4 list-item list-disc' : ''}`}>

@@ -548,14 +548,16 @@ function ChatContent() {
     if (!text) return '';
     const cleanText = String(text);
     return cleanText.split('\n').map((line, lineIdx) => {
-      const trimmedLine = line.trim();
+      let cleanLine = line.trim();
       let isBullet = false;
-      let cleanLine = line;
 
-      // Match bullets like "* ", "- ", "• ", but do not match bold like "**"
-      if ((trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) && !trimmedLine.startsWith('**')) {
+      if ((cleanLine.startsWith('* ') || cleanLine.startsWith('- ') || cleanLine.startsWith('• ')) && !cleanLine.startsWith('**')) {
         isBullet = true;
-        cleanLine = trimmedLine.replace(/^[-*•]\s+/, '');
+        cleanLine = cleanLine.replace(/^[-*•]\s+/, '');
+      }
+
+      if (cleanLine.startsWith('#')) {
+        cleanLine = cleanLine.replace(/^#+\s*/, '');
       }
 
       const parts: (string | React.ReactNode)[] = [];
@@ -566,19 +568,19 @@ function ChatContent() {
 
       while ((match = regex.exec(cleanLine)) !== null) {
         if (match.index > lastIndex) {
-          parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, ''));
+          parts.push(cleanLine.substring(lastIndex, match.index).replace(/\*\*/g, '').replace(/\*/g, ''));
         }
         parts.push(
           <strong key={partIdx++} className="font-extrabold text-green-primary">
-            {match[1].replace(/\*\*/g, '')}
+            {match[1].replace(/\*\*/g, '').replace(/\*/g, '')}
           </strong>
         );
         lastIndex = regex.lastIndex;
       }
       if (lastIndex < cleanLine.length) {
-        parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, ''));
+        parts.push(cleanLine.substring(lastIndex).replace(/\*\*/g, '').replace(/\*/g, ''));
       }
-      const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '')];
+      const content = parts.length > 0 ? parts : [cleanLine.replace(/\*\*/g, '').replace(/\*/g, '')];
 
       if (isBullet) {
         return (
