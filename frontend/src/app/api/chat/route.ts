@@ -416,7 +416,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(15000, getRemainingTime(55000));
+        const timeLimit = Math.min(3000, getRemainingTime(8500));
         const res = await postWithTimeout(
           mimoUrl,
           {
@@ -467,7 +467,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(15000, getRemainingTime(55000));
+        const timeLimit = Math.min(3000, getRemainingTime(8500));
         const res = await postWithTimeout(
           freeLlmUrl,
           {
@@ -505,7 +505,7 @@ ${context || 'No specific crop matching the query.'}
       for (let i = 0; i < shuffledKeys.length; i++) {
         const activeKey = shuffledKeys[i];
         try {
-          const timeLimit = Math.min(15000, getRemainingTime(55000));
+          const timeLimit = Math.min(2500, getRemainingTime(8500));
           if (timeLimit < 2000) {
             console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
             break;
