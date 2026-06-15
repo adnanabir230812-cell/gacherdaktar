@@ -1219,146 +1219,151 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
           style={{
             width: '794px', 
             minHeight: '1123px', 
-            padding: '50px', 
+            padding: '35px', 
             boxSizing: 'border-box', 
             backgroundColor: '#FFFFFF',
             color: '#1F2937', 
             fontFamily: "'Hind Siliguri', sans-serif",
             position: 'relative',
-            border: '8px double #1B4332'
+            border: '8px double #1B4332',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
           }}
         >
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1B4332', paddingBottom: '15px', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/logo.png" 
-                alt="গাছের ডাক্তার লোগো" 
-                style={{ width: '55px', height: '55px', objectFit: 'contain' }}
-              />
-              <div>
-                <div style={{ color: '#1B4332', margin: '0 0 3px 0', fontSize: '24px', fontWeight: 'bold' }}>
-                  গাছের ডাক্তার (Gacher Doctor)
+          <div>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1B4332', paddingBottom: '10px', marginBottom: '15px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="/logo.png" 
+                  alt="গাছের ডাক্তার লোগো" 
+                  style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+                />
+                <div>
+                  <div style={{ color: '#1B4332', margin: '0 0 2px 0', fontSize: '22px', fontWeight: 'bold' }}>
+                    গাছের ডাক্তার (Gacher Doctor)
+                  </div>
+                  <p style={{ margin: 0, fontSize: '10px', color: '#40916C', fontWeight: '600' }}>
+                    ডিজিটাল শস্য রোগবালাই সনাক্তকরণ ও সমাধান প্রেসক্রিপশন
+                  </p>
                 </div>
-                <p style={{ margin: 0, fontSize: '11px', color: '#40916C', fontWeight: '600' }}>
-                  ডিজিটাল শস্য রোগবালাই সনাক্তকরণ ও সমাধান প্রেসক্রিপশন
-                </p>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: '10px', color: '#4B5563' }}>
+                <p style={{ margin: '2px 0' }}><strong>তারিখ:</strong> {translateToBanglaDigits(new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }))}</p>
+                <p style={{ margin: '2px 0' }}><strong>রিপোর্ট আইডি:</strong> GD-{translateToBanglaDigits(Math.floor(100000 + Math.random() * 900000))}</p>
               </div>
             </div>
-            <div style={{ textAlign: 'right', fontSize: '11px', color: '#4B5563' }}>
-              <p style={{ margin: '2px 0' }}><strong>তারিখ:</strong> {translateToBanglaDigits(new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }))}</p>
-              <p style={{ margin: '2px 0' }}><strong>রিপোর্ট আইডি:</strong> GD-{translateToBanglaDigits(Math.floor(100000 + Math.random() * 900000))}</p>
-            </div>
-          </div>
 
-          {/* Details Table */}
-          <div style={{ backgroundColor: '#E8F5E9', padding: '15px', borderRadius: '8px', marginBottom: '20px', borderLeft: '6px solid #1B4332' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '14px', fontWeight: 'bold', color: '#1B4332' }}>
-              <div>ফসল: <span style={{ color: '#1F2937' }}>{scannerResult?.crop}</span></div>
-              <div>চিহ্নিত রোগ: <span style={{ color: '#1F2937' }}>{scannerResult?.disease}</span></div>
-              <div style={{ gridColumn: 'span 2' }}>জীবাণু/কারণ: <span style={{ color: '#1F2937' }}>{scannerResult?.cause}</span></div>
+            {/* Details Table */}
+            <div style={{ backgroundColor: '#E8F5E9', padding: '12px', borderRadius: '8px', marginBottom: '15px', borderLeft: '6px solid #1B4332' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', fontWeight: 'bold', color: '#1B4332' }}>
+                <div>ফসল: <span style={{ color: '#1F2937' }}>{scannerResult?.crop}</span></div>
+                <div>চিহ্নিত রোগ: <span style={{ color: '#1F2937' }}>{scannerResult?.disease}</span></div>
+                <div style={{ gridColumn: 'span 2' }}>জীবাণু/কারণ: <span style={{ color: '#1F2937' }}>{scannerResult?.cause}</span></div>
+              </div>
             </div>
-          </div>
 
-          {/* Main Content (Horizontal Flex for Image & Seal, and Full-Width for text) */}
-          <div>
-            {/* Top Row: Leaf Image & Digital Seal */}
-            <div style={{ display: 'flex', gap: '30px', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', backgroundColor: '#F9FAFB', padding: '15px', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
-              {imgUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={imgUrl} 
-                  alt="Plant Leaf" 
-                  style={{ width: '180px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #1B4332' }}
-                />
-              ) : (
-                <div style={{ width: '180px', height: '120px', backgroundColor: '#F3F4F6', borderRadius: '8px', border: '2px dashed #D1D5DB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#9CA3AF' }}>
-                  ছবি সংযুক্ত নেই
-                </div>
-              )}
-              
-              {/* Premium Digital Certification Seal */}
-              <div style={{ 
-                width: '110px', 
-                height: '110px', 
-                borderRadius: '50%', 
-                border: '4px double #C5A880', 
-                backgroundColor: '#FFFFFF',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
-                padding: '5px'
-              }}>
-                <div style={{
-                  width: '92px',
-                  height: '92px',
-                  borderRadius: '50%',
-                  border: '1px solid #E8F5E9',
-                  backgroundColor: '#F9FBF9',
+            {/* Main Content (Horizontal Flex for Image & Seal, and Full-Width for text) */}
+            <div>
+              {/* Top Row: Leaf Image & Digital Seal */}
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', backgroundColor: '#F9FAFB', padding: '10px', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
+                {imgUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img 
+                    src={imgUrl} 
+                    alt="Plant Leaf" 
+                    style={{ width: '150px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #1B4332' }}
+                  />
+                ) : (
+                  <div style={{ width: '150px', height: '100px', backgroundColor: '#F3F4F6', borderRadius: '8px', border: '2px dashed #D1D5DB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#9CA3AF' }}>
+                    ছবি সংযুক্ত নেই
+                  </div>
+                )}
+                
+                {/* Premium Digital Certification Seal */}
+                <div style={{ 
+                  width: '95px', 
+                  height: '95px', 
+                  borderRadius: '50%', 
+                  border: '3px double #C5A880', 
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#1B4332'
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.05)',
+                  padding: '4px'
                 }}>
-                  <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#40916C', letterSpacing: '0.5px', marginBottom: '1px' }}>APPROVED</span>
-                  <span style={{ fontSize: '11px', fontWeight: '900', color: '#1B4332', margin: '2px 0' }}>গাছের ডাক্তার</span>
-                  <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#D4AF37', marginTop: '1px' }}>★ ★ ★</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Row: Full-width Details */}
-            <div style={{ width: '100%' }}>
-              <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>চিহ্নিত লক্ষণসমূহ</h3>
-                <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
-                  {scannerResult?.symptoms && String(scannerResult.symptoms).split('\n').map((line, idx) => (
-                    <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>জৈবিক ও প্রাকৃতিক দমন সমাধান</h3>
-                <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
-                  {scannerResult?.treatment_organic && String(scannerResult.treatment_organic).split('\n').map((line, idx) => (
-                    <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
-                  ))}
+                  <div style={{
+                    width: '79px',
+                    height: '79px',
+                    borderRadius: '50%',
+                    border: '1px solid #E8F5E9',
+                    backgroundColor: '#F9FBF9',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#1B4332'
+                  }}>
+                    <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#40916C', letterSpacing: '0.5px', marginBottom: '1px' }}>APPROVED</span>
+                    <span style={{ fontSize: '10px', fontWeight: '900', color: '#1B4332', margin: '1px 0' }}>গাছের ডাক্তার</span>
+                    <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#D4AF37', marginTop: '1px' }}>★ ★ ★</span>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>রাসায়নিক দমন ও সঠিক ডোজ মাত্রা</h3>
-                <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
-                  {scannerResult?.treatment_chemical && String(scannerResult.treatment_chemical).split('\n').map((line, idx) => (
-                    <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
-                  ))}
-                </div>
-              </div>
-
-              {scannerResult?.preventive_measures && (
-                <div>
-                  <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 4px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>ভবিষ্যৎ প্রতিরোধ ও সুরক্ষা গাইডলাইন</h3>
-                  <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#374151' }}>
-                    {String(scannerResult.preventive_measures).split('\n').map((line, idx) => (
+              {/* Bottom Row: Full-width Details */}
+              <div style={{ width: '100%' }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 3px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>চিহ্নিত লক্ষণসমূহ</h3>
+                  <div style={{ fontSize: '10.5px', lineHeight: '1.4', color: '#374151' }}>
+                    {scannerResult?.symptoms && String(scannerResult.symptoms).split('\n').map((line, idx) => (
                       <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
                     ))}
                   </div>
                 </div>
-              )}
+
+                <div style={{ marginBottom: '8px' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 3px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>জৈবিক ও প্রাকৃতিক দমন সমাধান</h3>
+                  <div style={{ fontSize: '10.5px', lineHeight: '1.4', color: '#374151' }}>
+                    {scannerResult?.treatment_organic && String(scannerResult.treatment_organic).split('\n').map((line, idx) => (
+                      <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '8px' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 3px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>রাসায়নিক দমন ও সঠিক ডোজ মাত্রা</h3>
+                  <div style={{ fontSize: '10.5px', lineHeight: '1.4', color: '#374151' }}>
+                    {scannerResult?.treatment_chemical && String(scannerResult.treatment_chemical).split('\n').map((line, idx) => (
+                      <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                    ))}
+                  </div>
+                </div>
+
+                {scannerResult?.preventive_measures && (
+                  <div style={{ marginBottom: '8px' }}>
+                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#1B4332', margin: '0 0 3px 0', borderBottom: '1px solid #E8F5E9', paddingBottom: '3px' }}>ভবিষ্যৎ প্রতিরোধ ও সুরক্ষা গাইডলাইন</h3>
+                    <div style={{ fontSize: '10.5px', lineHeight: '1.4', color: '#374151' }}>
+                      {String(scannerResult.preventive_measures).split('\n').map((line, idx) => (
+                        <p key={idx} style={{ margin: '1px 0' }}>• {line.replace(/^\s*[-*•]\s*/, '')}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div style={{ position: 'absolute', bottom: '40px', left: '50px', right: '50px', borderTop: '1px solid #E5E7EB', paddingTop: '15px', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 4px 0', fontSize: '11px', fontWeight: 'bold', color: '#1B4332' }}>
+          <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '12px', marginTop: '25px', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 3px 0', fontSize: '10px', fontWeight: 'bold', color: '#1B4332' }}>
               কৃষকের পাশে গাছের ডাক্তার — www.gacherdoctor.site
             </p>
-            <p style={{ margin: 0, fontSize: '9px', color: '#9CA3AF' }}>
+            <p style={{ margin: 0, fontSize: '8px', color: '#9CA3AF' }}>
               * এটি গাছের ডাক্তারের পরামর্শ রিপোর্ট। ব্যবহারের পূর্বে রাসায়নিক সার ও কীটনাশকের বোতলের নির্দেশিকা ভালভাবে পড়ে নিন।
             </p>
           </div>
