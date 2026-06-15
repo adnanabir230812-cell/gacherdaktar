@@ -1,0 +1,6 @@
+- [x] Update `frontend/src/app/api/chat/route.ts` to set MiMo timeout to 8000ms and Gemini key timeout to 12000ms
+- [x] Test the route locally to verify a live response is returned successfully
+- [x] Commit and push changes to Git
+- [x] Deploy to Vercel production
+- [x] Verify the live website logs and response to confirm successful live AI generation
+- [x] Update walkthrough.md and progress_log.md
