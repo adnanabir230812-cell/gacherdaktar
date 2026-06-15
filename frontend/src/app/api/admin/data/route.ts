@@ -35,6 +35,7 @@ function isAuthorizedAdmin(request: Request): boolean {
   const rawToken = cookies['krishisathi_admin_session'];
   if (!rawToken) return false;
 
+  const token = decodeURIComponent(rawToken);
   const envUsername = process.env.ADMIN_USERNAME;
   const envPassword = process.env.ADMIN_PASSWORD;
   if (!envUsername || !envPassword) {
