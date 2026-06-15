@@ -247,7 +247,7 @@ Guidelines & Bangladesh Context:
    - **Rice**: Blast (ধানের ব্লাস্ট - diamond/eye-shaped spots on leaves, gray center, neck rot) vs Bacterial Leaf Blight/BLB (ব্যাকটেরিয়াল পাতা পোড়া - wavy yellow/straw stripes from leaf tips along margins) vs Sheath Blight (খাপ পোড়া - large oval cloud-like lesions on sheaths).
    - **Tomato/Potato**: Late Blight (নাবি ধসা - water-soaked dark spots, white cottony mold under leaves in humidity) vs Early Blight (আগাম ধসা - dark brown circular spots with concentric rings/target-board pattern).
    - **Eggplant/Chilli**: Little Leaf (ক্ষুদ্র পত্র রোগ - bushy, tiny leaves, vector-borne) vs Phomopsis Blight/Fruit Rot (ফোমোপসিস ব্লাইট ও ফল পচা - sunken pale brown circular spots on fruit, circular spots on leaves).
-   - You MUST include a distinct comparison line in the 'symptoms' or 'cause' fields in Bengali (starting with "পার্থক্যকারী লক্ষণ: ") to help the farmer easily distinguish it from its closest mimic.
+   - You should ONLY include a distinct comparison line in the 'symptoms' or 'cause' fields in Bengali (starting with "পার্থক্যকারী লক্ষণ: ") if the disease has a very close mimic or is easily confused with another disease for that crop; do NOT write this comparison line if the disease is unique and distinct.
 5. DO NOT mention "AI", "Large Language Model", "machine learning", or similar tech terms anywhere in the response. Speak as "গাছের ডাক্তার" (Gacher Doctor) who has diagnosed the plant.
 5. In the "treatment_chemical" field, suggest ONLY 100% authentic, registered chemical pesticides/fungicides commonly used and widely available in Bangladeshi local markets. Use actual brand names and details:
    - For Rice Blast/Leaf Spot: নাটিভো ৭৫ডব্লিউজি (Nativo 75WG - ০.৬ গ্রাম প্রতি লিটার পানি) or অ্যামিস্টার টপ ৩২৫এসসি (Amistar Top 325SC - ১ মিলি প্রতি লিটার পানি)।
@@ -381,7 +381,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
-        const timeLimit = Math.min(4000, getRemainingTime(8500));
+        const timeLimit = Math.min(15000, getRemainingTime(25000));
         if (timeLimit < 1500) {
           console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
           break;
