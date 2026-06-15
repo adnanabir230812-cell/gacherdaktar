@@ -51,8 +51,13 @@ export async function POST(request: Request) {
     }
 
     // 2. Validate Credentials
-    const envUsername = process.env.ADMIN_USERNAME || 'admin';
-    const envPassword = process.env.ADMIN_PASSWORD || 'abir230812';
+    const envUsername = process.env.ADMIN_USERNAME;
+    const envPassword = process.env.ADMIN_PASSWORD;
+
+    if (!envUsername || !envPassword) {
+      console.error("[Security Alert] ADMIN_USERNAME or ADMIN_PASSWORD environment variables are missing!");
+      return NextResponse.json({ success: false, error: 'সার্ভার কনফিগারেশন ত্রুটি। অ্যাডমিন লগইন নিষ্ক্রিয় রয়েছে।' }, { status: 500 });
+    }
 
     const isMatch = (username === envUsername) && (password === envPassword);
 

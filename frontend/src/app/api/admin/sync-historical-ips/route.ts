@@ -15,8 +15,12 @@ function isAuthorizedAdmin(request: Request): boolean {
   if (!rawToken) return false;
 
   const token = decodeURIComponent(rawToken);
-  const envUsername = process.env.ADMIN_USERNAME || 'admin';
-  const envPassword = process.env.ADMIN_PASSWORD || 'abir230812';
+  const envUsername = process.env.ADMIN_USERNAME;
+  const envPassword = process.env.ADMIN_PASSWORD;
+  if (!envUsername || !envPassword) {
+    console.error("[Security Alert] ADMIN_USERNAME or ADMIN_PASSWORD environment variables are missing!");
+    return false;
+  }
   const expectedToken = Buffer.from(`${envUsername}:${envPassword}:${process.env.SUPABASE_SERVICE_ROLE_KEY}`).toString('base64');
 
   return token === expectedToken;
@@ -55,21 +59,20 @@ export async function POST(request: Request) {
       let geo = ipCache.get(ip);
       if (!geo) {
         try {
-          const res = await fetch(`http://ip-api.com/json/${ip}`);
+          const res = await fetch(`https://freeipapi.com/api/json/${ip}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.status === 'success') {
-              const ispLower = (data.isp || '').toLowerCase();
-              const isSpam = ['amazon', 'digitalocean', 'google', 'microsoft', 'linode', 'hetzner', 'ovh', 'cloudflare', 'm247', 'colocrossing', 'leaseweb'].some(provider => ispLower.includes(provider));
+            if (data.countryCode) {
+              const isSpam = !!data.isProxy;
               
               geo = {
-                country_name: data.country,
+                country_name: data.countryName,
                 country_code: data.countryCode,
                 region_name: data.regionName,
-                city_name: data.city,
-                isp: data.isp,
+                city_name: data.cityName,
+                isp: 'Unknown',
                 is_spam: isSpam,
-                spam_reason: isSpam ? 'Hosting Provider/Proxy Network' : null
+                spam_reason: isSpam ? 'Proxy/VPN/Cloud Network' : null
               };
               ipCache.set(ip, geo);
               

@@ -15,8 +15,12 @@ function isAuthorizedAdmin(request: Request): boolean {
   if (!rawToken) return false;
 
   const token = decodeURIComponent(rawToken);
-  const envUsername = process.env.ADMIN_USERNAME || 'admin';
-  const envPassword = process.env.ADMIN_PASSWORD || 'abir230812';
+  const envUsername = process.env.ADMIN_USERNAME;
+  const envPassword = process.env.ADMIN_PASSWORD;
+  if (!envUsername || !envPassword) {
+    console.error("[Security Alert] ADMIN_USERNAME or ADMIN_PASSWORD environment variables are missing!");
+    return false;
+  }
   const expectedToken = Buffer.from(`${envUsername}:${envPassword}:${process.env.SUPABASE_SERVICE_ROLE_KEY}`).toString('base64');
 
   return token === expectedToken;
