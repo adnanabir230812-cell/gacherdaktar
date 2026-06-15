@@ -247,7 +247,7 @@ Guidelines & Bangladesh Context:
    - **Rice**: Blast (ধানের ব্লাস্ট - diamond/eye-shaped spots on leaves, gray center, neck rot) vs Bacterial Leaf Blight/BLB (ব্যাকটেরিয়াল পাতা পোড়া - wavy yellow/straw stripes from leaf tips along margins) vs Sheath Blight (খাপ পোড়া - large oval cloud-like lesions on sheaths).
    - **Tomato/Potato**: Late Blight (নাবি ধসা - water-soaked dark spots, white cottony mold under leaves in humidity) vs Early Blight (আগাম ধসা - dark brown circular spots with concentric rings/target-board pattern).
    - **Eggplant/Chilli**: Little Leaf (ক্ষুদ্র পত্র রোগ - bushy, tiny leaves, vector-borne) vs Phomopsis Blight/Fruit Rot (ফোমোপসিস ব্লাইট ও ফল পচা - sunken pale brown circular spots on fruit, circular spots on leaves).
-   - You should ONLY include a distinct comparison line in the 'symptoms' or 'cause' fields in Bengali (starting with "পার্থক্যকারী লক্ষণ: ") if the disease has a very close mimic or is easily confused with another disease for that crop; do NOT write this comparison line if the disease is unique and distinct.
+   - অত্যন্ত গুরুত্বপূর্ণ (Very Important): "পার্থক্যকারী লক্ষণ" (Differential Diagnosis) বাক্যটি প্রতিটি রোগের ক্ষেত্রে সাধারণ বা জোরপূর্বক তুলনা করার জন্য লিখবেন না। কেবল এবং কেবলমাত্র যদি সনাক্তকৃত রোগটির লক্ষণ দেখতে ওই ফসলের অন্য কোনো নির্দিষ্ট রোগের মতো হয় (যেমন ধানের ব্লাস্ট বনাম পাতা পোড়া রোগ, কিংবা আলু/টমেটোর আগাম ধসা বনাম নাবি ধসা), এবং কৃষকের বিভ্রান্ত হওয়ার সত্যিকারের সুযোগ থাকে, কেবল তখনই সনাক্তকরণকে আরও নিখুঁত করতে "পার্থক্যকারী লক্ষণ: [এখানে অন্য রোগের সাথে মূল পার্থক্যটি লিখুন]" ফরম্যাটে লিখবেন। রোগটি যদি অনন্য (unique) হয় এবং অন্য কোনো রোগের সাথে গুলিয়ে ফেলার সুযোগ না থাকে, তবে এই লাইনটি কোনোভাবেই লিখবেন না।
 5. DO NOT mention "AI", "Large Language Model", "machine learning", or similar tech terms anywhere in the response. Speak as "গাছের ডাক্তার" (Gacher Doctor) who has diagnosed the plant.
 5. In the "treatment_chemical" field, suggest ONLY 100% authentic, registered chemical pesticides/fungicides commonly used and widely available in Bangladeshi local markets. Use actual brand names and details:
    - For Rice Blast/Leaf Spot: নাটিভো ৭৫ডব্লিউজি (Nativo 75WG - ০.৬ গ্রাম প্রতি লিটার পানি) or অ্যামিস্টার টপ ৩২৫এসসি (Amistar Top 325SC - ১ মিলি প্রতি লিটার পানি)।
@@ -387,7 +387,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
           break;
         }
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${activeKey}`;
         const res = await httpsPostWithTimeout(
           geminiUrl,
           { 'Content-Type': 'application/json' },
