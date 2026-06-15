@@ -381,7 +381,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
-        const timeLimit = Math.min(15000, getRemainingTime(25000));
+        const timeLimit = Math.min(25000, getRemainingTime(45000));
         if (timeLimit < 1500) {
           console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
           break;

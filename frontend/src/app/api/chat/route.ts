@@ -505,7 +505,7 @@ ${context || 'No specific crop matching the query.'}
       for (let i = 0; i < shuffledKeys.length; i++) {
         const activeKey = shuffledKeys[i];
         try {
-          const timeLimit = Math.min(12000, getRemainingTime(25000));
+          const timeLimit = Math.min(25000, getRemainingTime(45000));
           if (timeLimit < 1000) {
             console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
             break;
