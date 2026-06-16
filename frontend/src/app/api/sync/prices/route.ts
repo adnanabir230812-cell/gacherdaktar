@@ -109,6 +109,16 @@ async function fetchWithTimeout(url: string, options = {}, timeout = 5000) {
   }
 }
 
+function isValidPriceItem(item: any) {
+  const wMin = parseFloat(item.w_lowestPrice) || 0;
+  const wMax = parseFloat(item.w_highestPrice) || 0;
+  const rMin = parseFloat(item.r_lowestPrice) || 0;
+  const rMax = parseFloat(item.r_highestPrice) || 0;
+  if (wMin > wMax || rMin > rMax) return false;
+  if (wMin <= 0 && wMax <= 0 && rMin <= 0 && rMax <= 0) return false;
+  return true;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -250,7 +260,7 @@ export async function GET(request: Request) {
             if (kbSubmission) {
               for (const id of mapping.ids) {
                 const item = kbSubmission.commodity_list.find((c: any) => c.commodity_id === id);
-                if (item && (parseFloat(item.w_lowestPrice) > 0 || parseFloat(item.r_lowestPrice) > 0)) {
+                if (item && isValidPriceItem(item)) {
                   resolvedPrice = item;
                   break;
                 }
@@ -263,7 +273,7 @@ export async function GET(request: Request) {
               for (const id of mapping.ids) {
                 submissions.forEach((sub: any) => {
                   const item = sub.commodity_list.find((c: any) => c.commodity_id === id);
-                  if (item && (parseFloat(item.w_lowestPrice) > 0 || parseFloat(item.r_lowestPrice) > 0)) {
+                  if (item && isValidPriceItem(item)) {
                     matches.push(item);
                   }
                 });
@@ -303,21 +313,17 @@ export async function GET(request: Request) {
             minPrice = Math.round(wMin * 0.40);
             maxPrice = Math.round(wMax * 0.40);
           } else if (template.unit === "১২টি") {
-            if (rMin > 1 && rMin < 30) {
-              minPrice = Math.round(rMin * 12);
-              maxPrice = Math.round(rMax * 12);
-            } else {
-              minPrice = Math.round((wMin / 100) * 12);
-              maxPrice = Math.round((wMax / 100) * 12);
-            }
+            minPrice = Math.round(rMin * 3);
+            maxPrice = Math.round(rMax * 3);
           } else if (template.unit === "১০০টি") {
-            if (rMin > 0) {
-              minPrice = Math.round(rMin);
-              maxPrice = Math.round(rMax);
-            } else {
-              minPrice = Math.round(wMin / 10);
-              maxPrice = Math.round(wMax / 10);
-            }
+            minPrice = Math.round(wMin);
+            maxPrice = Math.round(wMax);
+          } else if (template.unit === "ছড়া") {
+            minPrice = Math.round(rMin * 8);
+            maxPrice = Math.round(rMax * 8);
+          } else if (template.unit === "আঁটি") {
+            minPrice = Math.round(rMin * 0.50);
+            maxPrice = Math.round(rMax * 0.50);
           } else {
             if (rMin > 0) {
               minPrice = Math.round(rMin);
