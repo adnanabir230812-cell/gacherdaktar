@@ -135,13 +135,13 @@ export default function MarketPricesPage() {
   const parsePrice = (range: string): number[] => {
     const banglaToEnglishMap: { [key: string]: string } = {
       '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
-      '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9',
-      ',': ''
+      '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9'
     };
     
-    const cleanRange = range.split('৳')[0].trim(); // Get digits part
+    // Remove both English and Bengali commas to prevent parseFloat stopping early
+    const cleanRange = range.split('৳')[0].replace(/,/g, '').replace(/，/g, '').trim();
     const parts = cleanRange.split('-').map(p => {
-      const engDigits = p.trim().split('').map(c => banglaToEnglishMap[c] || c).join('');
+      const engDigits = p.trim().split('').map(c => banglaToEnglishMap[c] !== undefined ? banglaToEnglishMap[c] : c).join('');
       return parseFloat(engDigits) || 0;
     });
 
@@ -341,16 +341,19 @@ export default function MarketPricesPage() {
       {/* Full-width Responsive Table */}
       <div className="space-y-6">
         {/* Farmers Awareness Banner */}
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 flex flex-col sm:flex-row items-start gap-4 shadow-sm animate-fade-in">
-          <div className="p-2.5 bg-amber-500/20 rounded-xl text-amber-700 shrink-0">
-            <AlertTriangle className="w-6 h-6" />
+        <div className="bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border-2 border-amber-500/40 rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-5 shadow-md animate-fade-in">
+          <div className="p-3 bg-amber-500/20 text-amber-800 rounded-2xl shrink-0 animate-pulse">
+            <AlertTriangle className="w-8 h-8" />
           </div>
-          <div className="space-y-1.5">
-            <h3 className="text-base font-extrabold text-amber-900">
-              কৃষক ভাইদের জন্য জরুরি সতর্কবার্তা
+          <div className="space-y-2 text-center md:text-left">
+            <h3 className="text-lg font-black text-amber-950 flex flex-col sm:flex-row items-center gap-2 justify-center md:justify-start">
+              <span className="px-2.5 py-0.5 bg-red-600 text-soft-white text-xs font-black rounded-full uppercase tracking-wider animate-bounce">
+                জরুরি সতর্কবার্তা
+              </span>
+              কৃষক ভাইদের জন্য গাছের ডাক্তারের বিশেষ বার্তা
             </h3>
-            <p className="text-sm font-semibold text-amber-800/90 leading-relaxed">
-              मध्यস্বত্বভোগী বা সিন্ডিকেটের ফাঁদ থেকে বাঁচতে নিজে সতর্ক হোন এবং অন্য কৃষক ভাইদেরও সচেতন করুন। যেকোনো ফসল বিক্রি করার আগে <strong className="text-amber-950 font-black">গাছের ডাক্তারের</strong> আজকের সঠিক পাইকারি বাজার দর যাচাই করে আপনার উৎপাদিত ফসলের ন্যায্য মূল্য বুঝে নিন। আমাদের সকল তথ্য সরাসরি কাওরান বাজার ও সরকারি (DAM) লাইভ ডেটাবেজ থেকে সংগৃহীত এবং ১০০% যাচাইকৃত।
+            <p className="text-sm sm:text-base font-semibold text-amber-900/90 leading-relaxed max-w-4xl">
+              <span className="text-red-600 font-extrabold">মধ্যস্বত্বভোগী বা সিন্ডিকেটের</span> ফাঁদ থেকে বাঁচতে <span className="underline decoration-amber-600 decoration-2 underline-offset-4 font-extrabold">নিজে সতর্ক হোন এবং অন্য কৃষক ভাইদেরও সচেতন করুন।</span> যেকোনো ফসল আড়তে বা বাজারে বিক্রি করার আগে <strong className="text-green-primary font-black">গাছের ডাক্তারের</strong> আজকের সঠিক পাইকারি বাজার দর যাচাই করে আপনার উৎপাদিত ফসলের ন্যায্য মূল্য বুঝে নিন। আমাদের সকল তথ্য সরাসরি কাওরান বাজার ও সরকারি (DAM) লাইভ ডেটাবেজ থেকে সংগৃহীত এবং <span className="text-red-600 font-extrabold bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20">১০০% যাচাইকৃত</span>।
             </p>
           </div>
         </div>
