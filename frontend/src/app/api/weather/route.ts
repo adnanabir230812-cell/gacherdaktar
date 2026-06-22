@@ -11,15 +11,43 @@ export async function GET(request: Request) {
     return security.response;
   }
   const { searchParams } = new URL(request.url);
+  const latStr = searchParams.get('lat');
+  const lonStr = searchParams.get('lon');
   const districtName = searchParams.get('district');
 
-  if (!districtName) {
-    return NextResponse.json({ error: 'District is required' }, { status: 400 });
+  let district: { name_bn: string; name_en: string; lat: number; lon: number } | undefined;
+
+  if (latStr && lonStr) {
+    const latVal = parseFloat(latStr);
+    const lonVal = parseFloat(lonStr);
+    if (!isNaN(latVal) && !isNaN(lonVal)) {
+      // Find closest district
+      let closestDist = DISTRICTS[0];
+      let minDist = Infinity;
+      for (const d of DISTRICTS) {
+        const dist = Math.pow(d.lat - latVal, 2) + Math.pow(d.lon - lonVal, 2);
+        if (dist < minDist) {
+          minDist = dist;
+          closestDist = d;
+        }
+      }
+      district = {
+        name_bn: `${closestDist.name_bn} (আপনার নিকটবর্তী)`,
+        name_en: `${closestDist.name_en} (Near You)`,
+        lat: latVal,
+        lon: lonVal,
+      };
+    }
   }
 
-  let district = DISTRICTS.find(d => d.name_bn === districtName);
   if (!district) {
-    district = DISTRICTS.find(d => d.name_en.toLowerCase() === districtName.toLowerCase());
+    if (!districtName) {
+      return NextResponse.json({ error: 'District, or lat and lon are required' }, { status: 400 });
+    }
+    district = DISTRICTS.find(d => d.name_bn === districtName);
+    if (!district) {
+      district = DISTRICTS.find(d => d.name_en.toLowerCase() === districtName.toLowerCase());
+    }
   }
 
   if (!district) {
@@ -45,7 +73,8 @@ export async function GET(request: Request) {
     console.warn('Open-Meteo Fetch failed, falling back to WeatherAPI:', fetchErr);
     
     const apiKey = process.env.WEATHER_API_KEY || '681c9776dd5947dcb05104416260306';
-    const weatherApiUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(district.name_en)},Bangladesh&days=7&aqi=no&alerts=no&lang=bn`;
+    const queryParam = (latStr && lonStr) ? `${district.lat},${district.lon}` : `${district.name_en},Bangladesh`;
+    const weatherApiUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(queryParam)}&days=7&aqi=no&alerts=no&lang=bn`;
 
     try {
       const res = await fetch(weatherApiUrl, {
