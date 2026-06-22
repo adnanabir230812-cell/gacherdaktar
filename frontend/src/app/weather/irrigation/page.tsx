@@ -92,7 +92,6 @@ export default function IrrigationAdvisor() {
       .catch(err => console.error(err));
 
     const savedCoords = localStorage.getItem('user_coords');
-    const hasSeenPrompt = localStorage.getItem('location_prompt_seen');
 
     if (savedCoords) {
       try {
@@ -108,9 +107,7 @@ export default function IrrigationAdvisor() {
 
     detectUserDistrict('ঢাকা').then(detected => {
       setSelectedDistrict(detected);
-      if (hasSeenPrompt !== 'true') {
-        setShowLocationModal(true);
-      }
+      setShowLocationModal(true); // Always show location modal if savedCoords is not present
     });
   }, []);
 
