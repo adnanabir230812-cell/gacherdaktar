@@ -354,7 +354,6 @@ export default function Home() {
   const handleRequestLocation = () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setShowLocationModal(false);
-      setShowDistrictModal(true); // Fallback to manual selection modal
       return;
     }
 
@@ -371,7 +370,6 @@ export default function Home() {
       (error) => {
         console.warn('Geolocation error on home page:', error);
         setShowLocationModal(false);
-        setShowDistrictModal(true); // Fallback to manual selection modal
       },
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
@@ -379,7 +377,6 @@ export default function Home() {
 
   const handleSkipLocation = () => {
     setShowLocationModal(false);
-    setShowDistrictModal(true); // Fallback to manual selection modal
   };
 
   const handleChipClick = (chip: string) => {
