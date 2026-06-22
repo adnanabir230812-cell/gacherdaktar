@@ -73,16 +73,12 @@ export default function IrrigationAdvisor() {
   const [weather, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Geolocation & Priming Prompt States
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [userCoordinates, setUserCoordinates] = useState<{ lat: number; lon: number } | null>(null);
-
   // Inline Chat States
   const [inlineChatMessages, setInlineChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([]);
   const [inlineChatInput, setInlineChatInput] = useState('');
   const [inlineChatLoading, setInlineChatLoading] = useState(false);
 
-  // Fetch districts and check stored location coordinates/permissions
+  // Fetch districts and manage district selection on entry
   useEffect(() => {
     fetch('/api/districts')
       .then(res => res.json())
@@ -91,33 +87,20 @@ export default function IrrigationAdvisor() {
       })
       .catch(err => console.error(err));
 
-    const savedCoords = localStorage.getItem('user_coords');
-
-    if (savedCoords) {
-      try {
-        const parsed = JSON.parse(savedCoords);
-        if (parsed && typeof parsed.lat === 'number' && typeof parsed.lon === 'number') {
-          setUserCoordinates(parsed);
-          return; // Skip default IP detection as we have high-accuracy coords
-        }
-      } catch (e) {
-        console.warn('Failed to parse user_coords:', e);
-      }
+    const storedDistrict = localStorage.getItem("krishisathi_user_district");
+    if (storedDistrict) {
+      setSelectedDistrict(storedDistrict);
+    } else {
+      detectUserDistrict('ঢাকা').then(detected => {
+        setSelectedDistrict(detected);
+      });
     }
-
-    detectUserDistrict('ঢাকা').then(detected => {
-      setSelectedDistrict(detected);
-      setShowLocationModal(true); // Always show location modal if savedCoords is not present
-    });
   }, []);
 
   // Fetch weather and advisory
   useEffect(() => {
     setLoading(true);
-    let url = `/api/weather?district=${encodeURIComponent(selectedDistrict)}`;
-    if (userCoordinates) {
-      url = `/api/weather?lat=${userCoordinates.lat}&lon=${userCoordinates.lon}`;
-    }
+    const url = `/api/weather?district=${encodeURIComponent(selectedDistrict)}`;
     
     fetch(url)
       .then(res => res.json())
@@ -140,39 +123,7 @@ export default function IrrigationAdvisor() {
         setWeatherData(null);
         setLoading(false);
       });
-  }, [selectedDistrict, userCoordinates]);
-
-  const handleRequestLocation = () => {
-    if (typeof window === 'undefined' || !navigator.geolocation) {
-      localStorage.setItem('location_prompt_seen', 'true');
-      setShowLocationModal(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords = {
-          lat: position.coords.latitude,
-          lon: position.coords.longitude
-        };
-        localStorage.setItem('user_coords', JSON.stringify(coords));
-        localStorage.setItem('location_prompt_seen', 'true');
-        setUserCoordinates(coords);
-        setShowLocationModal(false);
-      },
-      (error) => {
-        console.warn('Geolocation prompt rejected or failed:', error);
-        localStorage.setItem('location_prompt_seen', 'true');
-        setShowLocationModal(false);
-      },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
-  };
-
-  const handleSkipLocation = () => {
-    localStorage.setItem('location_prompt_seen', 'true');
-    setShowLocationModal(false);
-  };
+  }, [selectedDistrict]);
 
   const translateToBanglaDigits = (num: number | string): string => {
     const englishToBanglaMap: { [key: string]: string } = {
@@ -250,49 +201,7 @@ ${actionsStr}
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* Location Pre-Permission Dialog Modal */}
-      {showLocationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-text-primary/45 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
-            onClick={handleSkipLocation}
-          />
-          
-          <div className="relative bg-soft-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-green-primary/10 shadow-2xl transform transition-all duration-300 scale-95 md:scale-100 animate-scale-up text-text-primary">
-            <div className="absolute -top-10 -left-10 w-40 h-40 bg-green-primary/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-green-soft/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="relative space-y-6 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-green-primary/10 flex items-center justify-center text-green-primary animate-pulse">
-                <MapPin className="w-8 h-8" />
-              </div>
-              
-              <h2 className="text-2xl font-black text-text-primary">
-                নিখুঁত আবহাওয়া ও পরামর্শ
-              </h2>
-              
-              <p className="text-sm font-semibold text-text-secondary leading-relaxed">
-                প্রিয় কৃষক ভাই, আপনার এলাকার ফসলের জন্য সঠিক আবহাওয়া এবং সেচ সতর্কবার্তা দিতে আমাদের আপনার বর্তমান জিপিএস লোকেশন প্রয়োজন। এতে আপনি আপনার সঠিক এলাকার উপাত্ত পাবেন।
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  onClick={handleRequestLocation}
-                  className="flex-1 px-6 py-3 bg-green-primary hover:bg-[#153526] text-white font-extrabold text-sm rounded-xl cursor-pointer shadow-md transition-all duration-200"
-                >
-                  এগিয়ে যান
-                </button>
-                <button
-                  onClick={handleSkipLocation}
-                  className="flex-1 px-6 py-3 bg-soft-white hover:bg-gray-100 text-text-secondary font-bold text-sm rounded-xl border border-green-primary/10 cursor-pointer transition-all duration-200"
-                >
-                  পরে করব
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Header */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-green-primary/10 pb-6">
@@ -323,7 +232,6 @@ ${actionsStr}
               value={selectedDistrict}
               onChange={(e) => {
                 setSelectedDistrict(e.target.value);
-                setUserCoordinates(null); // Clear coordinates to let manual dropdown override location
               }}
               className="bg-transparent border-none text-green-primary font-black text-sm focus:outline-none cursor-pointer pr-6 py-0.5"
             >
