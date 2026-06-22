@@ -148,7 +148,25 @@ const CROPS_LIST: CropItem[] = [
   { bn: "পিচ", en: "Peach" },
   { bn: "রাস্পবেরি", en: "Raspberry" },
   { bn: "মালবেরি", en: "Mulberry" },
-  { bn: "কুসুম ফুল", en: "Safflower" }
+  { bn: "কুসুম ফুল", en: "Safflower" },
+  { bn: "কাউন", en: "Foxtail Millet" },
+  { bn: "গর্জন তিল", en: "Garjan Sesame" },
+  { bn: "চীনা", en: "Cheena Millet" },
+  { bn: "ফেলন", en: "Cowpea" },
+  { bn: "মটরশুঁটি", en: "Green Pea" },
+  { bn: "মাসকলাই", en: "Black Gram" },
+  { bn: "সুগারবিট", en: "Sugarbeet" },
+  { bn: "ওলকপি", en: "Kohlrabi" },
+  { bn: "কচু", en: "Taro" },
+  { bn: "কলমিশাক", en: "Water Spinach" },
+  { bn: "খিরা", en: "Cucumber (Kheera)" },
+  { bn: "ঝাড় শিম", en: "French Bean" },
+  { bn: "ডাটা", en: "Stem Amaranth" },
+  { bn: "ডাটাশাক", en: "Amaranth Leaves" },
+  { bn: "বতুয়াশাক", en: "Bathua Spinach" },
+  { bn: "মূখী কচু", en: "Taro Root" },
+  { bn: "সজিনা", en: "Drumstick" },
+  { bn: "স্কোয়াশ", en: "Squash" }
 ];
 
 const compressImage = (dataUrl: string, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.75): Promise<string> => {

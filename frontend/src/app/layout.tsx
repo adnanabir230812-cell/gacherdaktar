@@ -34,6 +34,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "গাছের ডাক্তার — সমন্বিত ডিজিটাল কৃষি সেবা",
     description: "শস্যের রোগবালাই নির্ণয়, লাইভ আবহাওয়া পূর্বাভাস, সার হিসাব ও চাষাবাদের প্রয়োজনীয় নির্দেশিকা জানুন সহজ বাংলায়।",
+  },
+  verification: {
+    google: "vHLx39512_mXVLKHvgPem7BkQYIN_4pysCoce2dsmd0",
   }
 };
 
