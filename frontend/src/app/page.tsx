@@ -250,6 +250,10 @@ export default function Home() {
   const [showDistrictModal, setShowDistrictModal] = useState(false);
   const [modalSearchQuery, setModalSearchQuery] = useState('');
 
+  // Geolocation & Priming Modal States
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [userCoordinates, setUserCoordinates] = useState<{ lat: number; lon: number } | null>(null);
+
   // Prompt suggestions
   const promptChips = [
     "ধানের পাতা হলুদ কেন?",
@@ -259,24 +263,46 @@ export default function Home() {
     "আদা ও হলুদের সঠিক চাষ পদ্ধতি"
   ];
 
-  // Fetch districts list
+  // Fetch districts list and manage location prompt popup on entry
   useEffect(() => {
     fetch('/api/districts')
       .then(res => res.json())
       .then(data => setDistricts(data))
       .catch(err => console.error(err));
 
+    const savedCoords = localStorage.getItem('user_coords');
     const storedDistrict = localStorage.getItem("krishisathi_user_district");
+
+    if (savedCoords) {
+      try {
+        const parsed = JSON.parse(savedCoords);
+        if (parsed && typeof parsed.lat === 'number' && typeof parsed.lon === 'number') {
+          setUserCoordinates(parsed);
+          // Set date prefix and end mount logic
+          const now = new Date();
+          const engDay = translateNumberToBangla(now.getDate());
+          const engMonth = GREGORIAN_MONTHS_BN[now.getMonth()];
+          const engYear = translateNumberToBangla(now.getFullYear());
+          setMarqueeDatePrefix(`আজ: ${engDay} ${engMonth}, ${engYear} (${translateNumberToBangla(getBanglaDateInfo(now).day)} ${getBanglaDateInfo(now).month} ${translateNumberToBangla(getBanglaDateInfo(now).year)}) | `);
+          return;
+        }
+      } catch (e) {
+        console.warn('Failed to parse user_coords:', e);
+      }
+    }
+
+    // Always show the pre-permission modal on homepage load if coordinates are not saved
+    setShowLocationModal(true);
+
     if (storedDistrict) {
       setSelectedDistrict(storedDistrict);
     } else {
-      setShowDistrictModal(true);
       detectUserDistrict('ঢাকা').then(detected => {
         setSelectedDistrict(detected);
       });
     }
 
-    // Calculate and set dynamic date prefix on mount (client-side only to avoid hydration mismatch)
+    // Calculate and set dynamic date prefix on mount
     const now = new Date();
     const engDay = translateNumberToBangla(now.getDate());
     const engMonth = GREGORIAN_MONTHS_BN[now.getMonth()];
@@ -291,10 +317,15 @@ export default function Home() {
     setMarqueeDatePrefix(`আজ: ${englishDateString} (${banglaDateString}) | `);
   }, []);
 
-  // Fetch weather data for selected district
+  // Fetch weather data for selected district or exact GPS coordinates
   useEffect(() => {
     setLoadingWeather(true);
-    fetch(`/api/weather?district=${encodeURIComponent(selectedDistrict)}`, { cache: 'no-store' })
+    let url = `/api/weather?district=${encodeURIComponent(selectedDistrict)}`;
+    if (userCoordinates) {
+      url = `/api/weather?lat=${userCoordinates.lat}&lon=${userCoordinates.lon}`;
+    }
+
+    fetch(url, { cache: 'no-store' })
       .then(res => {
         if (!res.ok) {
           console.error('Weather API returned non-ok status');
@@ -303,19 +334,53 @@ export default function Home() {
         return res.json();
       })
       .then(data => {
-        if (!data.error) {
+        if (data && !data.error) {
           setWeather(data);
+          if (userCoordinates && data.district) {
+            setSelectedDistrict(data.district);
+          }
         } else {
           setWeather(null);
         }
         setLoadingWeather(false);
       })
       .catch(err => {
-        console.error(err);
+        console.error('Fetch weather failed', err);
         setWeather(null);
         setLoadingWeather(false);
       });
-  }, [selectedDistrict]);
+  }, [selectedDistrict, userCoordinates]);
+
+  const handleRequestLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setShowLocationModal(false);
+      setShowDistrictModal(true); // Fallback to manual selection modal
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude
+        };
+        localStorage.setItem('user_coords', JSON.stringify(coords));
+        setUserCoordinates(coords);
+        setShowLocationModal(false);
+      },
+      (error) => {
+        console.warn('Geolocation error on home page:', error);
+        setShowLocationModal(false);
+        setShowDistrictModal(true); // Fallback to manual selection modal
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  };
+
+  const handleSkipLocation = () => {
+    setShowLocationModal(false);
+    setShowDistrictModal(true); // Fallback to manual selection modal
+  };
 
   const handleChipClick = (chip: string) => {
     router.push(`/chat?q=${encodeURIComponent(chip)}`);
@@ -524,7 +589,10 @@ export default function Home() {
           {/* District Selector */}
           <button
             type="button"
-            onClick={() => setShowDistrictModal(true)}
+            onClick={() => {
+              setUserCoordinates(null);
+              setShowDistrictModal(true);
+            }}
             className="flex items-center gap-3 bg-gradient-to-r from-soft-white to-amber-50 rounded-2xl px-5 py-3 shadow-md border-2 border-green-primary/20 hover:border-green-primary/40 active:scale-95 transition-all text-left cursor-pointer"
           >
             <MapPin className="w-5 h-5 text-green-primary shrink-0" />
@@ -1224,6 +1292,50 @@ export default function Home() {
       </section>
 
 
+
+      {/* Location Pre-Permission Dialog Modal */}
+      {showLocationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-text-primary/45 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
+            onClick={handleSkipLocation}
+          />
+          
+          <div className="relative bg-soft-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-green-primary/10 shadow-2xl transform transition-all duration-300 scale-95 md:scale-100 animate-scale-up text-text-primary">
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-green-primary/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-green-soft/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative space-y-6 text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-green-primary/10 flex items-center justify-center text-green-primary animate-pulse">
+                <MapPin className="w-8 h-8" />
+              </div>
+              
+              <h2 className="text-2xl font-black text-text-primary">
+                নিখুঁত আবহাওয়া ও পরামর্শ
+              </h2>
+              
+              <p className="text-sm font-semibold text-text-secondary leading-relaxed">
+                প্রিয় কৃষক ভাই, আপনার এলাকার ফসলের জন্য সঠিক আবহাওয়া এবং সেচ সতর্কবার্তা দিতে আমাদের আপনার বর্তমান জিপিএস লোকেশন প্রয়োজন। এতে আপনি আপনার সঠিক এলাকার উপাত্ত পাবেন।
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  onClick={handleRequestLocation}
+                  className="flex-1 px-6 py-3 bg-green-primary hover:bg-[#153526] text-white font-extrabold text-sm rounded-xl cursor-pointer shadow-md transition-all duration-200"
+                >
+                  এগিয়ে যান
+                </button>
+                <button
+                  onClick={handleSkipLocation}
+                  className="flex-1 px-6 py-3 bg-soft-white hover:bg-gray-100 text-text-secondary font-bold text-sm rounded-xl border border-green-primary/10 cursor-pointer transition-all duration-200"
+                >
+                  পরে করব
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🗺️ DISTRICT SELECTOR POPUP MODAL */}
       {showDistrictModal && (
