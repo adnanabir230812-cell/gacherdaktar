@@ -387,7 +387,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
           break;
         }
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${activeKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
         const res = await httpsPostWithTimeout(
           geminiUrl,
           { 'Content-Type': 'application/json' },

@@ -399,7 +399,7 @@ ${context || 'No specific crop matching the query.'}
     // 1. Try MiMoAPI if configured (for text/voice queries)
     if (!isImageQuery && process.env.MIMO_API_KEY) {
       try {
-        const mimoUrl = (process.env.MIMO_API_URL || 'https://platform.xiaomimimo.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
+        const mimoUrl = (process.env.MIMO_API_URL || 'https://api.xiaomimimo.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
         const mimoKey = process.env.MIMO_API_KEY.trim();
         const mimoModel = (process.env.MIMO_API_MODEL || 'mimo-v2.5').trim();
 
@@ -511,7 +511,7 @@ ${context || 'No specific crop matching the query.'}
             break;
           }
 
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${activeKey}`;
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
           const res = await postWithTimeout(
             geminiUrl,
             { 'Content-Type': 'application/json' },
