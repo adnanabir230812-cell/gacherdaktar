@@ -387,7 +387,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
           break;
         }
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${activeKey}`;
         let res = await httpsPostWithTimeout(
           geminiUrl,
           { 'Content-Type': 'application/json' },
@@ -412,10 +412,10 @@ Make this calculation 100% accurate and customized for their specific plant coun
           timeLimit
         );
 
-        // Model fallback: if gemini-2.5-flash is temporarily unavailable (503/429), try gemini-2.5-flash-lite on the same key
+        // Model fallback: if gemini-3.1-flash-lite is temporarily unavailable (503/429), try gemini-2.5-flash on the same key
         if (!res.ok && (res.status === 503 || res.status === 429)) {
-          console.warn(`[Classify API] Gemini Key ${i} failed with status ${res.status} for gemini-2.5-flash. Attempting fallback to gemini-2.5-flash-lite...`);
-          const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${activeKey}`;
+          console.warn(`[Classify API] Gemini Key ${i} failed with status ${res.status} for gemini-3.1-flash-lite. Attempting fallback to gemini-2.5-flash...`);
+          const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
           try {
             const fallbackRes = await httpsPostWithTimeout(
               fallbackUrl,
@@ -442,7 +442,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
             );
             if (fallbackRes.ok) {
               res = fallbackRes;
-              console.log(`[Classify API] Gemini Key ${i} fallback successful with gemini-2.5-flash-lite!`);
+              console.log(`[Classify API] Gemini Key ${i} fallback successful with gemini-2.5-flash!`);
             }
           } catch (fallbackErr: any) {
             console.error(`[Classify API] Gemini Key ${i} fallback attempt threw error:`, fallbackErr.message);

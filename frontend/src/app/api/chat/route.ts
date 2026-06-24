@@ -396,14 +396,96 @@ ${context || 'No specific crop matching the query.'}
 
     const isImageQuery = !!image;
 
-    // 1. Try MiMoAPI if configured (for text/voice queries)
-    if (!isImageQuery && process.env.MIMO_API_KEY) {
+    // 1. Try direct Gemini API FIRST (much more reliable and has 5 rotation keys)
+    console.log(`[Chat API] Routing to direct Gemini API (Attempting gemini-3.1-flash-lite/gemini-2.5-flash)`);
+
+    for (let i = 0; i < shuffledKeys.length; i++) {
+      const activeKey = shuffledKeys[i];
+      try {
+        const timeLimit = Math.min(5000, getRemainingTime(8000));
+        if (timeLimit < 1000) {
+          console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
+          break;
+        }
+
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${activeKey}`;
+        let res = await postWithTimeout(
+          geminiUrl,
+          { 'Content-Type': 'application/json' },
+          JSON.stringify({
+            contents: contents,
+            systemInstruction: {
+              parts: [
+                { text: systemPrompt }
+              ]
+            },
+            generationConfig: {
+              responseMimeType: "application/json",
+              maxOutputTokens: 4000
+            }
+          }),
+          timeLimit
+        );
+
+        // Model fallback rotation: if gemini-3.1-flash-lite is temporarily unavailable (503/429), try gemini-2.5-flash on the same key
+        if (!res.ok && (res.status === 503 || res.status === 429)) {
+          console.warn(`[Chat API] Gemini Key ${i} failed with status ${res.status} for gemini-3.1-flash-lite. Attempting fallback to gemini-2.5-flash...`);
+          const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+          try {
+            const fallbackRes = await postWithTimeout(
+              fallbackUrl,
+              { 'Content-Type': 'application/json' },
+              JSON.stringify({
+                contents: contents,
+                systemInstruction: {
+                  parts: [
+                    { text: systemPrompt }
+                  ]
+                },
+                generationConfig: {
+                  responseMimeType: "application/json",
+                  maxOutputTokens: 4000
+                }
+              }),
+              Math.max(1000, timeLimit - 500)
+            );
+            if (fallbackRes.ok) {
+              res = fallbackRes;
+              console.log(`[Chat API] Gemini Key ${i} fallback successful with gemini-2.5-flash!`);
+            }
+          } catch (fallbackErr: any) {
+            console.error(`[Chat API] Gemini Key ${i} fallback attempt threw error:`, fallbackErr.message);
+          }
+        }
+
+        if (res.ok) {
+          const data = JSON.parse(res.text);
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            responseText = text;
+            llmSuccess = true;
+            usedKeyIndex = i;
+            usedLlmProvider = 'GeminiDirect';
+            break;
+          }
+        } else {
+          geminiError += `[Key ${i} failed: Status ${res.status}] `;
+          console.error(`Gemini API key ${i} returned status ${res.status}: ${res.text}`);
+        }
+      } catch (err: any) {
+        geminiError += `[Key ${i} error: ${err.message}] `;
+        console.error(`Gemini API key ${i} call failed:`, err.message);
+      }
+    }
+
+    // 2. Try MiMoAPI if direct Gemini failed/skipped (for text/voice queries)
+    if (!isImageQuery && !llmSuccess && process.env.MIMO_API_KEY) {
       try {
         const mimoUrl = (process.env.MIMO_API_URL || 'https://api.xiaomimimo.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
         const mimoKey = process.env.MIMO_API_KEY.trim();
         const mimoModel = (process.env.MIMO_API_MODEL || 'mimo-v2.5').trim();
 
-        console.log(`[Chat API] Routing text-only query to MiMoAPI using model: ${mimoModel}`);
+        console.log(`[Chat API] Fallback to MiMoAPI using model: ${mimoModel}`);
 
         const messages = [{ role: 'system', content: systemPrompt }];
         if (history && Array.isArray(history)) {
@@ -447,14 +529,14 @@ ${context || 'No specific crop matching the query.'}
       }
     }
 
+    // 3. Try FreeLLMAPI if everything else failed (for text/voice queries)
     if (!isImageQuery && !llmSuccess) {
-      // Try FreeLLMAPI first for text/voice queries
       try {
         const freeLlmUrl = (process.env.FREE_LLM_API_URL || process.env.NEXT_PUBLIC_FREELLM_API_URL || 'https://freellmapi.onrender.com/v1').trim().replace(/\/$/, '') + '/chat/completions';
         const freeLlmKey = (process.env.FREE_LLM_API_KEY || process.env.NEXT_PUBLIC_FREELLM_API_KEY || 'freellmapi-d5c6db74de65d76f3a7ac1b1d0b6ba6aa2c1df6716faa9d2').trim();
         const freeLlmModel = (process.env.FREE_LLM_MODEL || 'gemini-3.5-flash').trim();
 
-        console.log(`[Chat API] Routing text-only query to FreeLLMAPI using model: ${freeLlmModel}`);
+        console.log(`[Chat API] Fallback to FreeLLMAPI using model: ${freeLlmModel}`);
 
         const messages = [{ role: 'system', content: systemPrompt }];
         if (history && Array.isArray(history)) {
@@ -495,90 +577,6 @@ ${context || 'No specific crop matching the query.'}
         }
       } catch (err: any) {
         console.error(`[Chat API] FreeLLMAPI call failed:`, err.message);
-      }
-    }
-
-    // Fallback to direct Gemini API if FreeLLMAPI failed/skipped or if it is an image query
-    if (!llmSuccess) {
-      console.log(`[Chat API] Routing to direct Gemini API (Reason: ${isImageQuery ? 'Image query' : 'FreeLLMAPI failed/skipped'})`);
-
-      for (let i = 0; i < shuffledKeys.length; i++) {
-        const activeKey = shuffledKeys[i];
-        try {
-          const timeLimit = Math.min(4000, getRemainingTime(8000));
-          if (timeLimit < 1000) {
-            console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
-            break;
-          }
-
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-          let res = await postWithTimeout(
-            geminiUrl,
-            { 'Content-Type': 'application/json' },
-            JSON.stringify({
-              contents: contents,
-              systemInstruction: {
-                parts: [
-                  { text: systemPrompt }
-                ]
-              },
-              generationConfig: {
-                responseMimeType: "application/json",
-                maxOutputTokens: 4000
-              }
-            }),
-            timeLimit
-          );
-
-          // Model fallback rotation: if gemini-2.5-flash is temporarily unavailable (503/429), try gemini-2.5-flash-lite on the same key
-          if (!res.ok && (res.status === 503 || res.status === 429)) {
-            console.warn(`[Chat API] Gemini Key ${i} failed with status ${res.status} for gemini-2.5-flash. Attempting fallback to gemini-2.5-flash-lite...`);
-            const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${activeKey}`;
-            try {
-              const fallbackRes = await postWithTimeout(
-                fallbackUrl,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({
-                  contents: contents,
-                  systemInstruction: {
-                    parts: [
-                      { text: systemPrompt }
-                    ]
-                  },
-                  generationConfig: {
-                    responseMimeType: "application/json",
-                    maxOutputTokens: 4000
-                  }
-                }),
-                Math.max(1000, timeLimit - 500)
-              );
-              if (fallbackRes.ok) {
-                res = fallbackRes;
-                console.log(`[Chat API] Gemini Key ${i} fallback successful with gemini-2.5-flash-lite!`);
-              }
-            } catch (fallbackErr: any) {
-              console.error(`[Chat API] Gemini Key ${i} fallback attempt threw error:`, fallbackErr.message);
-            }
-          }
-
-          if (res.ok) {
-            const data = JSON.parse(res.text);
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              responseText = text;
-              llmSuccess = true;
-              usedKeyIndex = i;
-              usedLlmProvider = 'GeminiDirect';
-              break;
-            }
-          } else {
-            geminiError += `[Key ${i} failed: Status ${res.status}] `;
-            console.error(`Gemini API key ${i} returned status ${res.status}: ${res.text}`);
-          }
-        } catch (err: any) {
-          geminiError += `[Key ${i} error: ${err.message}] `;
-          console.error(`Gemini API key ${i} call failed:`, err.message);
-        }
       }
     }
 
