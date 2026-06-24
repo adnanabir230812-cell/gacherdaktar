@@ -381,14 +381,14 @@ Make this calculation 100% accurate and customized for their specific plant coun
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
-        const timeLimit = Math.min(25000, getRemainingTime(45000));
+        const timeLimit = Math.min(6000, getRemainingTime(8000));
         if (timeLimit < 1500) {
           console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
           break;
         }
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-        const res = await httpsPostWithTimeout(
+        let res = await httpsPostWithTimeout(
           geminiUrl,
           { 'Content-Type': 'application/json' },
           JSON.stringify({
@@ -411,6 +411,43 @@ Make this calculation 100% accurate and customized for their specific plant coun
           }),
           timeLimit
         );
+
+        // Model fallback: if gemini-2.5-flash is temporarily unavailable (503/429), try gemini-2.5-flash-lite on the same key
+        if (!res.ok && (res.status === 503 || res.status === 429)) {
+          console.warn(`[Classify API] Gemini Key ${i} failed with status ${res.status} for gemini-2.5-flash. Attempting fallback to gemini-2.5-flash-lite...`);
+          const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${activeKey}`;
+          try {
+            const fallbackRes = await httpsPostWithTimeout(
+              fallbackUrl,
+              { 'Content-Type': 'application/json' },
+              JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      { text: activePrompt },
+                      {
+                        inlineData: {
+                          mimeType: mimeType,
+                          data: base64Data
+                        }
+                      }
+                    ]
+                  }
+                ],
+                generationConfig: {
+                  responseMimeType: "application/json"
+                }
+              }),
+              Math.max(1500, timeLimit - 1000)
+            );
+            if (fallbackRes.ok) {
+              res = fallbackRes;
+              console.log(`[Classify API] Gemini Key ${i} fallback successful with gemini-2.5-flash-lite!`);
+            }
+          } catch (fallbackErr: any) {
+            console.error(`[Classify API] Gemini Key ${i} fallback attempt threw error:`, fallbackErr.message);
+          }
+        }
 
         if (res.ok) {
           const data = JSON.parse(res.text);

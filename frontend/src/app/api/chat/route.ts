@@ -416,7 +416,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(8000, getRemainingTime(25000));
+        const timeLimit = Math.min(3000, getRemainingTime(8000));
         const res = await postWithTimeout(
           mimoUrl,
           {
@@ -467,7 +467,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(2000, getRemainingTime(25000));
+        const timeLimit = Math.min(1500, getRemainingTime(8000));
         const res = await postWithTimeout(
           freeLlmUrl,
           {
@@ -505,14 +505,14 @@ ${context || 'No specific crop matching the query.'}
       for (let i = 0; i < shuffledKeys.length; i++) {
         const activeKey = shuffledKeys[i];
         try {
-          const timeLimit = Math.min(25000, getRemainingTime(45000));
+          const timeLimit = Math.min(4000, getRemainingTime(8000));
           if (timeLimit < 1000) {
             console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
             break;
           }
 
           const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
-          const res = await postWithTimeout(
+          let res = await postWithTimeout(
             geminiUrl,
             { 'Content-Type': 'application/json' },
             JSON.stringify({
@@ -529,6 +529,37 @@ ${context || 'No specific crop matching the query.'}
             }),
             timeLimit
           );
+
+          // Model fallback rotation: if gemini-2.5-flash is temporarily unavailable (503/429), try gemini-2.5-flash-lite on the same key
+          if (!res.ok && (res.status === 503 || res.status === 429)) {
+            console.warn(`[Chat API] Gemini Key ${i} failed with status ${res.status} for gemini-2.5-flash. Attempting fallback to gemini-2.5-flash-lite...`);
+            const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${activeKey}`;
+            try {
+              const fallbackRes = await postWithTimeout(
+                fallbackUrl,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({
+                  contents: contents,
+                  systemInstruction: {
+                    parts: [
+                      { text: systemPrompt }
+                    ]
+                  },
+                  generationConfig: {
+                    responseMimeType: "application/json",
+                    maxOutputTokens: 4000
+                  }
+                }),
+                Math.max(1000, timeLimit - 500)
+              );
+              if (fallbackRes.ok) {
+                res = fallbackRes;
+                console.log(`[Chat API] Gemini Key ${i} fallback successful with gemini-2.5-flash-lite!`);
+              }
+            } catch (fallbackErr: any) {
+              console.error(`[Chat API] Gemini Key ${i} fallback attempt threw error:`, fallbackErr.message);
+            }
+          }
 
           if (res.ok) {
             const data = JSON.parse(res.text);
