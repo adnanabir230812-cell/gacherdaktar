@@ -267,6 +267,12 @@ export async function POST(request: Request) {
   }
 
   const startTime = Date.now();
+  const isVercel = !!process.env.VERCEL;
+  const maxDurationMs = isVercel ? 8000 : 30000;
+  const directTimeoutMs = isVercel ? 5000 : 15000;
+  const mimoTimeoutMs = isVercel ? 3000 : 10000;
+  const freeLlmTimeoutMs = isVercel ? 1500 : 10000;
+
   const getRemainingTime = (maxDurationMs: number) => {
     const elapsed = Date.now() - startTime;
     return Math.max(1000, maxDurationMs - elapsed);
@@ -402,7 +408,7 @@ ${context || 'No specific crop matching the query.'}
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
-        const timeLimit = Math.min(5000, getRemainingTime(8000));
+        const timeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
         if (timeLimit < 1000) {
           console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
           break;
@@ -498,7 +504,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(3000, getRemainingTime(8000));
+        const timeLimit = Math.min(mimoTimeoutMs, getRemainingTime(maxDurationMs));
         const res = await postWithTimeout(
           mimoUrl,
           {
@@ -549,7 +555,7 @@ ${context || 'No specific crop matching the query.'}
         }
         messages.push({ role: 'user', content: userPrompt });
 
-        const timeLimit = Math.min(1500, getRemainingTime(8000));
+        const timeLimit = Math.min(freeLlmTimeoutMs, getRemainingTime(maxDurationMs));
         const res = await postWithTimeout(
           freeLlmUrl,
           {

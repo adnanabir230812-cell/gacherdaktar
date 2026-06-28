@@ -200,6 +200,10 @@ export async function POST(request: Request) {
   }
 
   const startTime = Date.now();
+  const isVercel = !!process.env.VERCEL;
+  const maxDurationMs = isVercel ? 8000 : 30000;
+  const directTimeoutMs = isVercel ? 6000 : 18000;
+
   const getRemainingTime = (maxDurationMs: number) => {
     const elapsed = Date.now() - startTime;
     return Math.max(1000, maxDurationMs - elapsed);
@@ -381,7 +385,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
-        const timeLimit = Math.min(6000, getRemainingTime(8000));
+        const timeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
         if (timeLimit < 1500) {
           console.warn(`Skipping key ${i} due to insufficient remaining time: ${timeLimit}ms`);
           break;
