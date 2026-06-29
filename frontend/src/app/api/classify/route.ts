@@ -559,9 +559,9 @@ Make this calculation 100% accurate and customized for their specific plant coun
       try {
         const timeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
         
-        // Execute Model A (Gemini 1.5 Pro) and Model B (GPT-4o mini) in parallel
+        // Execute Model A (Gemini 2.5 Pro) and Model B (GPT-4o mini) in parallel
         const [resA, resB] = await Promise.allSettled([
-          postOpenRouter('google/gemini-pro-1.5', activePrompt, resolvedImages, openrouterKey, timeLimit),
+          postOpenRouter('google/gemini-2.5-pro', activePrompt, resolvedImages, openrouterKey, timeLimit),
           postOpenRouter('openai/gpt-4o-mini', activePrompt, resolvedImages, openrouterKey, timeLimit)
         ]);
 
