@@ -281,6 +281,26 @@ export async function POST(request: Request) {
   try {
     const { query, history = [], district, season, image } = await request.json();
 
+    let actualSeason = season;
+    if (!season || season === 'বোরো') {
+      if (query.includes('বোরো') || query.includes('boro')) {
+        actualSeason = 'বোরো';
+      } else if (query.includes('আমন') || query.includes('aman')) {
+        actualSeason = 'আমন';
+      } else if (query.includes('আউশ') || query.includes('aush')) {
+        actualSeason = 'আউশ';
+      } else {
+        const month = new Date().getMonth() + 1; // 1-12
+        if (month >= 10 || month <= 3) {
+          actualSeason = 'বোরো (রবি)';
+        } else if (month >= 4 && month <= 6) {
+          actualSeason = 'আউশ (খরিফ-১)';
+        } else {
+          actualSeason = 'আমন (খরিফ-২)';
+        }
+      }
+    }
+
     if (!query || !query.trim()) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
@@ -345,7 +365,7 @@ JSON Schema:
     const userPrompt = `
 চাষীর প্রশ্ন: "${query}"
 ${district ? `বর্তমান জেলা: ${district}` : 'বর্তমান জেলা: অনির্দিষ্ট (কৃষক তার জেলা উল্লেখ করেননি, সাধারণ সমাধান দিন। কিন্তু যদি মাটি বা জেলা-নির্দিষ্ট আবহাওয়া ও ফসল নির্বাচনের মতো কোনো লোকেশন-নির্ভর সমস্যা হয়, তবে উত্তর লেখার শেষভাগে সুন্দর করে কৃষকের কাছে তার জেলা জানতে চেয়ে প্রশ্ন করবেন)'}
-${season ? `ঋতু/মৌসুম: ${season}` : 'ঋতু/মৌসুম: অনির্দিষ্ট (কৃষক তার চাষের নির্দিষ্ট ঋতু/মৌসুম উল্লেখ করেননি, সাধারণ সমাধান দিন যা সব মৌসুমের জন্য প্রযোজ্য। কিন্তু যদি উত্তরটি নির্দিষ্ট ঋতুর ওপর বেশি নির্ভরশীল হয়, তবে উত্তরের শেষভাগে সুন্দর করে কৃষকের কাছে তার ঋতু জানতে চেয়ে প্রশ্ন করবেন)'}
+${actualSeason ? `ঋতু/মৌসুম: ${actualSeason}` : 'ঋতু/মৌসুম: অনির্দিষ্ট (কৃষক তার চাষের নির্দিষ্ট ঋতু/মৌসুম উল্লেখ করেননি, সাধারণ সমাধান দিন যা সব মৌসুমের জন্য প্রযোজ্য। কিন্তু যদি উত্তরটি নির্দিষ্ট ঋতুর ওপর বেশি নির্ভরশীল হয়, তবে উত্তরের শেষভাগে সুন্দর করে কৃষকের কাছে তার ঋতু জানতে চেয়ে প্রশ্ন করবেন)'}
 
 কৃষি সম্পর্কিত তথ্য (Context):
 ${context || 'No specific crop matching the query.'}
