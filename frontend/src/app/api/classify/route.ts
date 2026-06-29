@@ -354,8 +354,8 @@ export async function POST(request: Request) {
 
   const startTime = Date.now();
   const isVercel = !!process.env.VERCEL;
-  const maxDurationMs = isVercel ? 8000 : 30000;
-  const directTimeoutMs = isVercel ? 6000 : 18000;
+  const maxDurationMs = isVercel ? 8000 : 90000;
+  const directTimeoutMs = isVercel ? 6000 : 75000;
 
   const getRemainingTime = (maxDurationMs: number) => {
     const elapsed = Date.now() - startTime;
