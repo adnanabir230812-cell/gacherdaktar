@@ -210,7 +210,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { image, type = 'leaf', location = 'ঢাকা', answers, crop, landSize, landUnit, plantCount } = await request.json();
+    const { image, type = 'leaf', location, answers, crop, landSize, landUnit, plantCount } = await request.json();
 
     if (!image) {
       return NextResponse.json({ error: 'Image data is required' }, { status: 400 });
@@ -306,8 +306,8 @@ Critical Pre-check & Clarification Rules:
 Guidelines & Bangladesh Context:
 1. Identify the soil type: দোআঁশ (Loamy), বেলে (Sandy), এঁটেল (Clayey), পলি (Silty), or similar.
 2. In the "soil_type" field, state the Bengali name and put the English term in parentheses next to it.
-3. Estimate the pH level of this soil (between 4.0 and 9.0) based on its visual traits and the farmer's location/district: "${location}".
-4. In the "suitable_crops" field, list the most profitable and suitable crops that grow well in this type of soil in "${location}" district of Bangladesh (bullet points in Bangla).
+3. Estimate the pH level of this soil (between 4.0 and 9.0) based on its visual traits and the farmer's location/district: "${location ? location : 'অনির্দিষ্ট (কৃষক তার জেলা উল্লেখ করেননি, সাধারণ সমাধান দিন)'}".
+4. In the "suitable_crops" field, list the most profitable and suitable crops that grow well in this type of soil in "${location ? location : 'অনির্দিষ্ট (কৃষক তার জেলা উল্লেখ করেননি, সাধারণ বাংলাদেশের উপযোগী ফসলের তালিকা দিন)'}" district of Bangladesh (bullet points in Bangla).
 5. In the "organic_advice" field, provide highly detailed, step-by-step organic/natural methods to improve this soil's fertility, structure, and water retention (colloquial Bangla dialect).
 6. In the "chemical_advice" field, specify the exact chemical amendments needed if the pH is off, suggesting 100% authentic, locally available products in Bangladesh:
    - For Acidic Soil (pH < 6.0): ডলোচুন (Dolomite Powder / Dololime) - প্রতি শতকে ১ থেকে ১.৫ কেজি শেষ চাষের সময় মাটিতে মিশিয়ে দিতে হবে।

@@ -279,7 +279,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { query, history = [], district, season = "বোরো", image } = await request.json();
+    const { query, history = [], district, season, image } = await request.json();
 
     if (!query || !query.trim()) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -345,7 +345,7 @@ JSON Schema:
     const userPrompt = `
 চাষীর প্রশ্ন: "${query}"
 ${district ? `বর্তমান জেলা: ${district}` : 'বর্তমান জেলা: অনির্দিষ্ট (কৃষক তার জেলা উল্লেখ করেননি, সাধারণ সমাধান দিন। কিন্তু যদি মাটি বা জেলা-নির্দিষ্ট আবহাওয়া ও ফসল নির্বাচনের মতো কোনো লোকেশন-নির্ভর সমস্যা হয়, তবে উত্তর লেখার শেষভাগে সুন্দর করে কৃষকের কাছে তার জেলা জানতে চেয়ে প্রশ্ন করবেন)'}
-ঋতু: ${season}
+${season ? `ঋতু/মৌসুম: ${season}` : 'ঋতু/মৌসুম: অনির্দিষ্ট (কৃষক তার চাষের নির্দিষ্ট ঋতু/মৌসুম উল্লেখ করেননি, সাধারণ সমাধান দিন যা সব মৌসুমের জন্য প্রযোজ্য। কিন্তু যদি উত্তরটি নির্দিষ্ট ঋতুর ওপর বেশি নির্ভরশীল হয়, তবে উত্তরের শেষভাগে সুন্দর করে কৃষকের কাছে তার ঋতু জানতে চেয়ে প্রশ্ন করবেন)'}
 
 কৃষি সম্পর্কিত তথ্য (Context):
 ${context || 'No specific crop matching the query.'}
