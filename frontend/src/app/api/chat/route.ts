@@ -270,8 +270,8 @@ export async function POST(request: Request) {
   const isVercel = !!process.env.VERCEL;
   const maxDurationMs = isVercel ? 8000 : 30000;
   const directTimeoutMs = isVercel ? 5000 : 15000;
-  const mimoTimeoutMs = isVercel ? 3000 : 10000;
-  const freeLlmTimeoutMs = isVercel ? 1500 : 10000;
+  const mimoTimeoutMs = isVercel ? 3000 : 25000;
+  const freeLlmTimeoutMs = isVercel ? 1500 : 20000;
 
   const getRemainingTime = (maxDurationMs: number) => {
     const elapsed = Date.now() - startTime;
