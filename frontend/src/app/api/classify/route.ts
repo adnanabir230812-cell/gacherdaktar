@@ -552,63 +552,185 @@ Make this calculation 100% accurate and customized for their specific plant coun
       }
     };
 
-    // 1. Try OpenRouter Dual-Model Parallel Scanning with Consensus Check
+    // 1. Try OpenRouter Hybrid Split-Model Flow (Pro Vision + Flash Text)
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     if (openrouterKey) {
-      console.log("[Classify API] OpenRouter API key found. Executing parallel dual-model scanning...");
+      console.log("[Classify API] OpenRouter API key found. Executing Hybrid Split-Model Flow (Pro Vision + Flash Text)...");
       try {
         const timeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
+
+        // Prompt for Phase 1 (Vision Diagnosis)
+        const visionPrompt = `
+You are "গাছের ডাক্তার" (Gacher Doctor), a plant disease vision classifier.
+Analyze the provided leaf/plant image.
+
+Critical Pre-check:
+1. Verify if the uploaded image represents a plant, crop, leaf, tree, stem, agricultural field, fruit, or vegetable.
+   - If NOT, set "is_valid" to false, "error_message" to "এটি কোনো গাছ, লতাপাতা বা ফসলের ছবি নয়। দয়া করে আক্রান্ত ফসলের একটি স্পষ্ট ছবি আপলোড করুন।"
+2. If valid but ambiguous, set "need_clarification" to true, list at most 1 or 2 simple multiple-choice questions in the "questions" array.
+3. If confident, set "need_clarification" to false, set "questions" to null, and identify the crop and disease.
+   - In "disease", provide the local colloquial Bangla name and English/scientific name in parentheses (e.g. ধানের ব্লাস্ট রোগ (Rice Blast)).
+   - In "cause", provide the scientific cause/pathogen name in simple Bengali.
+
+Return ONLY a JSON matching this schema:
+{
+  "is_valid": true,
+  "error_message": null,
+  "need_clarification": false,
+  "questions": null,
+  "crop": "...",
+  "disease": "...",
+  "cause": "...",
+  "confidence": 0.95
+}
+`;
+
+        let activeVisionPrompt = visionPrompt;
+        if (crop && type !== 'soil') {
+          activeVisionPrompt += `\n\nFarmer's Specified Crop: The farmer has explicitly selected that this crop is "${crop}".`;
+        }
+        if (answers && Object.keys(answers).length > 0) {
+          activeVisionPrompt += `\n\nUser's Answers to Clarifying Questions:\n${JSON.stringify(answers, null, 2)}`;
+        }
+
+        // Call Phase 1: OpenRouter Gemini 2.5 Pro
+        console.log("[Classify API] Calling OpenRouter Gemini 2.5 Pro for vision identification...");
+        const resA = await postOpenRouter('google/gemini-2.5-pro', activeVisionPrompt, resolvedImages, openrouterKey, timeLimit);
         
-        // Execute Model A (Gemini 2.5 Pro) and Model B (GPT-4o mini) in parallel
-        const [resA, resB] = await Promise.allSettled([
-          postOpenRouter('google/gemini-2.5-pro', activePrompt, resolvedImages, openrouterKey, timeLimit),
-          postOpenRouter('openai/gpt-4o-mini', activePrompt, resolvedImages, openrouterKey, timeLimit)
-        ]);
+        if (!resA.ok) {
+          throw new Error(`OpenRouter Pro Vision call failed with status ${resA.status}: ${resA.text}`);
+        }
 
-        let textA = '';
+        const dataA = JSON.parse(resA.text);
+        const textA = dataA.choices?.[0]?.message?.content;
+        if (!textA) {
+          throw new Error("OpenRouter Pro Vision returned empty content");
+        }
+
+        console.log("[Classify API] Pro Vision Response:", textA);
+        const parsedA = parseClassificationResponse(textA);
+
+        // If invalid or needs clarification, return immediately!
+        if (!parsedA.is_valid || parsedA.need_clarification) {
+          await logDiagnostic(parsedA);
+          return NextResponse.json({ success: true, result: parsedA });
+        }
+
+        // Prompt for Phase 2 (Text Report Generation)
+        const textPrompt = `
+You are "গাছের ডাক্তার" (Gacher Doctor), a highly experienced crop pathologist and master gardener in Bangladesh.
+Generate a detailed agricultural prescription report in Bengali for:
+- Crop: ${parsedA.crop}
+- Identified Disease/Issue: ${parsedA.disease}
+- Pathogen/Cause: ${parsedA.cause}
+- Cultivated Land Size: ${landSize ? `${landSize} ${landUnit}` : 'N/A'}
+- Affected Plant Count: ${plantCount ? `${plantCount}টি` : 'N/A'}
+- Location: ${location || 'ঢাকা'}
+- User's Answers to Clarifying Questions: ${answers ? JSON.stringify(answers) : 'None'}
+
+Instructions:
+1. Provide extremely detailed, section-by-section solutions in warm, friendly, natural Bangla (colloquial Bangladeshi farming dialect).
+2. **Symptoms**: List major visible symptoms in bullet points. If applicable, add a "পার্থক্যকারী লক্ষণ" (Differential Diagnosis) explaining how to distinguish it from similar diseases of the same crop.
+3. **Organic Treatment**: Provide detailed organic/natural methods. If a plot size of ${landSize ? `${landSize} ${landUnit}` : 'N/A'} or plant count of ${plantCount ? `${plantCount}টি` : 'N/A'} is provided, calculate the total required natural materials/organic doses explicitly for their whole plot/plant count!
+4. **Chemical Treatment**: Suggest ONLY 100% authentic, registered chemical pesticides/fungicides commonly used in Bangladesh (e.g. Nativo 75WG at 0.6g/L, Amistar Top 325SC at 1ml/L, Virtako 40WG at 0.15g/L, Sobicron 425EC at 2ml/L).
+   - Crucial Calculation: You MUST calculate the EXACT total dosage of pesticide and water needed for the user's specific plot size/plant count!
+     For example: "আপনার মোট ৭ শতক জমির জন্য প্রায় ১৪ লিটার পানি লাগবে। প্রতি লিটার পানিতে ০.৬ গ্রাম হিসেবে ১৪ লিটারে মোট ৮.৪ গ্রাম নাティブো ওষুধ ভালোভাবে মিশিয়ে স্প্রে করুন।"
+   - Detail WHY this chemical is needed, HOW to mix and apply step-by-step, and PRECAUTIONS (e.g. wearing mask, wait 14 days before harvest).
+5. **Preventive Measures**: Detailed long-term guidelines (bullet points).
+6. **Dosage formatting**: Convert all decimal kilograms to grams (e.g. use "৮.৪ গ্রাম" instead of "0.0084 kg").
+
+Return ONLY a JSON matching this schema:
+{
+  "symptoms": "...",
+  "treatment_organic": "...",
+  "treatment_chemical": "...",
+  "preventive_measures": "..."
+}
+`;
+
+        const geminiKeys = getGeminiApiKeys();
+        const shuffledKeys = [...geminiKeys].sort(() => Math.random() - 0.5);
         let textB = '';
+        let textBSuccess = false;
 
-        if (resA.status === 'fulfilled' && resA.value.ok) {
-          const data = JSON.parse(resA.value.text);
-          textA = data.choices?.[0]?.message?.content || '';
-        } else {
-          console.warn("[Classify API] Model A (Gemini 1.5 Pro) failed:", resA.status === 'rejected' ? resA.reason.message : resA.value?.text);
-        }
+        // Try direct free Gemini key rotation first
+        if (shuffledKeys.length > 0) {
+          for (let i = 0; i < shuffledKeys.length; i++) {
+            const activeKey = shuffledKeys[i];
+            try {
+              const textTimeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
+              if (textTimeLimit < 1500) {
+                console.warn(`[Classify Text] Skipping direct key ${i} due to timeout`);
+                break;
+              }
 
-        if (resB.status === 'fulfilled' && resB.value.ok) {
-          const data = JSON.parse(resB.value.text);
-          textB = data.choices?.[0]?.message?.content || '';
-        } else {
-          console.warn("[Classify API] Model B (GPT-4o mini) failed:", resB.status === 'rejected' ? resB.reason.message : resB.value?.text);
-        }
+              console.log(`[Classify Text] Calling direct free Gemini API using key index ${i}...`);
+              const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+              const res = await httpsPostWithTimeout(
+                geminiUrl,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({
+                  contents: [{ parts: [{ text: textPrompt }] }],
+                  generationConfig: { responseMimeType: "application/json" }
+                }),
+                textTimeLimit
+              );
 
-        let consensusText = '';
-        if (textA && textB) {
-          console.log("[Classify API] Both models succeeded. Running consensus check...");
-          try {
-            const consensusTimeLimit = Math.min(5000, getRemainingTime(maxDurationMs));
-            consensusText = await runOpenRouterConsensus(textA, textB, openrouterKey, consensusTimeLimit);
-          } catch (consErr: any) {
-            console.error("[Classify API] Consensus check failed, falling back to Model A directly:", consErr.message);
-            consensusText = textA;
+              if (res.ok) {
+                const data = JSON.parse(res.text);
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  textB = text;
+                  textBSuccess = true;
+                  break;
+                }
+              }
+            } catch (err: any) {
+              console.error(`[Classify Text] Direct key index ${i} failed:`, err.message || err);
+            }
           }
-        } else if (textA) {
-          console.log("[Classify API] Only Model A succeeded. Using it directly.");
-          consensusText = textA;
-        } else if (textB) {
-          console.log("[Classify API] Only Model B succeeded. Using it directly.");
-          consensusText = textB;
         }
 
-        if (consensusText) {
-          const parsedData = parseClassificationResponse(consensusText);
-          await logDiagnostic(parsedData);
-          return NextResponse.json({ success: true, result: parsedData });
+        // If direct keys failed/skipped, fallback to OpenRouter Gemini 2.5 Flash (Paid)
+        if (!textBSuccess) {
+          console.warn("[Classify Text] All direct free keys failed. Falling back to OpenRouter Gemini 2.5 Flash...");
+          const textTimeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
+          const res = await postOpenRouter('google/gemini-2.5-flash', textPrompt, [], openrouterKey, textTimeLimit);
+          if (res.ok) {
+            const data = JSON.parse(res.text);
+            textB = data.choices?.[0]?.message?.content || '';
+            textBSuccess = true;
+          }
         }
+
+        if (!textBSuccess || !textB) {
+          throw new Error("Failed to generate text report in both direct and OpenRouter flows");
+        }
+
+        const parsedB = parseClassificationResponse(textB);
+
+        // Merge Phase 1 and Phase 2 JSONs
+        const finalResult = {
+          is_valid: parsedA.is_valid,
+          error_message: parsedA.error_message,
+          need_clarification: parsedA.need_clarification,
+          questions: parsedA.questions,
+          crop: parsedA.crop,
+          disease: parsedA.disease,
+          cause: parsedA.cause,
+          symptoms: parsedB.symptoms,
+          treatment_organic: parsedB.treatment_organic,
+          treatment_chemical: parsedB.treatment_chemical,
+          preventive_measures: parsedB.preventive_measures,
+          confidence: parsedA.confidence
+        };
+
+        await logDiagnostic(finalResult);
+        return NextResponse.json({ success: true, result: finalResult });
+
       } catch (orErr: any) {
-        console.error("[Classify API] OpenRouter flow threw general error:", orErr.message || orErr);
+        console.error("[Classify API] Hybrid split-model flow failed, falling back to direct Gemini keys:", orErr.message || orErr);
       }
-      console.warn("[Classify API] OpenRouter flow failed or returned no response. Falling back to direct Gemini keys...");
     }
 
     // 2. Direct Gemini Fallback (Direct API rotation keys)
