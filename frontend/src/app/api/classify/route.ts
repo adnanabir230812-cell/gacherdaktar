@@ -6,7 +6,6 @@ import { CROPS } from '../data';
 import { supabaseAdmin } from '@/lib/supabase';
 import { checkSecurity, isOwnerIp } from '@/lib/security';
 
-
 dns.setDefaultResultOrder('ipv4first');
 
 export const maxDuration = 60; // Allow function to run up to 60 seconds on Vercel
@@ -193,6 +192,143 @@ function parseClassificationResponse(text: string): any {
   };
 }
 
+async function postOpenRouter(
+  model: string,
+  prompt: string,
+  images: string[],
+  apiKey: string,
+  timeoutMs: number
+): Promise<{ ok: boolean; status: number; text: string }> {
+  const content: any[] = [{ type: "text", text: prompt }];
+  
+  for (const img of images) {
+    let mimeType = "image/jpeg";
+    let base64Data = img;
+    if (img.startsWith('data:')) {
+      const semiIndex = img.indexOf(';');
+      if (semiIndex !== -1) {
+        mimeType = img.substring(5, semiIndex);
+      }
+      const base64Index = img.indexOf(';base64,');
+      if (base64Index !== -1) {
+        base64Data = img.substring(base64Index + 8);
+      }
+    }
+    content.push({
+      type: "image_url",
+      image_url: {
+        url: `data:${mimeType};base64,${base64Data}`
+      }
+    });
+  }
+
+  const payload = {
+    model: model,
+    messages: [
+      {
+        role: "user",
+        content: content
+      }
+    ],
+    response_format: {
+      type: "json_object"
+    }
+  };
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://gacherdoctor.site",
+      "X-Title": "Gacher Doctor"
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(timeoutMs)
+  });
+
+  const text = await res.text();
+  return {
+    ok: res.ok,
+    status: res.status,
+    text: text
+  };
+}
+
+async function runOpenRouterConsensus(
+  textA: string,
+  textB: string,
+  apiKey: string,
+  timeoutMs: number
+): Promise<string> {
+  const consensusPrompt = `
+You are "গাছের ডাক্তার" (Gacher Doctor), an expert local plant pathologist in Bangladesh.
+Below are leaf disease/soil diagnoses from two different agricultural vision models for the same sample.
+Reconcile and merge these two diagnoses. If they disagree, use scientific agricultural logic to determine the correct diagnosis.
+Combine their treatment instructions (organic, chemical, and preventive) into a single, unified, reassuring, and extremely detailed handbook-style response in Bengali for the farmer.
+Ensure the tone is warm and colloquial ("প্রিয় কৃষক ভাই" style).
+Return ONLY a valid JSON object matching the requested schema. No extra text or markdown wrapping.
+
+Model A response:
+${textA}
+
+Model B response:
+${textB}
+
+JSON Schema:
+{
+  "is_valid": true,
+  "error_message": null,
+  "need_clarification": false,
+  "questions": null,
+  "crop": "ফসলের বাংলা নাম (ইংরেজি নাম)",
+  "disease": "রোগের স্থানীয় ও পরিচিত বাংলা নাম (ইংরেজি বা বৈজ্ঞানিক নাম)",
+  "cause": "রোগের বৈজ্ঞানিক কারণ বা জীবাণু (সহজ বাংলায়)",
+  "symptoms": "দৃশ্যমান প্রধান লক্ষণসমূহ (বুলেট পয়েন্টে বিস্তারিত)",
+  "treatment_organic": "জৈবিক ও প্রাকৃতিক সমাধানসমূহ (বুলেট পয়েন্টে অত্যন্ত বিস্তারিত)",
+  "treatment_chemical": "বাংলাদেশি ব্র্যান্ডের বালাইনাশক/ওষুধের নাম, সঠিক প্রয়োগ মাত্রা, কেন প্রয়োজন, কীভাবে পানি মেশাবেন এবং কি সতর্কতা অবলম্বন করবেন (বুলেট পয়েন্টে অত্যন্ত বিস্তারিত এবং বুঝিয়ে ব্যাখ্যা করা)",
+  "preventive_measures": "ভবিষ্যতে এই রোগ প্রতিরোধ করার করণীয় পদক্ষেপ ও দীর্ঘমেয়াদী নির্দেশিকা (বুলেট পয়েন্টে বিস্তারিত)",
+  "confidence": 0.95
+}
+`;
+
+  const payload = {
+    model: "openai/gpt-4o-mini",
+    messages: [
+      {
+        role: "user",
+        content: consensusPrompt
+      }
+    ],
+    response_format: {
+      type: "json_object"
+    }
+  };
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://gacherdoctor.site",
+      "X-Title": "Gacher Doctor"
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(timeoutMs)
+  });
+
+  if (!res.ok) {
+    throw new Error(`Consensus failed with status ${res.status}: ${await res.text()}`);
+  }
+
+  const data = JSON.parse(await res.text());
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) {
+    throw new Error("Consensus response content was empty");
+  }
+  return text;
+}
+
 export async function POST(request: Request) {
   const security = await checkSecurity(request, 'classify');
   if (security.blocked && security.response) {
@@ -210,24 +346,26 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { image, type = 'leaf', location, answers, crop, landSize, landUnit, plantCount } = await request.json();
+    const { image, images, type = 'leaf', location, answers, crop, landSize, landUnit, plantCount } = await request.json();
 
-    if (!image) {
+    const resolvedImages: string[] = images || (image ? [image] : []);
+
+    if (resolvedImages.length === 0) {
       return NextResponse.json({ error: 'Image data is required' }, { status: 400 });
     }
 
-    // Extract raw base64 data and mimeType from data URL securely without regex ReDoS risk
+    const firstImage = resolvedImages[0];
     let mimeType = "image/jpeg";
-    let base64Data = image;
+    let base64Data = firstImage;
 
-    if (image.startsWith('data:')) {
-      const semiIndex = image.indexOf(';');
+    if (firstImage.startsWith('data:')) {
+      const semiIndex = firstImage.indexOf(';');
       if (semiIndex !== -1) {
-        mimeType = image.substring(5, semiIndex);
+        mimeType = firstImage.substring(5, semiIndex);
       }
-      const base64Index = image.indexOf(';base64,');
+      const base64Index = firstImage.indexOf(';base64,');
       if (base64Index !== -1) {
-        base64Data = image.substring(base64Index + 8);
+        base64Data = firstImage.substring(base64Index + 8);
       }
     }
 
@@ -254,7 +392,7 @@ Guidelines & Bangladesh Context:
    - অত্যন্ত গুরুত্বপূর্ণ (Very Important): "পার্থক্যকারী লক্ষণ" (Differential Diagnosis) বাক্যটি প্রতিটি রোগের ক্ষেত্রে সাধারণ বা জোরপূর্বক তুলনা করার জন্য লিখবেন না। কেবল এবং কেবলমাত্র যদি সনাক্তকৃত রোগটির লক্ষণ দেখতে ওই ফসলের অন্য কোনো নির্দিষ্ট রোগের মতো হয় (যেমন ধানের ব্লাস্ট বনাম পাতা পোড়া রোগ, কিংবা আলু/টমেটোর আগাম ধসা বনাম নাবি ধসা), এবং কৃষকের বিভ্রান্ত হওয়ার সত্যিকারের সুযোগ থাকে, কেবল তখনই সনাক্তকরণকে আরও নিখুঁত করতে "পার্থক্যকারী লক্ষণ: [এখানে অন্য রোগের সাথে মূল পার্থক্যটি লিখুন]" ফরম্যাটে লিখবেন। রোগটি যদি অনন্য (unique) হয় এবং অন্য কোনো রোগের সাথে গুলিয়ে ফেলার সুযোগ না থাকে, তবে এই লাইনটি কোনোভাবেই লিখবেন না।
 5. DO NOT mention "AI", "Large Language Model", "machine learning", or similar tech terms anywhere in the response. Speak as "গাছের ডাক্তার" (Gacher Doctor) who has diagnosed the plant.
 5. In the "treatment_chemical" field, suggest ONLY 100% authentic, registered chemical pesticides/fungicides commonly used and widely available in Bangladeshi local markets. Use actual brand names and details:
-   - For Rice Blast/Leaf Spot: নাটিভো ৭৫ডব্লিউজি (Nativo 75WG - ০.৬ গ্রাম প্রতি লিটার পানি) or অ্যামিস্টার টপ ৩২৫এসসি (Amistar Top 325SC - ১ মিলি প্রতি লিটার পানি)।
+   - For Rice Blast/Leaf Spot: নাティブো ৭৫ডব্লিউজি (Nativo 75WG - ০.৬ গ্রাম প্রতি লিটার পানি) or অ্যামিস্টার টপ ৩২৫এসসি (Amistar Top 325SC - ১ মিলি প্রতি লিটার পানি)।
    - For Sheath Blight/Dieback: অ্যামিস্টার টপ ৩২৫এসসি (Amistar Top 325SC - ১ মিলি প্রতি লিটার পানি) or কন্টাফ ৫ইসি (Contaf 5EC - ২ মিলি প্রতি লিটার পানি)।
    - For Potato/Tomato Late Blight: রিডোমিল গোল্ড ৬৮ডব্লিউজি (Ridomil Gold 68WG - ২ গ্রাম প্রতি লিটার পানি) or ডাইথেন এম-৪৫ (Dithane M-45 - ২ গ্রাম প্রতি লিটার পানি)।
    - For Borers/Caterpillars (মাজরা পোকা / ডগা ও ফল ছিদ্রকারী পোকা): ভার্টাকো ৪০ডব্লিউজি (Virtako 40WG - ০.১৫ গ্রাম প্রতি লিটার পানি) or সবিক্রন ৪২৫ইসি (Sobicron 425EC - ২ মিলি প্রতি লিটার পানি) or প্রোক্লেম ৫এসজি (Proclaim 5SG - ১ গ্রাম প্রতি লিটার পানি)।
@@ -264,7 +402,7 @@ Guidelines & Bangladesh Context:
 6. **Detailed Explaining Tone ("Bujhano Tone") Requirement**:
    - For any chemical suggestion, do NOT just write the pesticide name and dose. You MUST write in a detailed, handbook-style explaining tone.
    - Detail **WHY** this chemical is needed (e.g., "এই বালাইনাশকটি আক্রান্ত ছত্রাককে দ্রুত দমন করবে এবং সুস্থ অংশকে সংক্রমণ থেকে বাঁচাবে...").
-   - Explain **HOW** to mix and apply step-by-step (e.g., "প্রথমে ১০ লিটার পরিষ্কার পানি একটি বালতি বা ডোপে নিন, সেখানে ৬ গ্রাম নাটিভো ওষুধ দিয়ে ভালোভাবে লাঠি দিয়ে নেড়ে গুলিয়ে নিন। এরপর বিকেলের দিকে রোদের তীব্রতা কমে গেলে পুরো গাছে ভালো করে স্প্রে করুন...").
+   - Explain **HOW** to mix and apply step-by-step (e.g., "প্রথমে ১০ লিটার পরিষ্কার পানি একটি বালতি বা ডোপে নিন, সেখানে ৬ গ্রাম নাティブো ওষুধ দিয়ে ভালোভাবে লাঠি দিয়ে নেড়ে গুলিয়ে নিন। এরপর বিকেলের দিকে রোদের তীব্রতা কমে গেলে পুরো গাছে ভালো করে স্প্রে করুন...").
    - Provide **PRECAUTIONS** (e.g., "স্প্রে করার সময় মুখে অবশ্যই মাস্ক ও হাতে গ্লাভস ব্যবহার করবেন। বালাইনাশক স্প্রে করার পর অন্তত ১৪ দিনের মধ্যে ফসল সংগ্রহ করবেন না এবং ফসল খাওয়ার আগে পরিষ্কার পানিতে ভালো করে ধুয়ে নেবেন...").
 7. **Critical Dosage Formatting Rule**: NEVER write pesticide or seed/fertilizer dosages/weights in decimal kilograms (e.g., do NOT write "0.03 kg", "0.5 kg", "0.05 kg" or "০.০৩ কেজি"). Convert all decimal kilogram measurements to grams and write them in standard Bangla (e.g., "৩০ গ্রাম", "৫০০ গ্রাম", "৫০ গ্রাম"). If a measurement is 1 kg or more, write it as "X কেজি Y গ্রাম" (e.g., for 1.2 kg write "১ কেজি ২০০ গ্রাম", for 1 kg write "১ কেজি") instead of "1.2 kg" or "১.২ কেজি".
 8. Return ONLY a valid JSON object matching the schema below. No extra text or markdown wrapping outside the JSON.
@@ -283,7 +421,7 @@ JSON Schema:
   ],
   "crop": "ফসলের বাংলা নাম (ইংরেজি নাম)",
   "disease": "রোগের স্থানীয় ও পরিচিত বাংলা নাম (ইংরেজি বা বৈজ্ঞানিক নাম)",
-  "cause": "রোগের বৈজ্ঞানিক কারণ বা জীবাণু (সহজ বাংলায়)",
+  "cause": "রোগের বৈজ্ঞানিক কারণ বা জীবাণু (सहज বাংলায়)",
   "symptoms": "ছবিতে দৃশ্যমান প্রধান লক্ষণসমূহ (বুলেট পয়েন্টে বিস্তারিত)",
   "treatment_organic": "জৈবিক ও প্রাকৃতিক সমাধানসমূহ - মাটি পরিচর্যা, জৈব সার ও প্রাকৃতিক দমন পদ্ধতি (বুলেট পয়েন্টে অত্যন্ত বিস্তারিত)",
   "treatment_chemical": "বাংলাদেশি ব্র্যান্ডের বালাইনাশক/ওষুধের নাম, সঠিক প্রয়োগ মাত্রা, কেন প্রয়োজন, কীভাবে পানি মেশাবেন এবং কি সতর্কতা অবলম্বন করবেন (বুলেট পয়েন্টে অত্যন্ত বিস্তারিত এবং বুঝিয়ে ব্যাখ্যা করা)",
@@ -370,18 +508,102 @@ Make this calculation 100% accurate and customized for their specific plant coun
       activePrompt += `\n\nUser's Answers to Clarifying Questions:\n${JSON.stringify(answers, null, 2)}\nUse these answers to resolve any ambiguity, set "need_clarification" to false, set "questions" to null, and output the final diagnostic results.`;
     }
 
+    // Logging helper for thesis diagnostic stats
+    const logDiagnostic = async (resObj: any) => {
+      if (resObj && resObj.is_valid && !resObj.need_clarification) {
+        try {
+          const forwarded = request.headers.get('x-forwarded-for');
+          const realIp = request.headers.get('x-real-ip');
+          const clientIp = forwarded ? forwarded.split(',')[0].trim() : (realIp || '127.0.0.1');
+
+          if (await isOwnerIp(clientIp)) {
+            console.log(`[Bypass Logging] Diagnostic log bypassed for owner IP: ${clientIp}`);
+            return;
+          }
+
+          await supabaseAdmin.from('diagnostic_logs').insert({
+            crop_name: resObj.crop || crop || (type === 'soil' ? 'মাটি (Soil)' : 'Unknown'),
+            disease_name: resObj.disease || (type === 'soil' ? resObj.soil_type : 'Healthy/Unknown'),
+            confidence: Number(resObj.confidence) || 0.85,
+            image_url: firstImage,
+            location: location || 'ঢাকা',
+            created_at: new Date().toISOString()
+          });
+        } catch (dbErr) {
+          console.error("Failed to write diagnostic log to Supabase:", dbErr);
+        }
+      }
+    };
+
+    // 1. Try OpenRouter Dual-Model Parallel Scanning with Consensus Check
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    if (openrouterKey) {
+      console.log("[Classify API] OpenRouter API key found. Executing parallel dual-model scanning...");
+      try {
+        const timeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
+        
+        // Execute Model A (Gemini 1.5 Pro) and Model B (GPT-4o mini) in parallel
+        const [resA, resB] = await Promise.allSettled([
+          postOpenRouter('google/gemini-1.5-pro', activePrompt, resolvedImages, openrouterKey, timeLimit),
+          postOpenRouter('openai/gpt-4o-mini', activePrompt, resolvedImages, openrouterKey, timeLimit)
+        ]);
+
+        let textA = '';
+        let textB = '';
+
+        if (resA.status === 'fulfilled' && resA.value.ok) {
+          const data = JSON.parse(resA.value.text);
+          textA = data.choices?.[0]?.message?.content || '';
+        } else {
+          console.warn("[Classify API] Model A (Gemini 1.5 Pro) failed:", resA.status === 'rejected' ? resA.reason.message : resA.value?.text);
+        }
+
+        if (resB.status === 'fulfilled' && resB.value.ok) {
+          const data = JSON.parse(resB.value.text);
+          textB = data.choices?.[0]?.message?.content || '';
+        } else {
+          console.warn("[Classify API] Model B (GPT-4o mini) failed:", resB.status === 'rejected' ? resB.reason.message : resB.value?.text);
+        }
+
+        let consensusText = '';
+        if (textA && textB) {
+          console.log("[Classify API] Both models succeeded. Running consensus check...");
+          try {
+            const consensusTimeLimit = Math.min(5000, getRemainingTime(maxDurationMs));
+            consensusText = await runOpenRouterConsensus(textA, textB, openrouterKey, consensusTimeLimit);
+          } catch (consErr: any) {
+            console.error("[Classify API] Consensus check failed, falling back to Model A directly:", consErr.message);
+            consensusText = textA;
+          }
+        } else if (textA) {
+          console.log("[Classify API] Only Model A succeeded. Using it directly.");
+          consensusText = textA;
+        } else if (textB) {
+          console.log("[Classify API] Only Model B succeeded. Using it directly.");
+          consensusText = textB;
+        }
+
+        if (consensusText) {
+          const parsedData = parseClassificationResponse(consensusText);
+          await logDiagnostic(parsedData);
+          return NextResponse.json({ success: true, result: parsedData });
+        }
+      } catch (orErr: any) {
+        console.error("[Classify API] OpenRouter flow threw general error:", orErr.message || orErr);
+      }
+      console.warn("[Classify API] OpenRouter flow failed or returned no response. Falling back to direct Gemini keys...");
+    }
+
+    // 2. Direct Gemini Fallback (Direct API rotation keys)
     const geminiKeys = getGeminiApiKeys();
     if (geminiKeys.length === 0) {
       return NextResponse.json({ error: 'Gemini API keys are not configured' }, { status: 500 });
     }
 
     const shuffledKeys = [...geminiKeys].sort(() => Math.random() - 0.5);
-
     let geminiSuccess = false;
     let responseText = '';
-    let usedKeyIndex = -1;
 
-    // Try each key in randomized order until one succeeds
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
       try {
@@ -416,9 +638,8 @@ Make this calculation 100% accurate and customized for their specific plant coun
           timeLimit
         );
 
-        // Model fallback: if gemini-3.1-flash-lite is temporarily unavailable (503/429), try gemini-2.5-flash on the same key
         if (!res.ok && (res.status === 503 || res.status === 429)) {
-          console.warn(`[Classify API] Gemini Key ${i} failed with status ${res.status} for gemini-3.1-flash-lite. Attempting fallback to gemini-2.5-flash...`);
+          console.warn(`[Classify API] Gemini Key ${i} failed. Trying fallback to gemini-2.5-flash...`);
           const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
           try {
             const fallbackRes = await httpsPostWithTimeout(
@@ -446,11 +667,8 @@ Make this calculation 100% accurate and customized for their specific plant coun
             );
             if (fallbackRes.ok) {
               res = fallbackRes;
-              console.log(`[Classify API] Gemini Key ${i} fallback successful with gemini-2.5-flash!`);
             }
-          } catch (fallbackErr: any) {
-            console.error(`[Classify API] Gemini Key ${i} fallback attempt threw error:`, fallbackErr.message);
-          }
+          } catch (fErr) {}
         }
 
         if (res.ok) {
@@ -459,57 +677,24 @@ Make this calculation 100% accurate and customized for their specific plant coun
           if (text) {
             responseText = text;
             geminiSuccess = true;
-            usedKeyIndex = i;
             break;
           }
-        } else {
-          console.warn(`Key ${i} returned status ${res.status}: ${res.text}`);
         }
       } catch (err: any) {
         console.error(`Error with Gemini Key ${i}:`, err.message || err);
       }
     }
 
-    // Logging helper for thesis diagnostic stats
-    const logDiagnostic = async (resObj: any) => {
-      if (resObj && resObj.is_valid && !resObj.need_clarification) {
-        try {
-          const forwarded = request.headers.get('x-forwarded-for');
-          const realIp = request.headers.get('x-real-ip');
-          const clientIp = forwarded ? forwarded.split(',')[0].trim() : (realIp || '127.0.0.1');
-
-          if (await isOwnerIp(clientIp)) {
-            console.log(`[Bypass Logging] Diagnostic log bypassed for owner IP: ${clientIp}`);
-            return;
-          }
-
-          await supabaseAdmin.from('diagnostic_logs').insert({
-            crop_name: resObj.crop || crop || (type === 'soil' ? 'মাটি (Soil)' : 'Unknown'),
-            disease_name: resObj.disease || (type === 'soil' ? resObj.soil_type : 'Healthy/Unknown'),
-            confidence: Number(resObj.confidence) || 0.85,
-            image_url: image,
-            location: location || 'ঢাকা',
-            created_at: new Date().toISOString()
-          });
-        } catch (dbErr) {
-          console.error("Failed to write diagnostic log to Supabase:", dbErr);
-        }
-      }
-    };
-
     if (!geminiSuccess) {
       console.warn("Gemini API call failed, generating highly authentic local database diagnosis fallback...");
       
-      // Look up selected crop
       const matchedCrop = CROPS.find(c => 
         c.name_bn === crop || 
         (c.name_en && crop && c.name_en.toLowerCase() === crop.toLowerCase())
       );
       
       if (matchedCrop && matchedCrop.diseases.length > 0) {
-        // Find first disease as primary diagnosis fallback
         const dis = matchedCrop.diseases[0];
-        
         const fallbackResult = {
           is_valid: true,
           error_message: null,
@@ -524,12 +709,10 @@ Make this calculation 100% accurate and customized for their specific plant coun
           preventive_measures: dis.prevention_bn || "১. সুস্থ রোগমুক্ত বীজ ব্যবহার করুন।",
           confidence: 0.9
         };
-        
         await logDiagnostic(fallbackResult);
         return NextResponse.json({ success: true, result: fallbackResult });
       }
       
-      // Fallback for soil classification
       if (type === 'soil') {
         const fallbackSoilResult = {
           is_valid: true,
@@ -549,7 +732,6 @@ Make this calculation 100% accurate and customized for their specific plant coun
         return NextResponse.json({ success: true, result: fallbackSoilResult });
       }
 
-      // Generic fallback if no crop matched or fallback failed
       const genericFallback = {
         is_valid: true,
         error_message: null,
@@ -557,7 +739,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
         questions: null,
         crop: crop || "ধান (Rice)",
         disease: "পাতা পোড়া রোগ (Leaf Blight)",
-        cause: "ব্যাকটেরিয়া বা ছত্রাক সংক্রমণ",
+        cause: "ব্যাকтериয়া বা ছত্রাক সংক্রমণ",
         symptoms: "১. পাতার কিনারা বরাবর বাদামী বা হলদে পোড়া দাগ দেখা যায়।\n২. রোগ বাড়লে পুরো পাতা শুকিয়ে শুকনা খড়ের মতো হয়ে যায়।",
         treatment_organic: "১. সুষম নাইট্রোজেন সার ব্যবহার করুন ও অতিরিক্ত ইউরিয়া ছিটানো বন্ধ রাখুন।\n২. জৈব ট্রাইকোডার্মা কম্পোস্ট সার মাটিতে প্রয়োগ করুন।",
         treatment_chemical: "১. অ্যামিস্টার টপ ৩২৫এসসি (১ মিলি প্রতি লিটার পানি) অথবা নাティブো ৭৫ডব্লিউজি (০.৬ গ্রাম প্রতি লিটার পানি) ১০ দিনের ব্যবধানে ২ বার স্প্রে করুন।",
@@ -570,7 +752,6 @@ Make this calculation 100% accurate and customized for their specific plant coun
     }
 
     const parsedData = parseClassificationResponse(responseText);
-
     await logDiagnostic(parsedData);
     return NextResponse.json({ success: true, result: parsedData });
   } catch (error: any) {

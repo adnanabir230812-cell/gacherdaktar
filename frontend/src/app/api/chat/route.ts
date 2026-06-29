@@ -422,8 +422,85 @@ ${context || 'No specific crop matching the query.'}
 
     const isImageQuery = !!image;
 
+    // 0. Try OpenRouter chat model if key is present
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    if (openrouterKey) {
+      console.log(`[Chat API] Routing to OpenRouter using model: google/gemini-2.5-flash`);
+      try {
+        const timeLimit = Math.min(directTimeoutMs, getRemainingTime(maxDurationMs));
+        
+        // Map history and prompt to OpenRouter format
+        const messages: any[] = [{ role: 'system', content: systemPrompt }];
+        if (history && Array.isArray(history)) {
+          history.forEach((turn: { sender: 'user' | 'bot'; text: string }) => {
+            messages.push({
+              role: turn.sender === 'user' ? 'user' : 'assistant',
+              content: turn.text
+            });
+          });
+        }
+        
+        // Handle optional image attachment in chat
+        if (image) {
+          let mime = "image/jpeg";
+          let base64 = image;
+          if (image.startsWith('data:')) {
+            const semiIndex = image.indexOf(';');
+            if (semiIndex !== -1) mime = image.substring(5, semiIndex);
+            const base64Index = image.indexOf(';base64,');
+            if (base64Index !== -1) base64 = image.substring(base64Index + 8);
+          }
+          messages.push({
+            role: 'user',
+            content: [
+              { type: 'text', text: userPrompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mime};base64,${base64}`
+                }
+              }
+            ]
+          });
+        } else {
+          messages.push({ role: 'user', content: userPrompt });
+        }
+
+        const res = await postWithTimeout(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openrouterKey}`,
+            'HTTP-Referer': 'https://gacherdoctor.site',
+            'X-Title': 'Gacher Doctor'
+          },
+          JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: messages,
+            response_format: { type: "json_object" }
+          }),
+          timeLimit
+        );
+
+        if (res.ok) {
+          const data = JSON.parse(res.text);
+          const text = data.choices?.[0]?.message?.content;
+          if (text) {
+            responseText = text;
+            llmSuccess = true;
+            usedLlmProvider = 'OpenRouter';
+          }
+        } else {
+          console.error(`OpenRouter chat API returned status ${res.status}: ${res.text}`);
+        }
+      } catch (err: any) {
+        console.error("OpenRouter chat API call failed:", err.message || err);
+      }
+    }
+
     // 1. Try direct Gemini API FIRST (much more reliable and has 5 rotation keys)
-    console.log(`[Chat API] Routing to direct Gemini API (Attempting gemini-3.1-flash-lite/gemini-2.5-flash)`);
+    if (!llmSuccess) {
+      console.log(`[Chat API] Routing to direct Gemini API (Attempting gemini-3.1-flash-lite/gemini-2.5-flash)`);
 
     for (let i = 0; i < shuffledKeys.length; i++) {
       const activeKey = shuffledKeys[i];
@@ -502,6 +579,7 @@ ${context || 'No specific crop matching the query.'}
         geminiError += `[Key ${i} error: ${err.message}] `;
         console.error(`Gemini API key ${i} call failed:`, err.message);
       }
+    }
     }
 
     // 2. Try MiMoAPI if direct Gemini failed/skipped (for text/voice queries)

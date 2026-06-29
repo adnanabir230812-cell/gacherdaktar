@@ -315,7 +315,11 @@ export default function LeafScanner() {
 
   // Scanner States
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [imgUrls, setImgUrls] = useState<string[]>([]);
+  const imgUrl = imgUrls[0] || null;
+  const removeImage = (index: number) => {
+    setImgUrls(prev => prev.filter((_, idx) => idx !== index));
+  };
   const [scanning, setScanning] = useState(false);
   const [scannerResult, setScannerResult] = useState<any | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -378,7 +382,7 @@ export default function LeafScanner() {
   // Webcam operations
   const startCamera = async () => {
     setCameraError(null);
-    setImgUrl(null);
+    setImgUrls([]);
     setScannerResult(null);
     setIsCameraActive(true);
     try {
@@ -416,10 +420,10 @@ export default function LeafScanner() {
         const dataUrl = canvas.toDataURL('image/jpeg');
         try {
           const compressed = await compressImage(dataUrl);
-          setImgUrl(compressed);
+          setImgUrls(prev => prev.length >= 5 ? prev : [...prev, compressed]);
         } catch (err) {
           console.error("Compression failed:", err);
-          setImgUrl(dataUrl);
+          setImgUrls(prev => prev.length >= 5 ? prev : [...prev, dataUrl]);
         }
         stopCamera();
       }
@@ -442,48 +446,53 @@ export default function LeafScanner() {
     e.stopPropagation();
     setIsDragging(false);
     
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          try {
-            const compressed = await compressImage(reader.result as string);
-            setImgUrl(compressed);
-          } catch (err) {
-            console.error("Drop compression failed:", err);
-            setImgUrl(reader.result as string);
-          }
-          setScannerResult(null);
-          stopCamera();
-        };
-        reader.readAsDataURL(file);
-      }
+    if (e.dataTransfer.files) {
+      Array.from(e.dataTransfer.files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const compressed = await compressImage(reader.result as string);
+              setImgUrls(prev => prev.length >= 5 ? prev : [...prev, compressed]);
+            } catch (err) {
+              console.error("Drop compression failed:", err);
+              setImgUrls(prev => prev.length >= 5 ? prev : [...prev, reader.result as string]);
+            }
+            setScannerResult(null);
+            stopCamera();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
     }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const compressed = await compressImage(reader.result as string);
-          setImgUrl(compressed);
-        } catch (err) {
-          console.error("Upload compression failed:", err);
-          setImgUrl(reader.result as string);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const compressed = await compressImage(reader.result as string);
+              setImgUrls(prev => prev.length >= 5 ? prev : [...prev, compressed]);
+            } catch (err) {
+              console.error("Upload compression failed:", err);
+              setImgUrls(prev => prev.length >= 5 ? prev : [...prev, reader.result as string]);
+            }
+            setScannerResult(null);
+            stopCamera();
+          };
+          reader.readAsDataURL(file);
         }
-        setScannerResult(null);
-        stopCamera();
-      };
-      reader.readAsDataURL(file);
+      });
     }
   };
 
   // Remove current image/reset
   const clearImage = () => {
-    setImgUrl(null);
+    setImgUrls([]);
     setScannerResult(null);
     setClarifyingQuestions(null);
     setAnswers({});
@@ -495,7 +504,7 @@ export default function LeafScanner() {
   };
 
   const runClassification = async (userAnswers: Record<string, string> = {}) => {
-    if (!imgUrl) return;
+    if (imgUrls.length === 0) return;
     setScanning(true);
     
     // Only clear result if not submitting clarifications
@@ -512,7 +521,8 @@ export default function LeafScanner() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          image: imgUrl,
+          image: imgUrls[0],
+          images: imgUrls,
           location: localStorage.getItem("krishisathi_user_district") || "ঢাকা",
           answers: userAnswers,
           crop: selectedCrop,
@@ -862,37 +872,48 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
             )}
 
             {/* Selected/Captured Image Preview with Scanning overlay & delete button */}
-            {imgUrl && (
-              <div className="w-full h-full relative flex flex-col items-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src={imgUrl} 
-                  alt="Captured Plant Preview" 
-                  className="w-full max-h-[420px] rounded-2xl object-contain bg-[#122e1b]/5 border border-green-primary/10"
-                />
-                
-                {/* Easy Delete Overlay Button */}
-                {!scanning && (
-                  <button
-                    type="button"
-                    onClick={clearImage}
-                    className="absolute top-3 right-3 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-all active:scale-90 cursor-pointer"
-                    title="ছবি মুছে ফেলুন"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                )}
-
-                {/* Glowing Laser Scan animation */}
-                {scanning && (
-                  <div className="absolute inset-0 bg-green-primary/5 rounded-2xl overflow-hidden">
-                    <div className="absolute left-0 right-0 h-1 bg-green-500 shadow-[0_0_15px_#22c55e] scanner-laser" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white text-xs font-bold gap-3">
-                      <Cpu className="w-8 h-8 animate-spin text-green-400" />
-                      <span className="text-sm font-extrabold tracking-wide">গাছের ডাক্তার রোগ খুঁজছেন...</span>
+            {imgUrls.length > 0 && (
+              <div className="w-full h-full relative flex flex-col items-center gap-4">
+                {/* Previews for Multiple Images */}
+                <div className="flex flex-wrap gap-2 justify-center w-full">
+                  {imgUrls.map((url, idx) => (
+                    <div key={idx} className="relative w-16 h-16 border-2 border-green-primary/20 rounded-xl overflow-hidden shadow-sm group">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                      {!scanning && (
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-0.5 right-0.5 p-0.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow transition-all scale-90 active:scale-75 cursor-pointer"
+                          title="ছবি মুছে ফেলুন"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
+                
+                {/* Large Main Preview */}
+                <div className="relative w-full flex justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={imgUrls[0]} 
+                    alt="Captured Plant Preview" 
+                    className="w-full max-h-[350px] rounded-2xl object-contain bg-[#122e1b]/5 border border-green-primary/10"
+                  />
+                  
+                  {/* Glowing Laser Scan animation */}
+                  {scanning && (
+                    <div className="absolute inset-0 bg-green-primary/5 rounded-2xl overflow-hidden">
+                      <div className="absolute left-0 right-0 h-1 bg-green-500 shadow-[0_0_15px_#22c55e] scanner-laser" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white text-xs font-bold gap-3">
+                        <Cpu className="w-8 h-8 animate-spin text-green-400" />
+                        <span className="text-sm font-extrabold tracking-wide">গাছের ডাক্তার রোগ খুঁজছেন...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -938,6 +959,7 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
               ref={fileInputRef} 
               type="file" 
               accept="image/*" 
+              multiple
               onChange={handleFileUpload} 
               className="hidden" 
             />
