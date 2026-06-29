@@ -94,6 +94,16 @@ function parseClassificationResponse(text: string): any {
   try {
     const parsed = JSON.parse(cleaned);
     if (parsed && typeof parsed === 'object') {
+      if (parsed.confidence !== undefined) {
+        let conf = parsed.confidence;
+        if (typeof conf === 'string') {
+          conf = conf.replace(/%/g, '').trim();
+          parsed.confidence = parseFloat(conf);
+        }
+        if (parsed.confidence > 1.0) {
+          parsed.confidence = parsed.confidence / 100.0;
+        }
+      }
       return parsed;
     }
   } catch (e) {
@@ -123,8 +133,15 @@ function parseClassificationResponse(text: string): any {
   };
 
   const extractFieldFloat = (field: string, defaultVal: number): number => {
-    const match = cleaned.match(new RegExp(`"${field}"\\s*:\\s*([0-9.]+)`));
-    return match ? parseFloat(match[1]) : defaultVal;
+    const match = cleaned.match(new RegExp(`"${field}"\\s*:\\s*"?([0-9.]+)`));
+    if (match) {
+      let val = parseFloat(match[1]);
+      if (val > 1.0) {
+        val = val / 100.0;
+      }
+      return val;
+    }
+    return defaultVal;
   };
 
   const extractFieldArray = (field: string): any[] | null => {
@@ -293,7 +310,7 @@ JSON Schema:
 `;
 
   const payload = {
-    model: "openai/gpt-4o-mini",
+    model: "google/gemini-2.5-flash",
     messages: [
       {
         role: "user",
@@ -544,7 +561,7 @@ Make this calculation 100% accurate and customized for their specific plant coun
         
         // Execute Model A (Gemini 1.5 Pro) and Model B (GPT-4o mini) in parallel
         const [resA, resB] = await Promise.allSettled([
-          postOpenRouter('google/gemini-1.5-pro', activePrompt, resolvedImages, openrouterKey, timeLimit),
+          postOpenRouter('google/gemini-pro-1.5', activePrompt, resolvedImages, openrouterKey, timeLimit),
           postOpenRouter('openai/gpt-4o-mini', activePrompt, resolvedImages, openrouterKey, timeLimit)
         ]);
 
