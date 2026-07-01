@@ -369,7 +369,19 @@ export default function SeedCalculator() {
         body: JSON.stringify({
           query: userMessageText,
           history: hiddenHistory,
-          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা"
+          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা",
+          context: {
+            type: 'seeds',
+            data: {
+              crop: result.cropName,
+              variety: result.cropName,
+              land_size: landSize,
+              land_unit: landUnit === 'bigha' ? 'বিঘা' : landUnit === 'decimal' ? 'শতক' : 'একর',
+              seed_needed: formatSeedWeight(result.totalSeedWeight),
+              spacing: result.spacing,
+              planting_tips: `গভীরতা: ${result.depth}, পদ্ধতি: ${result.method}, বীজ শোধন: ${result.treatment}`
+            }
+          }
         })
       });
 

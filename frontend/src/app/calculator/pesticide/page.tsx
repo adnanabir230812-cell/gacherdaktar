@@ -325,7 +325,20 @@ export default function PesticideCalculator() {
         body: JSON.stringify({
           query: userMessageText,
           history: hiddenHistory,
-          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা"
+          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা",
+          context: {
+            type: 'pesticide',
+            data: {
+              crop: currentCropName,
+              target: pesticideClass,
+              brand: pesticideForm === 'liquid' ? 'তরল বালাইনাশক' : 'পাউডার বালাইনাশক',
+              dose_per_liter: `${result.teaspoonsPerTank} চা চামচ প্রতি ${tankSize} লিটার পানিতে`,
+              water_needed_liters: result.totalWaterNeeded,
+              pesticide_needed_grams: `${result.totalTeaspoons} চা চামচ`,
+              mixing_instruction: `প্রতি ট্যাংকে ${result.teaspoonsPerTank} চা চামচ ওষুধ মিশিয়ে মোট ${result.tanksNeeded} ড্রাম স্প্রে করতে হবে।`,
+              precautions: "মুখ ও চোখ ঢেকে স্প্রে করবেন, বিকেলের মিষ্টি রোদে স্প্রে করতে হবে, ছিটানোর ১৪ দিন পর ফসল সংগ্রহ করতে হবে।"
+            }
+          }
         })
       });
 

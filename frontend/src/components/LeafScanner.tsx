@@ -526,9 +526,8 @@ export default function LeafScanner() {
           location: localStorage.getItem("krishisathi_user_district") || "ঢাকা",
           answers: userAnswers,
           crop: selectedCrop,
-          landSize: isFieldCrop(selectedCrop) ? landSize : undefined,
-          landUnit: isFieldCrop(selectedCrop) ? landUnit : undefined,
-          plantCount: !isFieldCrop(selectedCrop) ? plantCount : undefined
+          landSize: landSize ? parseFloat(landSize) : undefined,
+          landUnit: landUnit
         })
       });
       const data = await response.json();
@@ -612,7 +611,11 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
         body: JSON.stringify({
           query: userMessageText,
           history: hiddenHistory,
-          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা"
+          district: localStorage.getItem("krishisathi_user_district") || "ঢাকা",
+          context: {
+            type: 'disease',
+            data: scannerResult
+          }
         })
       });
 
@@ -770,53 +773,39 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
           {/* Dynamic Land Size or Plant Count Inputs based on Crop Type */}
           {selectedCrop && (
             <div className="p-4 bg-green-primary/5 border border-green-primary/10 rounded-2xl space-y-3 shadow-sm my-3">
-              {isFieldCrop(selectedCrop) ? (
-                <div className="space-y-2">
-                  <label className="block text-xs md:text-sm font-black text-text-primary">
-                    আপনার চাষকৃত মোট জমির পরিমাণ লিখুন (শতক/বিঘা/একর):
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="number"
-                      value={landSize}
-                      onChange={(e) => setLandSize(e.target.value)}
-                      placeholder="যেমন: ৫"
-                      min="0"
-                      step="any"
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
-                    />
-                    <select
-                      value={landUnit}
-                      onChange={(e) => setLandUnit(e.target.value)}
-                      className="px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm cursor-pointer"
-                    >
-                      <option value="শতক">শতক (Decimal)</option>
-                      <option value="বিঘা">বিঘা (Bigha)</option>
-                      <option value="একর">একর (Acre)</option>
-                    </select>
-                  </div>
-                  <p className="text-[10px] text-text-secondary/70 font-semibold">
-                    * আপনার জমির সঠিক মাপ দিলে গাছের ডাক্তার শতভাগ নির্ভুলভাবে ওষুধের মোট ডোজ হিসাব করে দেবে।
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <label className="block text-xs md:text-sm font-black text-text-primary">
-                    আপনার আক্রান্ত মোট গাছের/চারার সংখ্যা কতটি?
-                  </label>
+              <div className="space-y-2">
+                <label className="block text-xs md:text-sm font-black text-text-primary">
+                  {landUnit === 'টি' 
+                    ? 'আপনার মোট গাছ বা চারার সংখ্যা লিখুন (যেমন: ৫):' 
+                    : 'আপনার চাষকৃত মোট জমির পরিমাণ লিখুন (শতক/বিঘা/একর):'}
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="number"
-                    value={plantCount}
-                    onChange={(e) => setPlantCount(e.target.value)}
-                    placeholder="যেমন: ১০"
+                    value={landSize}
+                    onChange={(e) => setLandSize(e.target.value)}
+                    placeholder={landUnit === 'টি' ? 'যেমন: ৫' : 'যেমন: ১০'}
                     min="0"
-                    className="w-full px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
+                    step="any"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm"
                   />
-                  <p className="text-[10px] text-text-secondary/70 font-semibold">
-                    * আক্রান্ত গাছের সঠিক সংখ্যা দিলে গাছের ডাক্তার প্রতিটি গাছের সঠিক অনুপাত হিসাব করে মোট ওষুধ ও পানির ডোজ বাতলে দেবে।
-                  </p>
+                  <select
+                    value={landUnit}
+                    onChange={(e) => setLandUnit(e.target.value)}
+                    className="px-4 py-2.5 rounded-xl border border-green-primary/20 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-green-primary font-bold text-xs md:text-sm shadow-sm cursor-pointer"
+                  >
+                    <option value="শতক">শতক (Decimal)</option>
+                    <option value="বিঘা">বিঘা (Bigha)</option>
+                    <option value="একর">একর (Acre)</option>
+                    <option value="টি">টি (Plants)</option>
+                  </select>
                 </div>
-              )}
+                <p className="text-[10px] text-text-secondary/70 font-semibold">
+                  {landUnit === 'টি' 
+                    ? '* আক্রান্ত গাছের সঠিক সংখ্যা দিলে গাছের ডাক্তার প্রতিটি গাছের সঠিক অনুপাত হিসাব করে মোট ওষুধ ও পানির ডোজ বাতলে দেবে।'
+                    : '* আপনার জমির সঠিক মাপ দিলে গাছের ডাক্তার শতভাগ নির্ভুলভাবে ওষুধের মোট ডোজ হিসাব করে দেবে।'}
+                </p>
+              </div>
             </div>
           )}
 

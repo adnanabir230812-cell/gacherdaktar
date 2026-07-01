@@ -279,7 +279,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { query, history = [], district, season, image } = await request.json();
+    const { query, history = [], district, season, image, context: clientContext } = await request.json();
 
     let actualSeason = season;
     if (!season || season === 'বোরো') {
@@ -315,9 +315,62 @@ export async function POST(request: Request) {
 
     const { context, sources: dbSources } = retrieveLocalContext(query);
 
+    let finalContext = context;
+    if (clientContext && clientContext.data) {
+      if (clientContext.type === 'disease') {
+        const d = clientContext.data;
+        finalContext = `কৃষকের রোগ নির্ণয় রিপোর্ট (Diagnostic Report Context):
+- ফসল: ${d.crop}
+- রোগ: ${d.disease}
+- কারণ: ${d.cause}
+- লক্ষণ: ${Array.isArray(d.symptoms) ? d.symptoms.join('\n') : d.symptoms}
+- জৈবিক সমাধান: ${Array.isArray(d.treatment_organic) ? d.treatment_organic.join('\n') : d.treatment_organic}
+- রাসায়নিক সমাধান: ${Array.isArray(d.treatment_chemical) ? d.treatment_chemical.join('\n') : d.treatment_chemical}
+- প্রতিরোধমূলক ব্যবস্থা: ${Array.isArray(d.preventive_measures) ? d.preventive_measures.join('\n') : d.preventive_measures}
+
+${context || ''}`;
+      } else if (clientContext.type === 'soil') {
+        const d = clientContext.data;
+        finalContext = `কৃষকের মাটির পিএইচ (Soil pH) পরীক্ষা রিপোর্ট (Soil Analysis Context):
+- মাটির অম্লত্ব/ক্ষারত্ব টাইপ: ${d.soil_type}
+- পিএইচ মান (pH Value): ${d.ph}
+- সমস্যা: ${d.problem_statement}
+- সমাধানের উপায় (জৈবিক ও রাসায়নিক): ${Array.isArray(d.remedies) ? d.remedies.join('\n') : d.remedies}
+- প্রয়োজনীয় উপাদান/সার: ${Array.isArray(d.requirements) ? d.requirements.join('\n') : d.requirements}
+
+${context || ''}`;
+      } else if (clientContext.type === 'pesticide') {
+        const d = clientContext.data;
+        finalContext = `কৃষকের বালাইনাশক (Pesticide) ডোজ ক্যালকুলেশন রিপোর্ট (Pesticide Calculation Context):
+- ফসল: ${d.crop}
+- পোকামাকড়/রোগ: ${d.target}
+- প্রস্তাবিত বালাইনাশক ব্র্যান্ড: ${d.brand}
+- প্রতি লিটার পানিতে ডোজ: ${d.dose_per_liter}
+- মোট পানির পরিমাণ: ${d.water_needed_liters} লিটার
+- মোট বালাইনাশকের পরিমাণ: ${d.pesticide_needed_grams}
+- ব্যবহারের নিয়ম: ${d.mixing_instruction}
+- সতর্কতা: ${d.precautions}
+
+${context || ''}`;
+      } else if (clientContext.type === 'seeds') {
+        const d = clientContext.data;
+        finalContext = `কৃষকের বীজ ও চারা (Seed Calculation) ক্যালকুলেশন রিপোর্ট (Seed Calculation Context):
+- ফসল: ${d.crop}
+- জাত: ${d.variety}
+- চাষের জমি: ${d.land_size} ${d.land_unit}
+- প্রয়োজনীয় বীজের পরিমাণ: ${d.seed_needed}
+- চারা রোপণের দূরত্ব: ${d.spacing}
+- রোপণ পদ্ধতি ও টিপস: ${d.planting_tips}
+
+${context || ''}`;
+      }
+    }
+
     const systemPrompt = `
 You are "গাছের ডাক্তার" (Gacher Doctor), a friendly, respectful, and highly experienced crop physician, master gardener, and agricultural expert in Bangladesh. 
 Your goal is to help local farmers solve crop cultivation, fertilizer, pest, disease, and weather problems.
+
+If a recent diagnosis or calculation context is provided (under 'Diagnostic Report Context', 'Soil Analysis Context', 'Pesticide Calculation Context', or 'Seed Calculation Context'), you must treat it as the active case that you just solved. Adopt the identity of the doctor who made this prescription and answer any follow-up questions about it contextually.
 
 IMPORTANT: Do NOT refer to yourself as an AI, chatbot, or assistant. Speak as a wise, caring agricultural doctor or expert who is explaining things in a friendly, handbook-style, educational tone. Address the farmer with warmth and respect as "প্রিয় কৃষক ভাই".
 
@@ -364,11 +417,11 @@ JSON Schema:
 
     const userPrompt = `
 চাষীর প্রশ্ন: "${query}"
-${district ? `বর্তমান জেলা: ${district}` : 'বর্তমান জেলা: অনির্দিষ্ট (কৃষক তার জেলা উল্লেখ করেননি, সাধারণ সমাধান দিন। কিন্তু যদি মাটি বা জেলা-নির্দিষ্ট আবহাওয়া ও ফসল নির্বাচনের মতো কোনো লোকেশন-নির্ভর সমস্যা হয়, তবে উত্তর লেখার শেষভাগে সুন্দর করে কৃষকের কাছে তার জেলা জানতে চেয়ে প্রশ্ন করবেন)'}
-${actualSeason ? `ঋতু/মৌসুম: ${actualSeason}` : 'ঋতু/মৌসুম: অনির্দিষ্ট (কৃষক তার চাষের নির্দিষ্ট ঋতু/মৌসুম উল্লেখ করেননি, সাধারণ সমাধান দিন যা সব মৌসুমের জন্য প্রযোজ্য। কিন্তু যদি উত্তরটি নির্দিষ্ট ঋতুর ওপর বেশি নির্ভরশীল হয়, তবে উত্তরের শেষভাগে সুন্দর করে কৃষকের কাছে তার ঋতু জানতে চেয়ে প্রশ্ন করবেন)'}
+${district ? `বর্তমান জেলা: ${district}` : 'বর্তমান জেলা: অনির্দিষ্ট'}
+${actualSeason ? `ঋতু/মৌসুম: ${actualSeason}` : 'ঋতু/মৌসুম: অনির্দিষ্ট'}
 
 কৃষি সম্পর্কিত তথ্য (Context):
-${context || 'No specific crop matching the query.'}
+${finalContext || 'No specific crop matching the query.'}
 `;
 
     // Map history to Gemini API format

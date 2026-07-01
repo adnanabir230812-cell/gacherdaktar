@@ -435,7 +435,17 @@ ${Array.isArray(scannerResult.preventive_measures) ? scannerResult.preventive_me
         body: JSON.stringify({
           query: userMessageText,
           history: hiddenHistory,
-          district: location || "ঢাকা"
+          district: location || "ঢাকা",
+          context: {
+            type: 'soil',
+            data: {
+              soil_type: scannerResult.soil_type,
+              ph: scannerResult.estimated_ph,
+              problem_statement: `${scannerResult.soil_type} (pH: ${scannerResult.estimated_ph})`,
+              remedies: scannerResult.chemical_advice,
+              requirements: scannerResult.organic_advice
+            }
+          }
         })
       });
 

@@ -571,6 +571,7 @@ Critical Pre-check:
 3. If confident, set "need_clarification" to false, set "questions" to null, and identify the crop and disease.
    - In "disease", provide the local colloquial Bangla name and English/scientific name in parentheses (e.g. ধানের ব্লাস্ট রোগ (Rice Blast)).
    - In "cause", provide the scientific cause/pathogen name in simple Bengali.
+   - In "symptoms_observed", describe in detail but concisely only the exact symptoms visible in the provided image (e.g., specific spots, colors, shape of lesions, or wilting pattern).
 
 Return ONLY a JSON matching this schema:
 {
@@ -581,6 +582,7 @@ Return ONLY a JSON matching this schema:
   "crop": "...",
   "disease": "...",
   "cause": "...",
+  "symptoms_observed": "...",
   "confidence": 0.95
 }
 `;
@@ -616,6 +618,12 @@ Return ONLY a JSON matching this schema:
           return NextResponse.json({ success: true, result: parsedA });
         }
 
+        // Determine actual land size/plant count representation
+        const actualLandSize = landSize || 'N/A';
+        const isPlantCount = landUnit === 'টি';
+        const plantCountText = isPlantCount ? `${actualLandSize}টি গাছ/চারা` : (plantCount ? `${plantCount}টি` : 'N/A');
+        const landSizeText = isPlantCount ? 'N/A' : `${actualLandSize} ${landUnit}`;
+
         // Prompt for Phase 2 (Text Report Generation)
         const textPrompt = `
 You are "গাছের ডাক্তার" (Gacher Doctor), a highly experienced crop pathologist and master gardener in Bangladesh.
@@ -623,21 +631,23 @@ Generate a detailed agricultural prescription report in Bengali for:
 - Crop: ${parsedA.crop}
 - Identified Disease/Issue: ${parsedA.disease}
 - Pathogen/Cause: ${parsedA.cause}
-- Cultivated Land Size: ${landSize ? `${landSize} ${landUnit}` : 'N/A'}
-- Affected Plant Count: ${plantCount ? `${plantCount}টি` : 'N/A'}
+- Cultivated Land Size: ${landSizeText}
+- Affected Plant Count: ${plantCountText}
 - Location: ${location || 'ঢাকা'}
 - User's Answers to Clarifying Questions: ${answers ? JSON.stringify(answers) : 'None'}
 
 Instructions:
-1. Provide extremely detailed, section-by-section solutions in warm, friendly, natural Bangla (colloquial Bangladeshi farming dialect).
-2. **Symptoms**: List major visible symptoms in bullet points. If applicable, add a "পার্থক্যকারী লক্ষণ" (Differential Diagnosis) explaining how to distinguish it from similar diseases of the same crop.
-3. **Organic Treatment**: Provide detailed organic/natural methods. If a plot size of ${landSize ? `${landSize} ${landUnit}` : 'N/A'} or plant count of ${plantCount ? `${plantCount}টি` : 'N/A'} is provided, calculate the total required natural materials/organic doses explicitly for their whole plot/plant count!
-4. **Chemical Treatment**: Suggest ONLY 100% authentic, registered chemical pesticides/fungicides commonly used in Bangladesh (e.g. Nativo 75WG at 0.6g/L, Amistar Top 325SC at 1ml/L, Virtako 40WG at 0.15g/L, Sobicron 425EC at 2ml/L).
-   - Crucial Calculation: You MUST calculate the EXACT total dosage of pesticide and water needed for the user's specific plot size/plant count!
-     For example: "আপনার মোট ৭ শতক জমির জন্য প্রায় ১৪ লিটার পানি লাগবে। প্রতি লিটার পানিতে ০.৬ গ্রাম হিসেবে ১৪ লিটারে মোট ৮.৪ গ্রাম নাティブো ওষুধ ভালোভাবে মিশিয়ে স্প্রে করুন।"
+1. Speak in warm, respectful, natural Bangla (colloquial Bangladeshi farming dialect).
+2. **DO NOT write any greetings, introductions, or conversational fillers** (such as "আস্তে ভাই, কেমন আছেন?", "প্রিয় কৃষক ভাই, আশা করি ভালো আছেন") at the beginning of any JSON values. Start directly with the descriptions.
+3. **Symptoms**: Write the symptoms section based strictly on the symptoms observed in the image: "${parsedA.symptoms_observed}". Describe these visual symptoms in concise bullet points. Add a "পার্থক্যকারী লক্ষণ" (Differential Diagnosis) comparing it with other common diseases of the same crop.
+4. **Organic Treatment**: Provide detailed organic/natural methods. Make sure the dosage/amount of organic materials is calculated explicitly for their land size (${landSizeText}) or plant count (${plantCountText}).
+5. **Chemical Treatment**: Suggest ONLY 100% authentic, registered chemical pesticides/fungicides commonly used in Bangladesh (e.g. Nativo 75WG at 0.6g/L, Amistar Top 325SC at 1ml/L, Virtako 40WG at 0.15g/L, Sobicron 425EC at 2ml/L).
+   - Crucial Calculation: Calculate the EXACT total dosage of pesticide and water needed for the user's specific land size (${landSizeText}) or plant count (${plantCountText})!
+     - If calculating for land size (e.g. 7 decimals): assume 2 Liters of water per decimal. Thus, 14 Liters of water is needed, requiring (14 * 0.6g/L) = 8.4g of Nativo.
+     - If calculating for plant count (e.g. 5 plants/pots): assume approximately 0.2 to 0.4 Liters of spray solution per plant (depending on crop type). Explain this assumption clearly. E.g. "আপনার ৫টি গাছের জন্য প্রায় ২ লিটার পানির স্প্রে মিশ্রণ প্রয়োজন। প্রতি লিটার পানিতে ০.৬ গ্রাম হিসেবে ২ লিটার পানিতে মোট ১.২ গ্রাম নাটিভো ওষুধ মিশিয়ে স্প্রে করুন।"
    - Detail WHY this chemical is needed, HOW to mix and apply step-by-step, and PRECAUTIONS (e.g. wearing mask, wait 14 days before harvest).
-5. **Preventive Measures**: Detailed long-term guidelines (bullet points).
-6. **Dosage formatting**: Convert all decimal kilograms to grams (e.g. use "৮.৪ গ্রাম" instead of "0.0084 kg").
+6. **Preventive Measures**: Detailed long-term guidelines (bullet points).
+7. **Dosage formatting**: Convert all decimal kilograms to grams (e.g. use "৮.৪ গ্রাম" instead of "0.0084 kg").
 
 Return ONLY a JSON matching this schema:
 {
