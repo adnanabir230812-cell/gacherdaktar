@@ -89,6 +89,34 @@ function cleanJSONString(str: string): string {
   return cleaned.trim();
 }
 
+function stringifyIfObject(val: any): string {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(item => typeof item === 'string' ? item : JSON.stringify(item)).join('\n');
+  }
+  if (typeof val === 'object') {
+    let result = '';
+    if (val.heading) result += `**${val.heading}**\n\n`;
+    if (val.introduction) result += `${val.introduction}\n\n`;
+    const details = val.details || val.measures || val.organic || val.chemical || val.symptoms;
+    if (details) {
+      if (Array.isArray(details)) {
+        result += details.map(item => `* ${item}`).join('\n');
+      } else {
+        result += `${details}`;
+      }
+    } else {
+      result += Object.entries(val)
+        .filter(([k]) => k !== 'heading' && k !== 'introduction')
+        .map(([k, v]) => `* **${k}**: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+        .join('\n');
+    }
+    return result.trim();
+  }
+  return String(val);
+}
+
 function parseClassificationResponse(text: string): any {
   const cleaned = cleanJSONString(text);
   try {
@@ -728,10 +756,10 @@ Return ONLY a JSON matching this schema:
           crop: parsedA.crop,
           disease: parsedA.disease,
           cause: parsedA.cause,
-          symptoms: parsedB.symptoms,
-          treatment_organic: parsedB.treatment_organic,
-          treatment_chemical: parsedB.treatment_chemical,
-          preventive_measures: parsedB.preventive_measures,
+          symptoms: stringifyIfObject(parsedB.symptoms),
+          treatment_organic: stringifyIfObject(parsedB.treatment_organic),
+          treatment_chemical: stringifyIfObject(parsedB.treatment_chemical),
+          preventive_measures: stringifyIfObject(parsedB.preventive_measures),
           confidence: parsedA.confidence
         };
 
