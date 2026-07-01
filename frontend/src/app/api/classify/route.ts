@@ -92,25 +92,62 @@ function cleanJSONString(str: string): string {
 function stringifyIfObject(val: any): string {
   if (val === null || val === undefined) return '';
   if (typeof val === 'string') return val;
+  
   if (Array.isArray(val)) {
-    return val.map(item => typeof item === 'string' ? item : JSON.stringify(item)).join('\n');
+    return val.map(item => {
+      if (typeof item === 'string') return item;
+      if (typeof item === 'object' && item !== null) {
+        if (item.disease || item.distinguishing_feature) {
+          const d = item.disease || 'অন্যান্য রোগ';
+          const f = item.distinguishing_feature || '';
+          return `**${d}**: ${f}`;
+        }
+        return Object.entries(item)
+          .map(([k, v]) => `**${k}**: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+          .join(', ');
+      }
+      return String(item);
+    }).map(item => `* ${item}`).join('\n');
   }
+  
   if (typeof val === 'object') {
     let result = '';
-    if (val.heading) result += `**${val.heading}**\n\n`;
+    if (val.heading) result += `### ${val.heading}\n\n`;
     if (val.introduction) result += `${val.introduction}\n\n`;
-    const details = val.details || val.measures || val.organic || val.chemical || val.symptoms;
-    if (details) {
-      if (Array.isArray(details)) {
-        result += details.map(item => `* ${item}`).join('\n');
+    
+    const keys = Object.keys(val);
+    for (const key of keys) {
+      if (key === 'heading' || key === 'introduction') continue;
+      const subVal = val[key];
+      
+      let displayKey = key;
+      if (key === 'observed_symptoms' || key === 'symptoms') displayKey = 'চিহ্নিত লক্ষণসমূহ';
+      if (key === 'differential_diagnosis' || key === 'differential' || key === 'diagnosis') displayKey = 'পার্থক্যকারী লক্ষণ';
+      if (key === 'organic_treatment') displayKey = 'জৈবিক সমাধান';
+      if (key === 'chemical_treatment') displayKey = 'রাসায়নিক সমাধান';
+      
+      result += `\n**${displayKey}:**\n`;
+      
+      if (Array.isArray(subVal)) {
+        result += subVal.map(item => {
+          if (typeof item === 'string') return `* ${item}`;
+          if (typeof item === 'object' && item !== null) {
+            if (item.disease || item.distinguishing_feature) {
+              const d = item.disease || 'অন্যান্য রোগ';
+              const f = item.distinguishing_feature || '';
+              return `* **${d}**: ${f}`;
+            }
+            return `* ` + Object.entries(item)
+              .map(([k, v]) => `**${k}**: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+              .join(', ');
+          }
+          return `* ${String(item)}`;
+        }).join('\n') + '\n';
+      } else if (typeof subVal === 'object' && subVal !== null) {
+        result += stringifyIfObject(subVal) + '\n';
       } else {
-        result += `${details}`;
+        result += `${subVal}\n`;
       }
-    } else {
-      result += Object.entries(val)
-        .filter(([k]) => k !== 'heading' && k !== 'introduction')
-        .map(([k, v]) => `* **${k}**: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
-        .join('\n');
     }
     return result.trim();
   }
@@ -677,12 +714,12 @@ Instructions:
 6. **Preventive Measures**: Detailed long-term guidelines (bullet points).
 7. **Dosage formatting**: Convert all decimal kilograms to grams (e.g. use "৮.৪ গ্রাম" instead of "0.0084 kg").
 
-Return ONLY a JSON matching this schema:
+Return ONLY a JSON matching this schema. All values MUST be plain string fields. Under NO circumstances should any value be a nested JSON object or array. All bullet points must be standard markdown asterisks (*):
 {
-  "symptoms": "...",
-  "treatment_organic": "...",
-  "treatment_chemical": "...",
-  "preventive_measures": "..."
+  "symptoms": "Plain string with bullet points detailing symptoms and the '**পার্থক্যকারী লক্ষণ:**' section",
+  "treatment_organic": "Plain string with organic treatments",
+  "treatment_chemical": "Plain string with chemical treatments",
+  "preventive_measures": "Plain string with preventive measures"
 }
 `;
 
